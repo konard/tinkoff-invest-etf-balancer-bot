@@ -6,10 +6,11 @@ import _ from 'lodash';
 import uniqid from 'uniqid';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
-import { DESIRED_WALLET, BALANCE_INTERVAL, SLEEP_BETWEEN_ORDERS } from '../config';
+import { DESIRED_WALLET, BALANCE_INTERVAL, SLEEP_BETWEEN_ORDERS, DESIRED_MODE } from '../config';
 import { Wallet, Position } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { balancer } from '../balancer';
+import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
 
 (global as any).INSTRUMENTS = [];
 (global as any).POSITIONS = [];
@@ -279,7 +280,8 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
 
       debug(coreWallet);
 
-      await balancer(coreWallet, DESIRED_WALLET);
+      const desiredForRun = await buildDesiredWalletByMode(DESIRED_MODE, DESIRED_WALLET);
+      await balancer(coreWallet, desiredForRun);
       debug(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
       count++;
 

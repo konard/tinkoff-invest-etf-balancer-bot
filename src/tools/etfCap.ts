@@ -87,7 +87,7 @@ const extractStatisticsTableHtml = (html: string): string | null => {
   return tables[0] || null;
 };
 
-type AumEntry = { amount: number; currency: 'RUB' | 'USD' | 'EUR' };
+export type AumEntry = { amount: number; currency: 'RUB' | 'USD' | 'EUR' };
 
 const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Record<string, AumEntry> => {
   const result: Record<string, AumEntry> = {};
@@ -190,7 +190,7 @@ const findAumForTickerByName = (html: string, normalizedTicker: string): AumEntr
   return undefined;
 };
 
-const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Record<string, AumEntry>> => {
+export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Record<string, AumEntry>> => {
   // Пытаемся сначала через авто-сопоставление тикеров, затем через паттерны имен
   try {
     const html: string = await fetchStatisticsHtml();
@@ -207,7 +207,7 @@ const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Record<str
   }
 };
 
-const getFxRateToRub = async (currency: 'RUB' | 'USD' | 'EUR'): Promise<number> => {
+export const getFxRateToRub = async (currency: 'RUB' | 'USD' | 'EUR'): Promise<number> => {
   if (currency === 'RUB') return 1;
   const { instruments, marketData } = createSdk(process.env.TOKEN || '');
   const resp = await instruments.currencies({});
@@ -360,6 +360,12 @@ const main = async () => {
   );
 };
 
-main();
+// Run only when executed directly, not when imported as a module
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isMain = (require as any)?.main === module;
+if (isMain) {
+  // eslint-disable-next-line @typescript-eslint/no-floating-promises
+  main();
+}
 
 
