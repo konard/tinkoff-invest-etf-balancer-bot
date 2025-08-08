@@ -201,17 +201,24 @@ async function openAndScrapeNews(browser: Browser, url: string): Promise<{ id: s
   }
 }
 
-async function run(): Promise<void> {
+type ScrapeOptions = {
+  limitAll: number | null;
+  firstRunLimit: number | null;
+};
+
+async function runSingleScrape(symbol: string, opts: ScrapeOptions): Promise<void> {
   const argv = process.argv.slice(2);
-  const symbol = (argv[0] || DEFAULT_SYMBOL).toUpperCase();
-  // Flags: --first-limit=N or positional second arg as number
-  let firstRunLimit: number | null = null;
+  // symbol is already provided
+  // Flags: --limit=N (всегда), --first-limit=N (только первый запуск), позиционное число трактуем как --limit
+  let limitAll: number | null = opts.limitAll;
+  let firstRunLimit: number | null = opts.firstRunLimit;
   for (const arg of argv.slice(1)) {
-    const m = arg.match(/^--(?:first-limit|limit|n)=(\d+)$/);
+    const m = arg.match(/^--(?:(first-limit)|(limit|n))=(\d+)$/);
     if (m) {
-      firstRunLimit = parseInt(m[1], 10);
+      const value = parseInt(m[3], 10);
+      if (m[1]) firstRunLimit = value; else limitAll = value;
     } else if (/^\d+$/.test(arg)) {
-      firstRunLimit = parseInt(arg, 10);
+      limitAll = parseInt(arg, 10);
     }
   }
   const baseUrl = getBaseUrlForSymbol(symbol);
@@ -235,9 +242,13 @@ async function run(): Promise<void> {
     await page.goto(baseUrl, { waitUntil: 'networkidle2', timeout: 60000 });
     await delay(500);
 
-    // If first run and limit is set, load just enough pages to reach that number of links
+    // Determine target number of links to load
     const isFirstRun = savedIds.size === 0;
-    const targetLinks = isFirstRun && firstRunLimit ? firstRunLimit : null;
+    const targetLinks = (limitAll ?? (isFirstRun ? firstRunLimit : null)) || null;
+    if (targetLinks) {
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} applying targetLinks=${targetLinks} (isFirstRun=${isFirstRun})`);
+    }
     await clickShowMoreUntilExhausted(page, targetLinks);
 
     const links = await collectAllNewsLinks(page);
@@ -248,7 +259,11 @@ async function run(): Promise<void> {
       const id = parseNewsIdFromHref(u);
       return id && !savedIds.has(id);
     });
-    if (isFirstRun && firstRunLimit && toFetch.length > firstRunLimit) {
+    if (limitAll && toFetch.length > limitAll) {
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} applying limit=${limitAll} (from ${toFetch.length})`);
+      toFetch = toFetch.slice(0, limitAll);
+    } else if (!limitAll && isFirstRun && firstRunLimit && toFetch.length > firstRunLimit) {
       // eslint-disable-next-line no-console
       console.log(`${LOG_PREFIX} applying firstRunLimit=${firstRunLimit} (from ${toFetch.length})`);
       toFetch = toFetch.slice(0, firstRunLimit);
@@ -289,6 +304,34 @@ async function run(): Promise<void> {
   } finally {
     await page.close().catch(() => undefined);
     await browser.close().catch(() => undefined);
+  }
+}
+
+async function run(): Promise<void> {
+  const argv = process.argv.slice(2);
+  const symbol = (argv[0] || DEFAULT_SYMBOL).toUpperCase();
+  const runOnce = argv.includes('--once');
+  const intervalArg = argv.find((a) => a.startsWith('--interval='));
+  const intervalMs = intervalArg ? parseInt(intervalArg.split('=')[1], 10) : 300000; // 5 min default
+
+  const baseOpts: ScrapeOptions = { limitAll: null, firstRunLimit: null };
+
+  if (runOnce) {
+    await runSingleScrape(symbol, baseOpts);
+    return;
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(`${LOG_PREFIX} entering loop intervalMs=${intervalMs}`);
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      await runSingleScrape(symbol, baseOpts);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`${LOG_PREFIX} iteration error:`, err);
+    }
+    await delay(intervalMs);
   }
 }
 

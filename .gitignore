@@ -5,6 +5,8 @@
 /.tmp/
 /.data
 tasks/
+news_meta/
+news/
 
 # dependencies
 node_modules/

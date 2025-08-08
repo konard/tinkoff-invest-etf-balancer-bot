@@ -191,3 +191,39 @@ flowchart TD
     Y --> Z[Cycle next tick]
   end
 ```
+
+### Парсер новостей Т‑Банк ETF (TRUR)
+
+- Скрипт забирает новости со страницы `https://www.tbank.ru/invest/etfs/TRUR/news/`, нажимает «Показать ещё» до упора (или до заданного лимита), открывает каждую новость и сохраняет материал в `news/<SYMBOL>/<id>.md`.
+
+Запуск по умолчанию (TRUR):
+
+```
+npm run scrape:tbank:news
+```
+
+Произвольный запуск:
+
+```
+npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts <SYMBOL> [--limit=N] [--first-limit=N] [--once] [--interval=MS]
+```
+
+Где:
+- `--limit=N` — общий лимит новостей для текущего запуска. Скрипт подгружает ленту до ориентировочного количества ссылок `N` и сохранит не более `N` новых материалов.
+- `--first-limit=N` — лимит только для первого запуска (когда папка `news/<SYMBOL>/` пуста). На последующих запусках игнорируется, используйте `--limit`.
+- `--once` — одноразовый запуск (без цикличности).
+- `--interval=MS` — периодичность цикличного запуска в миллисекундах (по умолчанию 300000 = 5 минут), игнорируется при `--once`.
+- Позиционный числовой аргумент (`<N>`) трактуется как `--limit=N`.
+
+Примеры:
+
+```
+# 10 новостей TRUR
+npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=10 --once
+
+# Первый запуск: забрать только ~300 новостей
+npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --first-limit=300 --once
+
+# Циклично каждые 10 минут
+npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=50 --interval=600000
+```

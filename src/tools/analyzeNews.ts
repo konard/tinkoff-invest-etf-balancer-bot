@@ -190,14 +190,36 @@ async function run(): Promise<void> {
   let onlyId: Nullable<string> = null;
   let limit: Nullable<number> = null;
   let onlyNew = true;
+  const runOnce = argv.includes('--once');
+  const intervalArg = argv.find((a) => a.startsWith('--interval='));
+  const intervalMs = intervalArg ? parseInt(intervalArg.split('=')[1], 10) : 300000; // 5мин по умолчанию
   for (const arg of argv.slice(1)) {
     if (arg.startsWith('--id=')) { onlyId = arg.slice('--id='.length); }
     else if (arg.startsWith('--limit=')) { limit = parseInt(arg.slice('--limit='.length), 10); }
     else if (arg === '--all') { onlyNew = false; }
   }
 
-  for (const sym of symbols) {
-    await analyzeForSymbol(sym, { onlyId, limit, onlyNew });
+  const iterate = async () => {
+    for (const sym of symbols) {
+      await analyzeForSymbol(sym, { onlyId, limit, onlyNew });
+    }
+  };
+
+  if (runOnce) {
+    await iterate();
+    return;
+  }
+  // eslint-disable-next-line no-console
+  console.log(`${LOG_PREFIX} entering loop intervalMs=${intervalMs}`);
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      await iterate();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(`${LOG_PREFIX} iteration error:`, e);
+    }
+    await new Promise((r) => setTimeout(r, intervalMs));
   }
 }
 
