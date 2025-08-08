@@ -4,6 +4,7 @@
 /private/
 /.tmp/
 /.data
+tasks/
 
 # dependencies
 node_modules/

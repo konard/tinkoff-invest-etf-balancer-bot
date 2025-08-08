@@ -47,6 +47,11 @@ export const generateOrder = async (position: Position) => {
 
   debug('position.toBuyLots', position.toBuyLots);
 
+  if (!isFinite(position.toBuyLots)) {
+    debug('toBuyLots is NaN/Infinity. Пропускаем позицию.');
+    return 0;
+  }
+
   if ((-1 < position.toBuyLots) && (position.toBuyLots < 1)) {
     debug('Выставление ордера меньше 1 лота. Не имеет смысла выполнять.');
     return 0;
@@ -89,10 +94,22 @@ export const generateOrder = async (position: Position) => {
   debug('position', position);
 
   debug('Создаем рыночный ордер');
+  const quantityLots = Math.floor(Math.abs(position.toBuyLots));
+
+  if (quantityLots < 1) {
+    debug('Количество лотов после округления < 1. Пропускаем ордер.');
+    return 0;
+  }
+
+  if (!position.figi) {
+    debug('У позиции отсутствует figi. Пропускаем ордер.');
+    return 0;
+  }
+
   const order = {
     accountId: ACCOUNT_ID,
     figi: position.figi,
-    quantity: Math.abs(position.toBuyLots), // Нужно указывать количество лотов, а не бумаг: https://tinkoff.github.io/investAPI/orders/#postorderrequest
+    quantity: quantityLots, // Кол-во лотов должно быть целым
     // price: { units: 40, nano: 0 },
     direction,
     orderType: OrderType.ORDER_TYPE_MARKET,
@@ -171,98 +188,105 @@ export const getAccountId = async (type) => {
 export const getPositionsCycle = async () => {
   return await new Promise(() => {
     let count = 1;
-    const interval = setInterval(
-      async () => {
 
-        let portfolio: any;
-        let portfolioPositions: any;
-        try {
-          debug('Получение портфолио');
-          portfolio = await operations.getPortfolio({
-            accountId: ACCOUNT_ID,
-          });
-          debug('portfolio', portfolio);
+    const tick = async () => {
+      let portfolio: any;
+      let portfolioPositions: any;
+      try {
+        debug('Получение портфолио');
+        portfolio = await operations.getPortfolio({
+          accountId: ACCOUNT_ID,
+        });
+        debug('portfolio', portfolio);
 
-          portfolioPositions = portfolio.positions;
-          debug('portfolioPositions', portfolioPositions);
-        } catch (err) {
-          console.warn('Ошибка при получении портфолио');
-          debug(err);
-          console.trace(err);
+        portfolioPositions = portfolio.positions;
+        debug('portfolioPositions', portfolioPositions);
+      } catch (err) {
+        console.warn('Ошибка при получении портфолио');
+        debug(err);
+        console.trace(err);
+      }
+
+      let positions: any;
+      try {
+        debug('Получение позиций');
+        positions = await operations.getPositions({
+          accountId: ACCOUNT_ID,
+        });
+        debug('positions', positions);
+      } catch (err) {
+        console.warn('Ошибка при получении позиций');
+        debug(err);
+        console.trace(err);
+      }
+
+      const coreWallet: Wallet = [];
+
+      debug('Добавляем валюты в Wallet');
+      for (const currency of positions.money) {
+        const corePosition = {
+          pair: `${currency.currency.toUpperCase()}/${currency.currency.toUpperCase()}`,
+          base: currency.currency.toUpperCase(),
+          quote: currency.currency.toUpperCase(),
+          figi: undefined,
+          amount: currency.units,
+          lotSize: 1,
+          price: {
+            units: 1,
+            nano: 0,
+          },
+          priceNumber: 1,
+          lotPrice: {
+            units: 1,
+            nano: 0,
+          },
+        };
+        debug('corePosition', corePosition);
+        coreWallet.push(corePosition);
+      }
+
+      (global as any).POSITIONS = portfolioPositions;
+
+      debug('Добавляем позиции в Wallet');
+      for (const position of portfolioPositions) {
+        debug('position', position);
+
+        const instrument = _.find((global as any).INSTRUMENTS,  { figi: position.figi });
+        debug('instrument', instrument);
+
+        if (!instrument) {
+          debug('instrument not found by figi, skip position', position.figi);
+          continue;
         }
 
-        let positions: any;
-        try {
-          debug('Получение позиций');
-          positions = await operations.getPositions({
-            accountId: ACCOUNT_ID,
-          });
-          debug('positions', positions);
-        } catch (err) {
-          console.warn('Ошибка при получении позиций');
-          debug(err);
-          console.trace(err);
-        }
+        const priceWhenAddToWallet = await getLastPrice(instrument.figi);
+        debug('priceWhenAddToWallet', priceWhenAddToWallet);
 
-        const coreWallet: Wallet = [];
+        const corePosition = {
+          pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
+          base: instrument.ticker,
+          quote: instrument.currency.toUpperCase(),
+          figi: position.figi,
+          amount: convertTinkoffNumberToNumber(position.quantity),
+          lotSize: instrument.lot,
+          price: priceWhenAddToWallet,
+          priceNumber: convertTinkoffNumberToNumber(position.currentPrice),
+          lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet)),
+        };
+        debug('corePosition', corePosition);
+        coreWallet.push(corePosition);
+      }
 
-        debug('Добавляем валюты в Wallet');
-        for (const currency of positions.money) {
-          const corePosition = {
-            pair: `${currency.currency.toUpperCase()}/${currency.currency.toUpperCase()}`,
-            base: currency.currency.toUpperCase(),
-            quote: currency.currency.toUpperCase(),
-            figi: undefined,
-            amount: currency.units,
-            lotSize: 1,
-            price: {
-              units: 1,
-              nano: 0,
-            },
-            priceNumber: 1,
-            lotPrice: {
-              units: 1,
-              nano: 0,
-            },
-          };
-          debug('corePosition', corePosition);
-          coreWallet.push(corePosition);
-        }
+      debug(coreWallet);
 
-        (global as any).POSITIONS = portfolioPositions;
+      await balancer(coreWallet, DESIRED_WALLET);
+      debug(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
+      count++;
+    };
 
-        debug('Добавляем позиции в Wallet');
-        for (const position of portfolioPositions) {
-          debug('position', position);
-
-          const instrument = _.find((global as any).INSTRUMENTS,  { figi: position.figi });
-          debug('instrument', instrument);
-
-          const priceWhenAddToWallet = await getLastPrice(instrument.figi);
-          debug('priceWhenAddToWallet', priceWhenAddToWallet);
-
-          const corePosition = {
-            pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
-            base: instrument.ticker,
-            quote: instrument.currency.toUpperCase(),
-            figi: position.figi,
-            amount: convertTinkoffNumberToNumber(position.quantity),
-            lotSize: instrument.lot,
-            price: priceWhenAddToWallet,
-            priceNumber: convertTinkoffNumberToNumber(position.currentPrice),
-            lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet)),
-          };
-          debug('corePosition', corePosition);
-          coreWallet.push(corePosition);
-        }
-
-        debug(coreWallet);
-
-        await balancer(coreWallet, DESIRED_WALLET);
-        debug(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
-        count++;
-      },
-      BALANCE_INTERVAL);
+    // Немедленный первый запуск для отладки, затем по интервалу
+    tick();
+    setInterval(tick, BALANCE_INTERVAL);
   });
 };
 
@@ -295,9 +319,8 @@ export const getInstruments = async () => {
   } catch (err) {
     debug(err);
   }
-  debug('sharesResult', sharesResult);
   const shares = sharesResult?.instruments;
-  debug('shares', shares);
+  debug('shares count', shares?.length);
   (global as any).INSTRUMENTS = _.union(shares, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
@@ -310,9 +333,8 @@ export const getInstruments = async () => {
   } catch (err) {
     debug(err);
   }
-  debug('etfsResult', etfsResult);
   const etfs = etfsResult?.instruments;
-  debug('etfs', etfs);
+  debug('etfs count', etfs?.length);
   (global as any).INSTRUMENTS = _.union(etfs, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
@@ -325,9 +347,8 @@ export const getInstruments = async () => {
   } catch (err) {
     debug(err);
   }
-  debug('bondsResult', bondsResult);
   const bonds = bondsResult?.instruments;
-  debug('bonds', bonds);
+  debug('bonds count', bonds?.length);
   (global as any).INSTRUMENTS = _.union(bonds, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
@@ -340,9 +361,8 @@ export const getInstruments = async () => {
   } catch (err) {
     debug(err);
   }
-  debug('currenciesResult', currenciesResult);
   const currencies = currenciesResult?.instruments;
-  debug('currencies', currencies);
+  debug('currencies count', currencies?.length);
   (global as any).INSTRUMENTS = _.union(currencies, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
@@ -355,9 +375,8 @@ export const getInstruments = async () => {
   } catch (err) {
     debug(err);
   }
-  debug('futuresResult', futuresResult);
   const futures = futuresResult?.instruments;
-  debug('futures', futures);
+  debug('futures count', futures?.length);
   (global as any).INSTRUMENTS = _.union(futures, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 

@@ -30,6 +30,22 @@ export const writeToFile = (obj: object, filename: string) => {
   }
 };
 
+// Алиасы тикеров для унификации сопоставления (смены тикеров на бирже)
+const TICKER_ALIASES: Record<string, string> = {
+  // TRAY (стар.) → TPAY (нов.)
+  TRAY: 'TPAY',
+};
+
+export const normalizeTicker = (ticker: string | undefined): string | undefined => {
+  if (!ticker) return ticker;
+  return TICKER_ALIASES[ticker] || ticker;
+};
+
+export const tickersEqual = (a: string | undefined, b: string | undefined): boolean => {
+  if (!a || !b) return false;
+  return normalizeTicker(a) === normalizeTicker(b);
+};
+
 export const convertTinkoffNumberToNumber = (n: TinkoffNumber): number => {
   debug('n', n);
 

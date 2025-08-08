@@ -9,6 +9,7 @@ import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/or
 import { SLEEP_BETWEEN_ORDERS } from '../config';
 import { Wallet, DesiredWallet, Position } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
+import { normalizeTicker, tickersEqual } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 
 const debug = require('debug')('bot').extend('balancer');
@@ -68,23 +69,33 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) 
 
   const normalizedDesire = normalizeDesire(desiredWallet);
 
+  // Приводим ключи тикеров к алиасам (например, TRAY -> TPAY) и пере-нормализуем
+  const desiredAliased = Object.entries(normalizedDesire).reduce((acc: any, [k, v]) => {
+    const nk = normalizeTicker(k) || k;
+    acc[nk] = (acc[nk] || 0) + Number(v);
+    return acc;
+  }, {} as Record<string, number>);
+  const desiredMap = normalizeDesire(desiredAliased);
+
   debug('Добавляем в DesireWallet недостающие инструменты в портфеле со значением 0');
   for (const position of wallet) {
-    if (normalizedDesire[position.base] === undefined) {
+    const baseNormalized = normalizeTicker(position.base) || position.base;
+    if (desiredMap[baseNormalized] === undefined) {
       debug(`${position.base} не найден в желаемом портфеле, добавляем со значением 0.`);
-      normalizedDesire[position.base] = 0;
+      desiredMap[baseNormalized] = 0;
     }
   }
 
-  for (const [desiredTicker, desiredPercent] of Object.entries(normalizedDesire)) {
+  for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
+    const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
     debug(' Ищем base (ticker) в wallet');
-    const positionIndex = _.findIndex(wallet, { base: desiredTicker });
+    const positionIndex = _.findIndex(wallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
 
     if (positionIndex === -1) {
       debug('В портфеле нету тикера из DesireWallet. Создаем.');
 
-      const findedInstumentByTicker = _.find((global as any).INSTRUMENTS, { ticker: desiredTicker });
+      const findedInstumentByTicker = _.find((global as any).INSTRUMENTS, (i: any) => tickersEqual(i.ticker, desiredTicker));
       debug(findedInstumentByTicker);
 
       const figi = findedInstumentByTicker?.figi;
@@ -93,7 +104,16 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) 
       const lotSize = findedInstumentByTicker?.lot;
       debug(lotSize);
 
+      if (!findedInstumentByTicker || !figi || !lotSize) {
+        debug(`Инструмент для тикера ${desiredTicker} не найден в INSTRUMENTS. Пропускаем добавление.`);
+        continue;
+      }
+
       const lastPrice = await getLastPrice(figi); // sleep внутри есть
+      if (!lastPrice) {
+        debug(`Не удалось получить lastPrice для ${desiredTicker}/${figi}. Пропускаем добавление.`);
+        continue;
+      }
 
       const newPosition = {
         pair: `${desiredTicker}/RUB`,
@@ -143,9 +163,10 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) 
   debug(sortedWallet);
   debug('walletSumNumber', walletSumNumber);
 
-  for (const [desiredTicker, desiredPercent] of Object.entries(normalizedDesire)) {
+  for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
+    const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
     debug(' Ищем base (ticker) в wallet');
-    const positionIndex = _.findIndex(sortedWallet, { base: desiredTicker });
+    const positionIndex = _.findIndex(sortedWallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
 
     // TODO:
@@ -166,6 +187,11 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) 
     //   sortedWallet.push(newPosition);
     //   positionIndex = _.findIndex(sortedWallet, { base: desiredTicker });
     // }
+
+    if (positionIndex === -1) {
+      debug(`Тикер ${desiredTicker} отсутствует в wallet после подготовки. Пропускаем расчет по нему.`);
+      continue;
+    }
 
     const position: Position = sortedWallet[positionIndex];
     debug('position', position);

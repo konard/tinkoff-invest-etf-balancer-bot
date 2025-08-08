@@ -1,10 +1,9 @@
 import { DesiredWallet } from './types.d';
 
 export const DESIRED_WALLET: DesiredWallet = {
-  TMOS: 30, // 30% Тинькофф iMOEX (TMOS)
-  RUB: 30, // 0% Рублей
-  TRUR: 30, // 30% Тинькофф Вечный портфель (TRUR)
-  // MTLR: 10, // 10% Мечел
+  TRAY: 25, // 25% Tinkoff Passive
+  TGLD: 25, // 25% Tinkoff Gold
+  TRUR: 25, // 25% Tinkoff Eternal Portfolio
 };
 
 // TODO: Добавить target: BASE/QUOTE

@@ -15,10 +15,9 @@ A simple portfolio balancer.
     Example of a desired portfolio:
     ```js
     export const DESIRED_WALLET: DesiredWallet = {
-      TMOS: 25, // 25% Tinkoff iMOEX (TMOS)
-      RUB: 25, // 25% Russian Ruble
-      TBRU: 25, // 25% Tinkoff Bonds
-      TRUR: 25, // 25% Tinkoff Eternal Portfolio (TRUR)
+      TRAY: 25, // 25% Tinkoff Passive
+      TGLD: 25, // 25% Tinkoff Gold
+      TRUR: 25, // 25% Tinkoff Eternal Portfolio
     };
     ```
 - Places the necessary orders for buying and selling to balance the portfolio. Currently, these are market orders.
@@ -143,3 +142,42 @@ npm run accounts
 ### Дополнительно
 
 Изначально к конкурсу готовился [бот с ассоциативной структурой данных](https://github.com/suenot/deep-tinkoff-invest), но из-за нехватки времени решил взять задачу попроще.
+
+## Схема работы (Mermaid)
+```mermaid
+flowchart TD
+  A[Start npm run start/dev] --> B[Load .env TOKEN, ACCOUNT_ID]
+  B --> C[createSdk(TINKOFF)]
+  C --> D[provider()]
+  D --> E[getAccountId(ACCOUNT_ID)]
+  E -->|id/BROKER/ISS/INDEX:N| F[ACCOUNT_ID determined]
+  F --> G[getInstruments()]
+  G -->|fill global INSTRUMENTS: shares, etfs, bonds, currencies, futures| H[getPositionsCycle()]
+
+  subgraph Cycle[Every BALANCE_INTERVAL ms]
+    H --> I[operations.getPortfolio(accountId)]
+    I --> J[operations.getPositions(accountId)]
+    J --> K[Build coreWallet]
+    K -->|Add currencies from positions.money (RUB)| L
+    K -->|Add portfolio positions with last prices| L[coreWallet ready]
+    L --> M[balancer(coreWallet, DESIRED_WALLET)]
+
+    subgraph Balancer
+      M --> N[normalizeDesire to 100%]
+      N --> O[Ensure desired tickers exist in wallet]
+      O --> P[getLastPrice(figi) for missing tickers]
+      P --> Q[Compute totals, desiredAmountNumber]
+      Q --> R[Compute toBuyLots per position]
+      R --> S[Sort orders (sells first)]
+      S --> T[generateOrders()]
+    end
+
+    T --> U{position.base !== 'RUB' && |toBuyLots| >= 1?}
+    U -- Yes --> V[orders.postOrder MARKET]
+    V --> W[sleep SLEEP_BETWEEN_ORDERS]
+    U -- No --> X[Skip]
+    W --> Y[Next position]
+    X --> Y
+    Y --> Z[Cycle next tick]
+  end
+```
