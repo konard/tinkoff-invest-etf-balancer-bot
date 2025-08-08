@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { DESIRED_WALLET } from '../config';
 import { normalizeTicker } from '../utils';
-import { buildAumMapSmart, getFxRateToRub, AumEntry } from './etfCap';
+import { buildAumMapSmart, getFxRateToRub, AumEntry, getEtfMarketCapRUB } from './etfCap';
 
 type Nullable<T> = T | null | undefined;
 
@@ -68,11 +68,28 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
           : (eurToRub > 0 ? aum.amount * eurToRub : null)
       : null;
 
+    // Fetch last price for ETF to compute market cap as sharesCount * price
+    let priceRUB: number | null = null;
+    try {
+      const etfInfo = await getEtfMarketCapRUB(sym);
+      if (etfInfo && typeof etfInfo.lastPriceRUB === 'number') {
+        priceRUB = etfInfo.lastPriceRUB || null;
+      }
+    } catch {
+      // ignore
+    }
+
+    const marketCap = sharesCount && priceRUB ? sharesCount * priceRUB : null;
+    const decorrelationPct = aumRUB && marketCap ? Math.abs(marketCap - aumRUB) / aumRUB * 100 : null;
+
     const payload = {
       symbol: sym,
       timestamp: nowIso,
       sharesCount, // integer шт или null
+      price: priceRUB,
+      marketCap: marketCap,
       aum: aumRUB ?? null,
+      decorrelationPct: decorrelationPct,
     };
     await writeMetrics(sym, payload);
   }
