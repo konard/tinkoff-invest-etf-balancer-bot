@@ -16,6 +16,7 @@
     "start": "ts-node ./src/index.ts",
     "dev": "DEBUG=bot:main,bot:provider,bot:balancer ts-node ./src/index.ts",
     "accounts": "ts-node ./src/index.ts --list-accounts",
+    "etf-cap": "ts-node ./src/tools/etfCap.ts",
     "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts"
   },
   "author": "Eugen Soloviov",
