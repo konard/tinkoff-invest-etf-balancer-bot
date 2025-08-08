@@ -19,6 +19,7 @@
     "etf-cap": "ts-node ./src/tools/etfCap.ts",
     "scrape:tbank:news": "ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=10",
     "analyze:news": "ts-node --transpile-only ./src/tools/analyzeNews.ts TRUR --limit=10",
+    "update:shares": "ts-node --transpile-only ./src/tools/updateSharesCount.ts TRUR",
     "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts"
   },
   "author": "Eugen Soloviov",
