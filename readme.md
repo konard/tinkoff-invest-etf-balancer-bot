@@ -63,6 +63,11 @@ npm i
 npm run start
 ```
 
+Run with debug logs and one-time balance without cycle:
+```
+npm run dev -- --once
+```
+
 ### Additional Information
 Originally, a bot with an [associative data structure](https://github.com/suenot/deep-tinkoff-invest) was prepared for the contest, but due to time constraints, I decided to take an easier task.
 
@@ -131,6 +136,11 @@ export const balancerInterval: number = 60000; // Раз в минуту
 ```
 npm i
 npm run start
+```
+
+Одноразовый запуск без цикла (например, для ручной ребалансировки один раз):
+```
+npm run dev -- --once
 ```
 
 ### Список счетов

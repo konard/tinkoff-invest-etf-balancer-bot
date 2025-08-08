@@ -21,10 +21,10 @@ const { orders, operations, marketData, users, instruments } = createSdk(process
 
 let ACCOUNT_ID: string;
 
-export const provider = async () => {
+export const provider = async (options?: { runOnce?: boolean }) => {
   ACCOUNT_ID = await getAccountId(process.env.ACCOUNT_ID);
   await getInstruments();
-  await getPositionsCycle();
+  await getPositionsCycle(options);
 };
 
 export const generateOrders = async (wallet: Wallet) => {
@@ -185,8 +185,8 @@ export const getAccountId = async (type) => {
   return type;
 };
 
-export const getPositionsCycle = async () => {
-  return await new Promise(() => {
+export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
+  return await new Promise<void>((resolve) => {
     let count = 1;
 
     const tick = async () => {
@@ -282,11 +282,19 @@ export const getPositionsCycle = async () => {
       await balancer(coreWallet, DESIRED_WALLET);
       debug(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
       count++;
+
+      if (options?.runOnce) {
+        debug('runOnce=true: завершаем после первого тика');
+        resolve();
+        return;
+      }
     };
 
     // Немедленный первый запуск для отладки, затем по интервалу
     tick();
-    setInterval(tick, BALANCE_INTERVAL);
+    if (!options?.runOnce) {
+      setInterval(tick, BALANCE_INTERVAL);
+    }
   });
 };
 

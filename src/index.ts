@@ -17,7 +17,8 @@ const main = async () => {
     }
     return;
   }
-  await provider();
+  const runOnce = process.argv.includes('--once');
+  await provider({ runOnce });
   // TODO: сейчас balancer вызывается из provider, а не из main. Нужно переделать.
   // debug('provider done');
   // await balancer((global as any).POSITIONS, DESIRED_WALLET);
