@@ -161,6 +161,8 @@ const ETF_TICKER_NAME_PATTERNS: Record<string, RegExp[]> = {
   TPAY: [/пассивный\s+доход/i],
   // TGLD — «Золото»
   TGLD: [/золото/i],
+  // TRND — «Т-Капитал Трендовые акции»
+  TRND: [/трендов.*акци/i],
 };
 
 const findAumForTickerByName = (html: string, normalizedTicker: string): AumEntry | undefined => {
