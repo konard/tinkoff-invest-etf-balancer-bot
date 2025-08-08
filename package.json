@@ -15,6 +15,7 @@
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "dev": "DEBUG=\"*\" ts-node ./src/index.ts",
+    "accounts": "ts-node ./src/index.ts --list-accounts",
     "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts"
   },
   "author": "Eugen Soloviov",

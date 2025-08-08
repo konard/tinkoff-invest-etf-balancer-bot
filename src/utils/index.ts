@@ -54,3 +54,21 @@ export const convertNumberToTinkoffNumber = (n: number): TinkoffNumber => {
 export const sumValues = obj => Object.values(obj).reduce((a: any, b: any) => a + b);
 
 export const zeroPad = (num, places) => String(num).padStart(places, '0');
+
+export const listAccounts = async (usersClient: any) => {
+  try {
+    const response = await usersClient.getAccounts({});
+    const accounts = Array.isArray(response) ? response : (response?.accounts || []);
+    return accounts.map((acc: any, index: number) => ({
+      index,
+      id: acc.id || acc.accountId || acc.account_id,
+      name: acc.name,
+      type: acc.type,
+      openedDate: acc.openedDate || acc.opened_date,
+      status: acc.status,
+    }));
+  } catch (err) {
+    debug('Ошибка при получении списка счетов', err);
+    return [];
+  }
+};

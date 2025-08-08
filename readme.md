@@ -34,7 +34,12 @@ A simple portfolio balancer.
 ### Settings
 To use the bot, you need to [obtain a token](https://www.tinkoff.ru/invest/settings).
 
-ACCOUNT_ID is a numerical value that can be obtained through the API. Alternatively, you can specify ACCOUNT_ID=BROKER to use a brokerage account or ACCOUNT_ID=ISS to use an individual investment account (IIA).
+ACCOUNT_ID can be:
+- exact id returned by the API,
+- BROKER (to pick brokerage account),
+- ISS (to pick IIA),
+- INDEX:N (to pick account by index in the list from `npm run accounts`),
+- N (just a number string like `0`, shorthand for INDEX:N).
 
 You need an account with only Russian ruble assets and create an .env file with the following settings:
 ```bash
@@ -100,7 +105,12 @@ Appname: suenot
 ### Настройки
 Для работы бота вам необходимо [получить токен](https://www.tinkoff.ru/invest/settings).
 
-ACCOUNT_ID это цифровое значение, которое можно получить по API, либо можете указать ACCOUNT_ID=BROKER для использования брокерского счета или ACCOUNT_ID=ISS для использования счета ИИС.
+ACCOUNT_ID может быть:
+- точным id из API,
+- BROKER — выбрать брокерский счет,
+- ISS — выбрать ИИС,
+- INDEX:N — выбрать счет по индексу из списка (`npm run accounts`),
+- N — просто число строкой, например `0` (короткая форма INDEX:N).
 
 Требуется счет только с рублевыми активами и создать .env файл с настройками
 ```bash
@@ -122,6 +132,12 @@ export const balancerInterval: number = 60000; // Раз в минуту
 ```
 npm i
 npm run start
+```
+
+### Список счетов
+Чтобы посмотреть свои счета и их id (для удобного выбора `ACCOUNT_ID`):
+```
+npm run accounts
 ```
 
 ### Дополнительно

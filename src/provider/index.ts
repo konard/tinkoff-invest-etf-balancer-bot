@@ -113,24 +113,59 @@ export const generateOrder = async (position: Position) => {
 };
 
 export const getAccountId = async (type) => {
-  if (type !== 'ISS' && type !== 'BROKER') {
-    debug('Передан ACCOUNT_ID', type);
+  // Поддержка индекса: '3' или 'INDEX:3'
+  const indexMatch = typeof type === 'string' && type.startsWith('INDEX:')
+    ? Number(type.split(':')[1])
+    : (typeof type === 'string' && /^\d+$/.test(type) ? Number(type) : null);
+
+  // Если пришла конкретная строка id, возвращаем как есть
+  if (indexMatch === null && type !== 'ISS' && type !== 'BROKER') {
+    debug('Передан ACCOUNT_ID (как строка id)', type);
     return type;
   }
 
   debug('Получаем список аккаунтов');
-  let accountsResult;
+  let accountsResponse: any;
   try {
-    accountsResult = await users.getAccounts({});
+    accountsResponse = await users.getAccounts({});
   } catch (err) {
+    debug('Ошибка получения списка аккаунтов');
     debug(err);
   }
-  debug('accountsResult', accountsResult);
+  debug('accountsResponse', accountsResponse);
 
-  const account = (type === 'ISS') ? _.find(accountsResult, { type: 2 }) : _.find(accountsResult, { type: 1 });
-  debug('Найден ACCOUNT_ID', account);
+  // Поддержка разных форматов ответа: { accounts: [...] } или сразу массив
+  const accounts: any[] = Array.isArray(accountsResponse)
+    ? accountsResponse
+    : (accountsResponse?.accounts || []);
 
-  return account;
+  // Выбор по индексу
+  if (indexMatch !== null) {
+    const byIndex = accounts[indexMatch];
+    const byIndexId = byIndex?.id || byIndex?.accountId || byIndex?.account_id;
+    debug('Выбран аккаунт по индексу', byIndex);
+    if (!byIndexId) {
+      throw new Error(`Не удалось определить ACCOUNT_ID по индексу ${indexMatch}.`);
+    }
+    return byIndexId;
+  }
+
+  // Выбор по типу
+  if (type === 'ISS' || type === 'BROKER') {
+    // 1 — брокерский, 2 — ИИС (по enum API v2)
+    const desiredType = type === 'ISS' ? 2 : 1;
+    const account = _.find(accounts, { type: desiredType });
+    debug('Найден аккаунт по типу', account);
+    const accountId = account?.id || account?.accountId || account?.account_id;
+    if (!accountId) {
+      throw new Error('Не удалось определить ACCOUNT_ID по типу. Проверьте доступ токена к нужному счету.');
+    }
+    return accountId;
+  }
+
+  // Фоллбек: вернуть как есть
+  debug('Передан ACCOUNT_ID (как строка id фоллбек)', type);
+  return type;
 };
 
 export const getPositionsCycle = async () => {
