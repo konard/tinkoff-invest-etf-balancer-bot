@@ -230,16 +230,31 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) 
     const toBuyLots = canBuyBeforeTargetLots - (position.amount / position.lotSize);
     debug('toBuyLots', toBuyLots);
     position.toBuyLots = toBuyLots;
+
+    // Гарантируем минимум 1 лот для каждой позиции с положительной целевой долей
+    const currentLots = position.amount / position.lotSize;
+    if (Number(desiredPercent) > 0 && currentLots < 1 && position.toBuyLots < 1) {
+      debug('Минимум 1 лот по стратегии: увеличиваем toBuyLots до 1', position.base);
+      position.toBuyLots = 1;
+      const recalculatedToBuyNumber = position.toBuyLots * position.lotPriceNumber - position.totalPriceNumber;
+      position.toBuyNumber = recalculatedToBuyNumber;
+    }
   }
 
   debug('sortedWallet', sortedWallet);
 
-  debug('Сортируем ордера по возврастанию, чтобы сначала выполнить ордера на продажу, получить рубли, а уже потом выполнять ордера на покупку акций.');
-  const sortedWalletsSellsFirst = _.orderBy(sortedWallet, ['toBuyNumber'], ['asc']);
-  debug('sortedWalletsSellsFirst', sortedWalletsSellsFirst);
+  // Порядок исполнения:
+  // 1) Сначала продажи (получаем рубли)
+  // 2) Затем покупки, отсортированные по стоимости лота по убыванию (дорогие сначала)
+  const sellsFirst = _.filter(sortedWallet, (p: Position) => p.toBuyLots <= -1);
+  const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
+  const buysOnly = _.filter(sortedWallet, (p: Position) => p.toBuyLots >= 1);
+  const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);
+  const ordersPlanned = [...sellsSorted, ...buysSortedByLotDesc];
+  debug('ordersPlanned', ordersPlanned);
 
   debug('walletInfo', walletInfo);
 
   debug('Для всех позиций создаем необходимые ордера');
-  await generateOrders(sortedWalletsSellsFirst);
+  await generateOrders(ordersPlanned);
 };
