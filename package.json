@@ -17,6 +17,8 @@
     "dev": "DEBUG=bot:main,bot:provider,bot:balancer ts-node ./src/index.ts",
     "accounts": "ts-node ./src/index.ts --list-accounts",
     "etf-cap": "ts-node ./src/tools/etfCap.ts",
+    "scrape:tbank:news": "ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR",
+    "analyze:news": "ts-node --transpile-only ./src/tools/analyzeNews.ts TRUR --limit=3",
     "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts"
   },
   "author": "Eugen Soloviov",
@@ -31,6 +33,7 @@
     "apollo-server-core": "3.6.2",
     "apollo-server-express": "3.6.2",
     "chai": "^4.2.0",
+    "debug": "^4.3.4",
     "dotenv": "^16.0.1",
     "express": "^4.17.1",
     "graphql": "^15.5.1",
@@ -39,10 +42,13 @@
     "graphql-ws": "^5.5.5",
     "lodash": "^4.17.21",
     "mocha": "^6.2.2",
+    "nice-grpc": "^2.1.7",
+    "puppeteer": "^24.16.0",
     "react": "^18.1.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "subscriptions-transport-ws": "^0.9.19",
+    "tinkoff-sdk-grpc-js": "^1.8.0-fix",
     "ts-mocha": "^6.0.0",
     "ts-node": "^8.5.2",
     "tslint": "^5.20.1",
@@ -50,11 +56,6 @@
     "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.8.3",
     "uniqid": "^5.1.0",
-    "ws": "^8.4.2",
-    "tinkoff-sdk-grpc-js": "^1.8.0-fix",
-    "nice-grpc": "^2.1.7",
-    "debug": "^4.3.4"
-  },
-  "devDependencies": {
+    "ws": "^8.4.2"
   }
 }

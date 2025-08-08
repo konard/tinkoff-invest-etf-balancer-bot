@@ -238,14 +238,36 @@ export const getEtfMarketCapRUB = async (tickerRaw: string) => {
   const figi: string = etf.figi;
   const uid: string = etf.uid; // может пригодиться для расширений
   let numShares: number = toNumber(etf.numShares);
+  let numSharesSource: 'list' | 'etfBy' | 'asset' | 'derivedFromAUM' | undefined =
+    Number.isFinite(numShares) && numShares > 0 ? 'list' : undefined;
+
+  // Попробуем получить более детальную карточку инструмента, т.к. в списке поля могут быть пустыми
+  if (!numShares || Number.isNaN(numShares)) {
+    try {
+      const etfByResp: any = await instruments.etfBy({ idType: 1, id: figi }); // 1 = FIGI
+      const detailedNum = toNumber(etfByResp?.instrument?.numShares);
+      if (detailedNum && !Number.isNaN(detailedNum)) {
+        numShares = detailedNum;
+        numSharesSource = 'etfBy';
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
 
   // Если у инструмента нет numShares, пробуем через Assets API получить AssetEtf.numShare по assetUid
   if ((!numShares || Number.isNaN(numShares)) && etf.assetUid) {
     try {
       const assetResp: any = await instruments.getAssetBy({ id: etf.assetUid });
-      const assetNumShare = assetResp?.asset?.security?.etf?.numShare;
-      const num = toNumber(assetNumShare);
-      if (num && !Number.isNaN(num)) numShares = num;
+      // Пробуем несколько возможных путей/имён поля в зависимости от версии API
+      const candidateA = assetResp?.asset?.security?.etf?.numShares;
+      const candidateB = assetResp?.asset?.security?.etf?.numShare;
+      const candidateC = assetResp?.asset?.etf?.numShares;
+      const num = toNumber(candidateA || candidateB || candidateC);
+      if (num && !Number.isNaN(num)) {
+        numShares = num;
+        numSharesSource = numSharesSource || 'asset';
+      }
     } catch (e) {
       // ignore, останется null
     }
@@ -267,6 +289,7 @@ export const getEtfMarketCapRUB = async (tickerRaw: string) => {
     uid,
     lastPriceRUB,
     numShares,
+    numSharesSource,
     marketCapRUB,
   };
 };
@@ -308,6 +331,7 @@ export const getShareMarketCapRUB = async (tickerRaw: string) => {
     uid,
     lastPriceRUB,
     numShares: issueSize,
+    numSharesSource: undefined,
     marketCapRUB,
   };
 };
@@ -339,6 +363,16 @@ const main = async () => {
           else if (aum.currency === 'USD' && usdToRub > 0) aumRUB = aum.amount * usdToRub;
           else if (aum.currency === 'EUR' && eurToRub > 0) aumRUB = aum.amount * eurToRub;
         }
+        // Если это ETF и numShares пуст, попробуем вывести его из AUM/цены
+        if (r.type === 'ETF' && (!r.numShares || r.numShares <= 0) && aumRUB && r.lastPriceRUB && r.lastPriceRUB > 0) {
+          const derivedNumShares = Math.round(aumRUB / r.lastPriceRUB);
+          r = {
+            ...r,
+            numShares: derivedNumShares,
+            numSharesSource: r.numSharesSource || 'derivedFromAUM',
+            marketCapRUB: aumRUB,
+          } as any;
+        }
         results.push({ ...r, aumRUB });
       }
     } catch (err) {
@@ -353,6 +387,7 @@ const main = async () => {
       figi: r.figi,
       priceRUB: r.lastPriceRUB,
       numShares: r.numShares,
+      numSharesSource: r.numSharesSource,
       marketCapRUB: r.marketCapRUB,
       aumRUB: r.aumRUB,
       error: r.error,
