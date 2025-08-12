@@ -122,6 +122,33 @@ TOKEN=
 ACCOUNT_ID=
 ```
 
+## Балансировка по decorrelation
+
+Алгоритм формирования целевых весов в режиме `decorrelation`.
+
+```mermaid
+flowchart TD
+  A["Старт: режим decorrelation"] --> B["Список тикеров из DESIRED_WALLET"]
+  B --> C["Для каждого тикера получить marketCap и AUM в RUB<br/>из etf_metrics или через live-фолбэки"]
+  C --> D["Вычислить decorrelationPct_t = (marketCap_t - AUM_t) / AUM_t * 100"]
+  D --> E["Найти maxDPct = max_t decorrelationPct_t"]
+  E --> F["Метрика: metric_t = maxDPct - decorrelationPct_t"]
+  F --> G{"Σ metric_t > 0?"}
+  G -- "Да" --> H["Вес: weight_t = metric_t / Σ metric * 100"]
+  G -- "Нет" --> I["Фолбэк: базовый DESIRED_WALLET"]
+  H --> J["Вернуть желаемые веса"]
+  I --> J
+```
+
+Пример нормализации:
+
+```text
+Вход: dPct = { coin1: 100, coin2: 0, coin3: -100 }
+maxDPct = 100
+metric = { coin1: 0, coin2: 100, coin3: 200 }
+Σmetric = 300 → веса ≈ { coin1: 0%, coin2: 33%, coin3: 66% }
+```
+
 Желаемые настройки портфеля в процентах и перерыв между балансировками настраиваются в `./src/config.js`:
 ```js
 export const desiredWallet: DesiredWallet = {

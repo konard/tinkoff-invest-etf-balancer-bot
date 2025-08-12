@@ -75,32 +75,24 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
   }
 
   if (mode === 'decorrelation') {
-    // Стратегия: покупать только недооценённые фонды (AUM > marketCap).
-    // Шаги:
-    // 1) Получить marketCap и AUM в RUB.
-    // 2) Вычислить положительную рассинхронизацию d = max(0, (AUM - marketCap) / AUM).
-    // 3) Нормализовать d относительно максимума среди всех тикеров: d' = d / max(d).
-    // 4) Пропорционально d' распределить веса. Если сумма нулевая — вернуть baseDesired как фолбэк.
+    // Алгоритм:
+    // 1) decorrelationPct = (marketCap - AUM) / AUM * 100 (может быть отрицательной или положительной)
+    // 2) Находим max среди всех decorrelationPct
+    // 3) Строим метрику для распределения: metric = max - decorrelationPct
+    //    Пример: [100, 0, -100] -> max=100 -> metrics=[0, 100, 200]
+    // 4) Веса ∝ metric. Если сумма == 0 — возвращаем базовый портфель
 
-    const decorrelationRaw: Record<string, number> = {};
+    const dPctByTicker: Record<string, number> = {};
     for (const nt of normalizedTickers) {
       const [mcap, aum] = await Promise.all([calcMarketcap(nt), calcAumRub(nt)]);
-      const d = aum > 0 ? Math.max(0, (aum - mcap) / aum) : 0; // доля недооценки [0..1]
-      decorrelationRaw[nt] = Number.isFinite(d) && d > 0 ? d : 0;
+      const dPct = aum > 0 && Number.isFinite(mcap) ? ((mcap - aum) / aum) * 100 : 0;
+      dPctByTicker[nt] = Number.isFinite(dPct) ? dPct : 0;
     }
-    const maxD = _.max(Object.values(decorrelationRaw)) || 0;
-    const normalizedD: Record<string, number> = {};
-    if (maxD > 0) {
-      for (const nt of normalizedTickers) {
-        normalizedD[nt] = decorrelationRaw[nt] / maxD;
-      }
-    } else {
-      // Все d == 0: нет недооценённых — возвращаем базовые веса как безопасный фолбэк
-      return baseDesired;
-    }
-    // Конвертация в метрику распределения (не обязательно в проценты ещё)
+    const maxDPct = _.max(Object.values(dPctByTicker));
+    const maxVal = (typeof maxDPct === 'number' && Number.isFinite(maxDPct)) ? maxDPct : 0;
     for (const nt of normalizedTickers) {
-      metricByNormalized[nt] = normalizedD[nt];
+      const m = maxVal - (dPctByTicker[nt] || 0);
+      metricByNormalized[nt] = Number.isFinite(m) && m > 0 ? m : 0;
     }
   }
 
