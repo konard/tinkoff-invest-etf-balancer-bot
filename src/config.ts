@@ -4,7 +4,7 @@ export const DESIRED_WALLET: DesiredWallet = {
   TRAY: 25, // 25% Tinkoff Passive
   TGLD: 25, // 25% Tinkoff Gold
   TRUR: 25, // 25% Tinkoff Eternal Portfolio
-  // TRND: 25, // 25% Tinkoff Trend 
+  TRND: 25, // 25% Tinkoff Trend 
 };
 
 // TODO: Добавить target: BASE/QUOTE

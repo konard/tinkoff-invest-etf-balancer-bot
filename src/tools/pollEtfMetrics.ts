@@ -81,7 +81,7 @@ type SmartfeedNewsItem = {
   additional_fields?: Array<{ name: string; value: string }>;
 };
 
-async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ count: number; sourceUrl: string; sourceTitle?: string } | null> {
+async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ count: number; sourceUrl: string; sourceTitle?: string; brand: string; apiUrl: string } | null> {
   const brand = getBrandNameForTicker(symbol);
   if (!brand) return null;
 
@@ -123,7 +123,7 @@ async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ co
           const sourceUrl = `https://www.tbank.ru/invest/fund-news/${item.id}/`;
           // eslint-disable-next-line no-console
           console.log(`${LOG_PREFIX} smartfeed hit id=${item.id} title=${item.title} count=${count}`);
-          return { count, sourceUrl, sourceTitle: item.title };
+          return { count, sourceUrl, sourceTitle: item.title, brand, apiUrl: `${base}/${encBrand}/fund-news?limit=50` };
         }
       }
       if (!nextCursor || nextCursor === cursor) break;
@@ -164,11 +164,27 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
     console.log(`${LOG_PREFIX} symbol=${sym} search sharesCount via Smartfeed API`);
     let sharesCount: number | null = null;
     let sharesSourceUrl: string | null = null;
+    let smartfeedBrand: string | null = null;
+    let smartfeedApiUrl: string | null = null;
+    // Всегда вычисляем бренд и базовый API-URL для сохранения в JSON
+    try {
+      const brand = getBrandNameForTicker(sym);
+      if (brand) {
+        const base = 'https://www.tbank.ru/api/invest/smartfeed-public/v1/feed/api/brands';
+        const encBrand = encodeURIComponent(brand);
+        smartfeedBrand = brand;
+        smartfeedApiUrl = `${base}/${encBrand}/fund-news?limit=50`;
+      }
+    } catch {
+      // noop
+    }
     try {
       const apiFound = await fetchLatestSharesCountFromSmartfeed(sym);
       if (apiFound) {
         sharesCount = apiFound.count;
         sharesSourceUrl = apiFound.sourceUrl;
+        smartfeedBrand = apiFound.brand || smartfeedBrand;
+        smartfeedApiUrl = apiFound.apiUrl || smartfeedApiUrl;
       }
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -191,6 +207,8 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
 
     // Fetch last price for ETF to compute market cap as sharesCount * price
     let priceRUB: number | null = null;
+    let figi: string | null = null;
+    let uid: string | null = null;
     try {
       const etfInfo = await getEtfMarketCapRUB(sym);
       if (!etfInfo) {
@@ -201,6 +219,8 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
         console.log(`${LOG_PREFIX} price: lastPriceRUB missing for ${sym} figi=${etfInfo.figi} uid=${etfInfo.uid} raw=${JSON.stringify({ lastPriceRUB: etfInfo.lastPriceRUB })}`);
       } else {
         priceRUB = etfInfo.lastPriceRUB || null;
+        figi = etfInfo.figi;
+        uid = etfInfo.uid;
         // eslint-disable-next-line no-console
         console.log(`${LOG_PREFIX} price: lastPriceRUB=${priceRUB} for ${sym}`);
       }
@@ -222,6 +242,10 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
       decorrelationPct: decorrelationPct,
       sharesSearchUrl: getSharesSearchUrl(sym),
       sharesSourceUrl: sharesSourceUrl || null,
+      figi: figi,
+      uid: uid,
+      smartfeedBrand: smartfeedBrand,
+      smartfeedUrl: smartfeedApiUrl,
     };
     // eslint-disable-next-line no-console
     console.log(`${LOG_PREFIX} payload ${sym}: price=${priceRUB} shares=${sharesCount} aum=${aumRUB ?? null} mcap=${marketCap}`);
