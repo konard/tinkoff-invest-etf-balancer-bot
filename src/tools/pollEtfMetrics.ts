@@ -66,6 +66,7 @@ const TICKER_TO_BRAND: Record<string, string> = {
   TPAY: 'Пассивный доход',
   TRUR: 'Вечный портфель',
   TGLD: 'Золото',
+  TRND: 'Трендовые акции',
 };
 
 function getBrandNameForTicker(symbol: string): string | null {
@@ -89,11 +90,11 @@ async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ co
   let cursor: string | null = null;
   let pages = 0;
 
-  const titleMatches = (t?: string) => !!t && /количеств[оа] паев/i.test(t);
+  const titleMatches = (t?: string) => !!t && /количеств[оа] па[её]в/i.test(t);
   const extractCountFromItem = (item: SmartfeedNewsItem): number | null => {
     const fields = item.additional_fields || [];
     for (const f of fields) {
-      if (/всего паев|общее количество паев/i.test(f.name)) {
+      if (/всего па[её]в|общее количество па[её]в/i.test(f.name)) {
         const n = parseTotalSharesFromText(`${f.name}: ${f.value}`);
         if (n) return n;
       }

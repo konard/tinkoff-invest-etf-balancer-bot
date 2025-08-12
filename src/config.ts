@@ -41,4 +41,4 @@ export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
 // - 'market_cap' — пересчитывать веса пропорционально капитализации (для ETF используем AUM как прокси)
 export type DesiredMode = 'manual' | 'market_cap';
 
-export const DESIRED_MODE: DesiredMode = 'market_cap';
+export const DESIRED_MODE: DesiredMode = 'manual';

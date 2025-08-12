@@ -37,10 +37,11 @@ async function listNewsMdFiles(symbol: string): Promise<string[]> {
 
 function parseRussianNumberWithUnits(text: string): number | null {
   // Only parse lines that explicitly mention total shares
-  const guard = /(всего паев|общее количество паев)/i;
+  // Support both "паев" and "паёв"
+  const guard = /(всего па[её]в|общее количество па[её]в)/i;
   if (!guard.test(text)) return null;
   // Examples: "Всего паев 1799,1 млн шт.", "Общее количество паев — 1799,1 млн шт."
-  const re = /(всего паев|общее количество паев)[^\d]{0,20}(\d[\d\s]*[\,\.]?\d*)\s*(млн|тыс)?/i;
+  const re = /(всего па[её]в|общее количество па[её]в)[^\d]{0,20}(\d[\d\s]*[\,\.]?\d*)\s*(млн|тыс)?/i;
   const m = text.match(re);
   if (!m) return null;
   const numRaw = (m[2] || '').replace(/\s+/g, '').replace(',', '.');
@@ -56,7 +57,19 @@ async function extractLatestSharesCountFromFile(filePath: string): Promise<numbe
   const content = await fs.readFile(filePath, 'utf-8');
   // Quick prefilter by title/keywords
   const lower = content.toLowerCase();
-  if (!(lower.includes('количество паев') || lower.includes('количества паев'))) {
+  // Extract title from markdown: first line starting with '# '
+  const firstTitleLine = content.split(/\r?\n/).find((l) => l.trim().startsWith('# ')) || '';
+  const titleLower = firstTitleLine.toLowerCase();
+  const hasSharesKeywords = [
+    'количество паев',
+    'количества паев',
+    'количество паёв',
+    'количества паёв',
+  ].some((kw) => lower.includes(kw));
+  const hasGuardPhrases = /(всего па[её]в|общее количество па[её]в)/i.test(lower);
+  const isMoneyInflowTitle = titleLower.includes('в фонд поступили новые деньги');
+  const prefilterMatches = hasSharesKeywords || hasGuardPhrases || isMoneyInflowTitle;
+  if (!prefilterMatches) {
     // Might still contain the field, but to be efficient we only consider targeted news
     return null;
   }
