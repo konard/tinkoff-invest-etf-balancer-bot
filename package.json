@@ -20,7 +20,7 @@
     "scrape:tbank:news": "ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=10",
     "analyze:news": "ts-node --transpile-only ./src/tools/analyzeNews.ts TRUR --limit=10",
     "update:shares": "ts-node --transpile-only ./src/tools/updateSharesCount.ts TRUR",
-    "poll:metrics": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TRUR --once",
+    "poll:metrics": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TGLD,TRAY,TRUR --once",
     "poll:metrics:all": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TGLD,TSPV,TBRU,TUSD,TEUR,TEMS,TSPX,TEUS,TBUY,TBEU,TRUR,TPAS,TBIO,TCBR,TECH,TSST,TGRN,TSOX,TRAI,TIPO,TFNX,TMOS --once",
     "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts"
   },
