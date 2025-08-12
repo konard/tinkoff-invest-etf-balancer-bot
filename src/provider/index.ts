@@ -11,6 +11,7 @@ import { Wallet, Position } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { balancer } from '../balancer';
 import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
+import { collectOnceForSymbols } from '../tools/pollEtfMetrics';
 
 (global as any).INSTRUMENTS = [];
 (global as any).POSITIONS = [];
@@ -279,6 +280,15 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       }
 
       debug(coreWallet);
+
+      // Перед расчетом желаемых весов можно собрать свежие метрики для нужных тикеров
+      try {
+        const tickers = Object.keys(DESIRED_WALLET);
+        await collectOnceForSymbols(tickers);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log('[provider] collectOnceForSymbols failed (will proceed with live APIs/fallbacks):', e);
+      }
 
       const desiredForRun = await buildDesiredWalletByMode(DESIRED_MODE, DESIRED_WALLET);
       await balancer(coreWallet, desiredForRun);

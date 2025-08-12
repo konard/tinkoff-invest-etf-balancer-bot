@@ -149,7 +149,7 @@ async function writeMetrics(symbol: string, data: any): Promise<void> {
   console.log(`${LOG_PREFIX} saved ${outPath}`);
 }
 
-async function collectOnceForSymbols(symbols: string[]): Promise<void> {
+export async function collectOnceForSymbols(symbols: string[]): Promise<void> {
   const normalized = symbols.map((t) => normalizeTicker(t) || t);
   const aumMap = await buildAumMapSmart(normalized);
   const usdToRub = await getFxRateToRub('USD');
@@ -282,10 +282,15 @@ async function run(): Promise<void> {
   }
 }
 
-run().catch((e) => {
-  // eslint-disable-next-line no-console
-  console.error(e);
-  process.exitCode = 1;
-});
+// Запускать только при прямом вызове скрипта, чтобы при импорте не стартовал цикл
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isMain = (require as any)?.main === module;
+if (isMain) {
+  run().catch((e) => {
+    // eslint-disable-next-line no-console
+    console.error(e);
+    process.exitCode = 1;
+  });
+}
 
 

@@ -38,7 +38,9 @@ export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
 
 // Режим формирования целевых весов:
 // - 'manual' — использовать DESIRED_WALLET как задано пользователем
-// - 'market_cap' — пересчитывать веса пропорционально капитализации (для ETF используем AUM как прокси)
-export type DesiredMode = 'manual' | 'market_cap';
+// - 'marketcap_aum' — пересчитывать веса пропорционально капитализации; если капа недоступна — используем AUM как прокси
+// - 'marketcap' — пересчитывать веса только по капитализации (без AUM-фолбэка)
+// - 'aum' — пересчитывать веса только по AUM (для ETF; для прочих инструментов — 0)
+export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum';
 
 export const DESIRED_MODE: DesiredMode = 'manual';
