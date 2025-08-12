@@ -108,33 +108,33 @@ npm run accounts
 ## Схема работы (Mermaid)
 ```mermaid
 flowchart TD
-  A[Старт: npm run start/dev] --> B[Загрузка .env TOKEN, ACCOUNT_ID]
-  B --> C[Создать SDK: createSdk(TINKOFF)]
-  C --> D[provider()]
-  D --> E[getAccountId(ACCOUNT_ID)]
-  E -->|id/BROKER/ISS/INDEX:N| F[ACCOUNT_ID определён]
-  F --> G[getInstruments()]
-  G -->|Заполнить глобальный INSTRUMENTS: акции, ETF, облигации, валюты, фьючерсы| H[getPositionsCycle()]
+  A[Старт npm run start/dev] --> B[Загрузка .env TOKEN и ACCOUNT_ID]
+  B --> C[Создание SDK createSdk TINKOFF]
+  C --> D[provider]
+  D --> E[getAccountId ACCOUNT_ID]
+  E -->|выбор счёта| F[ACCOUNT_ID определён]
+  F --> G[getInstruments]
+  G -->|заполнить INSTRUMENTS| H[getPositionsCycle]
 
   subgraph Cycle[Каждые BALANCE_INTERVAL мс]
-    H --> I[operations.getPortfolio(accountId)]
-    I --> J[operations.getPositions(accountId)]
+    H --> I[operations.getPortfolio accountId]
+    I --> J[operations.getPositions accountId]
     J --> K[Построить coreWallet]
-    K -->|Добавить валюту из positions.money (RUB)| L
+    K -->|Добавить валюту из positions.money RUB| L
     K -->|Добавить позиции портфеля с последними ценами| L[coreWallet готов]
-    L --> M[balancer(coreWallet, DESIRED_WALLET)]
+    L --> M[balancer coreWallet и DESIRED_WALLET]
 
     subgraph Balancer[Балансировщик]
       M --> N[Нормализовать целевые веса до 100%]
-      N --> O[Убедиться, что желаемые тикеры есть в кошельке]
-      O --> P[getLastPrice(figi) для отсутствующих тикеров]
-      P --> Q[Рассчитать итоги, desiredAmountNumber]
+      N --> O[Проверить наличие желаемых тикеров]
+      O --> P[getLastPrice figi для отсутствующих]
+      P --> Q[Рассчитать итоги и desiredAmountNumber]
       Q --> R[Рассчитать toBuyLots по позициям]
-      R --> S[Отсортировать ордера (сначала продажи)]
-      S --> T[generateOrders()]
+      R --> S[Отсортировать ордера сначала продажи]
+      S --> T[generateOrders]
     end
 
-    T --> U{Условие: position.base !== 'RUB' && |toBuyLots| >= 1?}
+    T --> U{position.base != RUB и lots >= 1}
     U -- Да --> V[orders.postOrder MARKET]
     V --> W[sleep SLEEP_BETWEEN_ORDERS]
     U -- Нет --> X[Пропуск]
