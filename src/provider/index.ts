@@ -307,7 +307,14 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       }
 
       const desiredForRun = await buildDesiredWalletByMode(DESIRED_MODE, DESIRED_WALLET);
-      await balancer(coreWallet, desiredForRun);
+      const { finalPercents } = await balancer(coreWallet, desiredForRun);
+      // Форматированный вывод результата: только бумаги (исключая валюты), округлённые проценты
+      const entries = Object.entries(finalPercents)
+        .filter(([t]) => t && t !== 'RUB')
+        .map(([t, v]) => [t, `${Math.round(v)}%`] as [string, string]);
+      const resultObject = entries.reduce((acc, [k, v]) => { (acc as any)[k] = v; return acc; }, {} as Record<string, string>);
+      // eslint-disable-next-line no-console
+      console.log('RESULT:', resultObject);
       debug(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
       count++;
 

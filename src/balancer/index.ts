@@ -59,7 +59,7 @@ export const addNumbersToWallet = (wallet: Wallet): Wallet => {
   return wallet;
 };
 
-export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) => {
+export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet): Promise<{ finalPercents: Record<string, number> }> => {
 
   const walletInfo = {
     remains: 0,
@@ -257,4 +257,31 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet) 
 
   debug('Для всех позиций создаем необходимые ордера');
   await generateOrders(ordersPlanned);
+  
+  // Подсчёт итоговых процентных долей бумаг после выставления ордеров (по плану ордеров)
+  // Исключаем валюты (base === quote)
+  const simulated = _.cloneDeep(sortedWallet) as Position[];
+  for (const p of simulated) {
+    if (p.base && p.quote && p.base === p.quote) continue;
+    const lotSize = Number(p.lotSize) || 1;
+    const currentLots = p.amount / lotSize;
+    const plannedLots = Math.sign(p.toBuyLots || 0) * Math.floor(Math.abs(p.toBuyLots || 0));
+    const finalLots = currentLots + plannedLots;
+    const finalAmount = finalLots * lotSize;
+    const priceNum = Number(p.priceNumber) || convertTinkoffNumberToNumber(p.price);
+    (p as any).__finalValue = Math.max(0, priceNum * finalAmount);
+  }
+  const onlySecurities = simulated.filter((p) => !(p.base && p.quote && p.base === p.quote));
+  const totalFinal = _.sumBy(onlySecurities, (p: any) => Number(p.__finalValue) || 0);
+  const finalPercents: Record<string, number> = {};
+  if (totalFinal > 0) {
+    for (const p of onlySecurities) {
+      const ticker = normalizeTicker(p.base) || p.base;
+      const val = Number((p as any).__finalValue) || 0;
+      const pct = (val / totalFinal) * 100;
+      finalPercents[ticker] = (finalPercents[ticker] || 0) + pct;
+    }
+  }
+  
+  return { finalPercents };
 };
