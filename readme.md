@@ -1,82 +1,7 @@
-# Trading Bot Balancer
-This bot participates in the [Tinkoff Invest Robot Contest](https://github.com/Tinkoff/invest-robot-contest).
-
-Appname: suenot
-
-### Disclaimer
-The platform operates in test mode (a test version), and there may be software/algorithmic errors. The models do not guarantee profitability and may trade at a loss. The user assumes full responsibility for the application of this product.
-
-### Requirements
-**IMPORTANT**: It only works with Russian ruble stocks and funds. There should be no other instruments in the account for proper operation.
-
-A simple portfolio balancer.
-- Retrieves the real portfolio in the account.
-- Adjusts it to the desired portfolio.
-    Example of a desired portfolio:
-    ```js
-    export const DESIRED_WALLET: DesiredWallet = {
-      TRAY: 25, // 25% Tinkoff Passive
-      TGLD: 25, // 25% Tinkoff Gold
-      TRUR: 25, // 25% Tinkoff Eternal Portfolio
-    };
-    ```
-- Places the necessary orders for buying and selling to balance the portfolio. Currently, these are market orders.
-- The cycle repeats.
-### Example of Balancing
-![Balance](./balance.png)
-
-1000 rubles were balanced as follows:
-  - 20% Tinkoff iMOEX (TMOS)
-  - 20% Russian Ruble
-  - 20% Tinkoff Eternal Portfolio (TRUR)
-  - 20% VTB shares
-### Settings
-To use the bot, you need to [obtain a token](https://www.tinkoff.ru/invest/settings).
-
-ACCOUNT_ID can be:
-- exact id returned by the API,
-- BROKER (to pick brokerage account),
-- ISS (to pick IIA),
-- INDEX:N (to pick account by index in the list from `npm run accounts`),
-- N (just a number string like `0`, shorthand for INDEX:N).
-
-You need an account with only Russian ruble assets and create an .env file with the following settings:
-```bash
-TOKEN=
-ACCOUNT_ID=
-```
-
-Desired portfolio settings in percentages and the interval between rebalancing can be adjusted in ./src/config.js:
-```js
-export const desiredWallet: DesiredWallet = {
-  TMOS: 25, // 25% Tinkoff iMOEX (TMOS)
-  RUB: 25, // 25% Russian Ruble
-  TRUR: 50, // 50% Tinkoff Eternal Portfolio (TRUR)
-};
-
-export const balancerInterval: number = 60000; // Once per minute
-```
-
-### Running
-```
-npm i
-npm run start
-```
-
-Run with debug logs and one-time balance without cycle:
-```
-npm run dev -- --once
-```
-
-### Additional Information
-Originally, a bot with an [associative data structure](https://github.com/suenot/deep-tinkoff-invest) was prepared for the contest, but due to time constraints, I decided to take an easier task.
-
-_________________
-
-# Торговый бот балансировщик (Russian readme)
+# Торговый бот балансировщик
 Этот бот участвует в конкурсе [Tinkoff Invest Robot Contest](https://github.com/Tinkoff/invest-robot-contest).
 
-Appname: suenot
+Имя приложения: suenot
 
 ### Отказ от ответственности
 Платформа работает в тестовом режиме (тестовая версия), возможны программные/алгоритмические ошибки, модели не гарантируют доходность и могу торговать в убыток. Пользователь полностью принимает ответственность за применение данного продукта на себя.
@@ -183,39 +108,39 @@ npm run accounts
 ## Схема работы (Mermaid)
 ```mermaid
 flowchart TD
-  A[Start npm run start/dev] --> B[Load .env TOKEN, ACCOUNT_ID]
-  B --> C[createSdk(TINKOFF)]
+  A[Старт: npm run start/dev] --> B[Загрузка .env TOKEN, ACCOUNT_ID]
+  B --> C[Создать SDK: createSdk(TINKOFF)]
   C --> D[provider()]
   D --> E[getAccountId(ACCOUNT_ID)]
-  E -->|id/BROKER/ISS/INDEX:N| F[ACCOUNT_ID determined]
+  E -->|id/BROKER/ISS/INDEX:N| F[ACCOUNT_ID определён]
   F --> G[getInstruments()]
-  G -->|fill global INSTRUMENTS: shares, etfs, bonds, currencies, futures| H[getPositionsCycle()]
+  G -->|Заполнить глобальный INSTRUMENTS: акции, ETF, облигации, валюты, фьючерсы| H[getPositionsCycle()]
 
-  subgraph Cycle[Every BALANCE_INTERVAL ms]
+  subgraph Cycle[Каждые BALANCE_INTERVAL мс]
     H --> I[operations.getPortfolio(accountId)]
     I --> J[operations.getPositions(accountId)]
-    J --> K[Build coreWallet]
-    K -->|Add currencies from positions.money (RUB)| L
-    K -->|Add portfolio positions with last prices| L[coreWallet ready]
+    J --> K[Построить coreWallet]
+    K -->|Добавить валюту из positions.money (RUB)| L
+    K -->|Добавить позиции портфеля с последними ценами| L[coreWallet готов]
     L --> M[balancer(coreWallet, DESIRED_WALLET)]
 
-    subgraph Balancer
-      M --> N[normalizeDesire to 100%]
-      N --> O[Ensure desired tickers exist in wallet]
-      O --> P[getLastPrice(figi) for missing tickers]
-      P --> Q[Compute totals, desiredAmountNumber]
-      Q --> R[Compute toBuyLots per position]
-      R --> S[Sort orders (sells first)]
+    subgraph Balancer[Балансировщик]
+      M --> N[Нормализовать целевые веса до 100%]
+      N --> O[Убедиться, что желаемые тикеры есть в кошельке]
+      O --> P[getLastPrice(figi) для отсутствующих тикеров]
+      P --> Q[Рассчитать итоги, desiredAmountNumber]
+      Q --> R[Рассчитать toBuyLots по позициям]
+      R --> S[Отсортировать ордера (сначала продажи)]
       S --> T[generateOrders()]
     end
 
-    T --> U{position.base !== 'RUB' && |toBuyLots| >= 1?}
-    U -- Yes --> V[orders.postOrder MARKET]
+    T --> U{Условие: position.base !== 'RUB' && |toBuyLots| >= 1?}
+    U -- Да --> V[orders.postOrder MARKET]
     V --> W[sleep SLEEP_BETWEEN_ORDERS]
-    U -- No --> X[Skip]
-    W --> Y[Next position]
+    U -- Нет --> X[Пропуск]
+    W --> Y[Следующая позиция]
     X --> Y
-    Y --> Z[Cycle next tick]
+    Y --> Z[Следующая итерация]
   end
 ```
 
