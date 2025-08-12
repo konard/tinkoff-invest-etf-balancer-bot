@@ -45,4 +45,4 @@ export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
 // - 'decorrelation' — балансировка по расстоянию от decorrelationPct до максимума среди decorrelationPct.
 export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
 
-export const DESIRED_MODE: DesiredMode = 'marketcap';
+export const DESIRED_MODE: DesiredMode = 'decorrelation';
