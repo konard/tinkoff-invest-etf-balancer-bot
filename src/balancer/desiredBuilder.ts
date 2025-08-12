@@ -74,6 +74,36 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
     }
   }
 
+  if (mode === 'decorrelation') {
+    // Стратегия: покупать только недооценённые фонды (AUM > marketCap).
+    // Шаги:
+    // 1) Получить marketCap и AUM в RUB.
+    // 2) Вычислить положительную рассинхронизацию d = max(0, (AUM - marketCap) / AUM).
+    // 3) Нормализовать d относительно максимума среди всех тикеров: d' = d / max(d).
+    // 4) Пропорционально d' распределить веса. Если сумма нулевая — вернуть baseDesired как фолбэк.
+
+    const decorrelationRaw: Record<string, number> = {};
+    for (const nt of normalizedTickers) {
+      const [mcap, aum] = await Promise.all([calcMarketcap(nt), calcAumRub(nt)]);
+      const d = aum > 0 ? Math.max(0, (aum - mcap) / aum) : 0; // доля недооценки [0..1]
+      decorrelationRaw[nt] = Number.isFinite(d) && d > 0 ? d : 0;
+    }
+    const maxD = _.max(Object.values(decorrelationRaw)) || 0;
+    const normalizedD: Record<string, number> = {};
+    if (maxD > 0) {
+      for (const nt of normalizedTickers) {
+        normalizedD[nt] = decorrelationRaw[nt] / maxD;
+      }
+    } else {
+      // Все d == 0: нет недооценённых — возвращаем базовые веса как безопасный фолбэк
+      return baseDesired;
+    }
+    // Конвертация в метрику распределения (не обязательно в проценты ещё)
+    for (const nt of normalizedTickers) {
+      metricByNormalized[nt] = normalizedD[nt];
+    }
+  }
+
   const totalMetric = _.sum(Object.values(metricByNormalized));
   if (!totalMetric || !Number.isFinite(totalMetric) || totalMetric <= 0) {
     debug('Total metric is zero, return baseDesired as-is');

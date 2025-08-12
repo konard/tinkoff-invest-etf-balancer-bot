@@ -230,7 +230,9 @@ export async function collectOnceForSymbols(symbols: string[]): Promise<void> {
     }
 
     const marketCap = sharesCount && priceRUB ? sharesCount * priceRUB : null;
-    const decorrelationPct = aumRUB && marketCap ? Math.abs(marketCap - aumRUB) / aumRUB * 100 : null;
+    // Знаковая метрика: (marketCap - AUM) / AUM * 100
+    // Отрицательное значение — недооценка (AUM > marketCap), положительное — переоценка (marketCap > AUM)
+    const decorrelationPct = aumRUB && marketCap ? ((marketCap - aumRUB) / aumRUB) * 100 : null;
 
     const payload = {
       symbol: sym,

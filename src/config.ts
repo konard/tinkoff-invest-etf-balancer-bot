@@ -42,6 +42,8 @@ export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
 // - 'marketcap_aum' — пересчитывать веса пропорционально капитализации; если капа недоступна — используем AUM как прокси
 // - 'marketcap' — пересчитывать веса только по капитализации (без AUM-фолбэка)
 // - 'aum' — пересчитывать веса только по AUM (для ETF; для прочих инструментов — 0)
-export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum';
+// - 'decorrelation' — инвестировать только в недооценённые фонды (AUM > marketCap);
+//     вес ∝ нормализованной рассинхронизации: max(0, (AUM - marketCap) / AUM) с нормализацией по максимуму
+export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
 
-export const DESIRED_MODE: DesiredMode = 'manual';
+export const DESIRED_MODE: DesiredMode = 'decorrelation';
