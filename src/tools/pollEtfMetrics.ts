@@ -436,11 +436,20 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
     let priceRUB: number | null = null;
     try {
       const etfInfo = await getEtfMarketCapRUB(sym);
-      if (etfInfo && typeof etfInfo.lastPriceRUB === 'number') {
+      if (!etfInfo) {
+        // eslint-disable-next-line no-console
+        console.log(`${LOG_PREFIX} price: instrument not found for ${sym} (check TOKEN/env and instrument list)`);
+      } else if (typeof etfInfo.lastPriceRUB !== 'number' || !Number.isFinite(etfInfo.lastPriceRUB)) {
+        // eslint-disable-next-line no-console
+        console.log(`${LOG_PREFIX} price: lastPriceRUB missing for ${sym} figi=${etfInfo.figi} uid=${etfInfo.uid} raw=${JSON.stringify({ lastPriceRUB: etfInfo.lastPriceRUB })}`);
+      } else {
         priceRUB = etfInfo.lastPriceRUB || null;
+        // eslint-disable-next-line no-console
+        console.log(`${LOG_PREFIX} price: lastPriceRUB=${priceRUB} for ${sym}`);
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} price: error fetching for ${sym}:`, e);
     }
 
     const marketCap = sharesCount && priceRUB ? sharesCount * priceRUB : null;
@@ -457,6 +466,8 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
       sharesSearchUrl: getSharesSearchUrl(sym),
       sharesSourceUrl: sharesSourceUrl || null,
     };
+    // eslint-disable-next-line no-console
+    console.log(`${LOG_PREFIX} payload ${sym}: price=${priceRUB} shares=${sharesCount} aum=${aumRUB ?? null} mcap=${marketCap}`);
     await writeMetrics(sym, payload);
   }
 }

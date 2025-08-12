@@ -34,11 +34,17 @@ export const writeToFile = (obj: object, filename: string) => {
 const TICKER_ALIASES: Record<string, string> = {
   // TRAY (стар.) → TPAY (нов.)
   TRAY: 'TPAY',
+  // Некоторые инструменты в API могут иметь суффикс '@' (например, TGLD@)
+  // Нормализуем такие тикеры к базовой форме без '@'
 };
 
 export const normalizeTicker = (ticker: string | undefined): string | undefined => {
   if (!ticker) return ticker;
-  return TICKER_ALIASES[ticker] || ticker;
+  let t = ticker.trim();
+  // Уберём суффикс '@' если присутствует (пример: 'TGLD@' → 'TGLD')
+  if (t.endsWith('@')) t = t.slice(0, -1);
+  // Применим явные алиасы
+  return TICKER_ALIASES[t] || t;
 };
 
 export const tickersEqual = (a: string | undefined, b: string | undefined): boolean => {
