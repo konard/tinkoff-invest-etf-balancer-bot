@@ -5,6 +5,7 @@ import { DESIRED_WALLET } from '../config';
 import { normalizeTicker } from '../utils';
 import { buildAumMapSmart, getFxRateToRub, AumEntry, getEtfMarketCapRUB } from './etfCap';
 import puppeteer, { Page } from 'puppeteer';
+import rp from 'request-promise';
 
 type Nullable<T> = T | null | undefined;
 
@@ -59,6 +60,82 @@ function parseTotalSharesFromText(text: string): number | null {
   if (unit.includes('млн')) return Math.round(base * 1_000_000);
   if (unit.includes('тыс')) return Math.round(base * 1_000);
   return Math.round(base);
+}
+
+// Маппинг тикеров на брендовые названия в смартфиде (кириллица)
+const TICKER_TO_BRAND: Record<string, string> = {
+  TPAY: 'Пассивный доход',
+  TRUR: 'Вечный портфель',
+  TGLD: 'Золото',
+};
+
+function getBrandNameForTicker(symbol: string): string | null {
+  const s = normalizeTicker(symbol) || symbol;
+  return TICKER_TO_BRAND[s] || null;
+}
+
+type SmartfeedNewsItem = {
+  id: number;
+  title?: string;
+  body?: string;
+  additional_fields?: Array<{ name: string; value: string }>;
+};
+
+async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ count: number; sourceUrl: string; sourceTitle?: string } | null> {
+  const brand = getBrandNameForTicker(symbol);
+  if (!brand) return null;
+
+  const base = 'https://www.tbank.ru/api/invest/smartfeed-public/v1/feed/api/brands';
+  const encBrand = encodeURIComponent(brand);
+  let cursor: string | null = null;
+  let pages = 0;
+
+  const titleMatches = (t?: string) => !!t && /количеств[оа] паев/i.test(t);
+  const extractCountFromItem = (item: SmartfeedNewsItem): number | null => {
+    const fields = item.additional_fields || [];
+    for (const f of fields) {
+      if (/всего паев|общее количество паев/i.test(f.name)) {
+        const n = parseTotalSharesFromText(`${f.name}: ${f.value}`);
+        if (n) return n;
+      }
+    }
+    // Фолбэк — пробуем по body, если он приходит в API
+    if (item.body) {
+      const n = parseTotalSharesFromText(item.body);
+      if (n) return n;
+    }
+    return null;
+  };
+
+  while (pages < 200) { // хардлимит безопасности
+    const url = `${base}/${encBrand}/fund-news?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+    try {
+      const raw = await rp({ uri: url, method: 'GET' });
+      const data = JSON.parse(raw);
+      const news: SmartfeedNewsItem[] = data?.payload?.news || [];
+      const nextCursor: string | null = data?.payload?.meta?.cursor || null;
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} smartfeed brand=${brand} news=${news.length} cursorNext=${nextCursor ? nextCursor.slice(0, 16) + '…' : 'null'}`);
+      for (const item of news) {
+        if (!titleMatches(item.title)) continue;
+        const count = extractCountFromItem(item);
+        if (count) {
+          const sourceUrl = `https://www.tbank.ru/invest/fund-news/${item.id}/`;
+          // eslint-disable-next-line no-console
+          console.log(`${LOG_PREFIX} smartfeed hit id=${item.id} title=${item.title} count=${count}`);
+          return { count, sourceUrl, sourceTitle: item.title };
+        }
+      }
+      if (!nextCursor || nextCursor === cursor) break;
+      cursor = nextCursor;
+      pages += 1;
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`${LOG_PREFIX} smartfeed error:`, e);
+      break;
+    }
+  }
+  return null;
 }
 
 async function extractSharesCountFromNewsPage(page: Page): Promise<number | null> {
@@ -286,6 +363,9 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
   const debugNewsHtmlPath = debugNewsHtmlArg ? debugNewsHtmlArg.split('=')[1] : null;
   const forceNewsIdArg = argv.find((a) => a.startsWith('--force-news-id='));
   const forceNewsId = forceNewsIdArg ? forceNewsIdArg.split('=')[1] : null;
+  const maxClicksArg = argv.find((a) => a.startsWith('--max-clicks='));
+  const maxClicks = maxClicksArg ? parseInt(maxClicksArg.split('=')[1], 10) : 1000; // по требованию: 1000 проходов
+  const symbolTimeoutMs = Math.max(90000, maxClicks * 2000 + 15000);
 
   for (const s of symbols) {
     const sym = normalizeTicker(s) || s;
@@ -295,6 +375,12 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
     let sharesCount: number | null = null;
     let sharesSourceUrl: string | null = null;
     try {
+      // Сначала — быстрый и надёжный Smartfeed API по бренду
+      const apiFound = await fetchLatestSharesCountFromSmartfeed(sym);
+      if (apiFound) {
+        sharesCount = apiFound.count;
+        sharesSourceUrl = apiFound.sourceUrl;
+      }
       let found: { count: number; sourceUrl: string; sourceTitle?: string; searchUrl: string } | null = null;
       let forcedUrl: string | undefined;
       if (debugNewsHtmlPath) {
@@ -320,10 +406,10 @@ async function collectOnceForSymbols(symbols: string[]): Promise<void> {
       if (!forcedUrl && forceNewsId) {
         forcedUrl = `https://www.tbank.ru/invest/fund-news/${forceNewsId}/`;
       }
-      if (!found) {
-        found = await fetchLatestSharesCountFromTbank(sym, 30, 90000, forcedUrl);
+      if (!sharesCount && !found) {
+        found = await fetchLatestSharesCountFromTbank(sym, maxClicks, symbolTimeoutMs, forcedUrl);
       }
-      if (found && typeof found.count === 'number') {
+      if (!sharesCount && found && typeof found.count === 'number') {
         sharesCount = found.count;
         sharesSourceUrl = found.sourceUrl;
       }
