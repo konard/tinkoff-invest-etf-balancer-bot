@@ -192,6 +192,22 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
     let count = 1;
 
     const tick = async () => {
+      // Перед началом итерации проверяем, открыта ли биржа (MOEX)
+      try {
+        const isOpen = await isExchangeOpenNow('MOEX');
+        if (!isOpen) {
+          debug('Биржа закрыта (MOEX). Пропускаем балансировку и ждём следующей итерации.');
+          if (options?.runOnce) {
+            debug('runOnce=true и биржа закрыта: завершаем без выполнения балансировки');
+            resolve();
+            return;
+          }
+          return; // просто ждём следующий tick по интервалу
+        }
+      } catch (e) {
+        debug('Не удалось проверить расписание торгов. Продолжаем по умолчанию.', e);
+      }
+
       let portfolio: any;
       let portfolioPositions: any;
       try {
@@ -308,6 +324,63 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       setInterval(tick, BALANCE_INTERVAL);
     }
   });
+};
+
+// Преобразование типов времени из ответа API к Date
+const toDate = (t: any): Date | null => {
+  if (!t) return null;
+  if (t instanceof Date) return t;
+  if (typeof t === 'string' || typeof t === 'number') return new Date(t);
+  if (typeof t === 'object') {
+    const seconds = (t.seconds !== undefined ? Number(t.seconds) : (t.sec !== undefined ? Number(t.sec) : undefined));
+    const nanos = (t.nanos !== undefined ? Number(t.nanos) : (t.nano !== undefined ? Number(t.nano) : 0));
+    if (seconds !== undefined) {
+      return new Date(seconds * 1000 + Math.floor(nanos / 1e6));
+    }
+  }
+  return null;
+};
+
+// Проверяет, открыта ли указанная биржа прямо сейчас по расписанию торгов
+export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<boolean> => {
+  try {
+    const now = new Date();
+    const from = new Date(now);
+    from.setHours(0, 0, 0, 0);
+    const to = new Date(from);
+    to.setDate(to.getDate() + 1);
+
+    const schedules: any = await instruments.tradingSchedules({
+      exchange,
+      from,
+      to,
+    });
+
+    const exchanges = schedules?.exchanges || schedules?.exchangesList || [];
+    const first = exchanges[0];
+    const days = first?.days || first?.daysList || [];
+
+    // Ищем интервал(ы) сегодняшнего дня и проверяем попадание now
+    for (const day of days) {
+      // В некоторых обёртках может быть date как строка/Date — но для надёжности сверяем по границам
+      if (day?.isTradingDay === false) continue;
+      const start = toDate(day?.startTime || day?.start_time);
+      const end = toDate(day?.endTime || day?.end_time);
+      const eveningStart = toDate(day?.eveningStartTime || day?.evening_start_time);
+      const eveningEnd = toDate(day?.eveningEndTime || day?.evening_end_time);
+
+      // Основная сессия
+      if (start && end && now >= start && now <= end) return true;
+      // Вечерняя сессия (если есть)
+      if (eveningStart && eveningEnd && now >= eveningStart && now <= eveningEnd) return true;
+    }
+
+    return false;
+  } catch (err) {
+    // В случае ошибок не блокируем работу бота
+    debug('Ошибка при запросе расписания торгов', err);
+    return true;
+  }
 };
 
 export const getLastPrice = async (figi) => {

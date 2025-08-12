@@ -32,7 +32,8 @@ export const DESIRED_WALLET: DesiredWallet = {
 //   },
 // ];
 
-export const BALANCE_INTERVAL: number = 60000; // Раз в 1 минуту
+// export const BALANCE_INTERVAL: number = 60000; // Раз в 1 минуту
+export const BALANCE_INTERVAL: number = 60000 * 60; // Раз в 1 час
 
 export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
 
