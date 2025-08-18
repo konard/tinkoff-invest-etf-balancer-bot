@@ -352,7 +352,7 @@ async function run(): Promise<void> {
 
 // Запускать только при прямом вызове скрипта, чтобы при импорте не стартовал цикл
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isMain = (require as any)?.main === module;
+const isMain = process.argv[1] === import.meta.url || process.argv[1]?.endsWith('pollEtfMetrics.ts');
 if (isMain) {
   run().catch((e) => {
     // eslint-disable-next-line no-console

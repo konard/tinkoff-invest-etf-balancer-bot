@@ -1,7 +1,8 @@
 import fs from 'fs';
+import debug from 'debug';
 import { TinkoffNumber } from '../types.d';
 
-const debug = require('debug')('bot').extend('utils');
+const debugUtils = debug('bot').extend('utils');
 
 export const sleep = (ms: any) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -53,7 +54,7 @@ export const tickersEqual = (a: string | undefined, b: string | undefined): bool
 };
 
 export const convertTinkoffNumberToNumber = (n: TinkoffNumber): number => {
-  debug('n', n);
+  debugUtils('n', n);
 
   let result;
   if (n?.units ===  undefined) {
@@ -61,7 +62,7 @@ export const convertTinkoffNumberToNumber = (n: TinkoffNumber): number => {
   } else {
     result = Number(`${n.units}.${zeroPad(n?.nano, 9)}`);
   }
-  debug('convertTinkoffNumberToNumber', result);
+  debugUtils('convertTinkoffNumberToNumber', result);
   return result;
 };
 
@@ -90,7 +91,7 @@ export const listAccounts = async (usersClient: any) => {
       status: acc.status,
     }));
   } catch (err) {
-    debug('Ошибка при получении списка счетов', err);
+    debugUtils('Ошибка при получении списка счетов', err);
     return [];
   }
 };

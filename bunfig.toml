@@ -1,0 +1,22 @@
+[install]
+# Использовать npm registry для совместимости
+registry = "https://registry.npmjs.org/"
+
+[install.scopes]
+# Настройки для различных scope'ов если понадобятся
+
+[test]
+# Настройки для тестирования
+preload = ["./src/test-setup.ts"]
+
+[run]
+# Настройки для выполнения скриптов
+bun = true
+
+[install.cache]
+# Настройки кэширования
+dir = ".bun"
+
+[install.lockfile]
+# Использовать bun.lockb
+format = "bun"

@@ -4,7 +4,8 @@ import { createSdk } from 'tinkoff-sdk-grpc-js';
 import 'mocha';
 import _ from 'lodash';
 import uniqid from 'uniqid';
-// import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
+import debug from 'debug';
+// import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/sdk';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 import { DESIRED_WALLET, BALANCE_INTERVAL, SLEEP_BETWEEN_ORDERS, DESIRED_MODE } from '../config';
 import { Wallet, Position } from '../types.d';
@@ -17,7 +18,7 @@ import { collectOnceForSymbols } from '../tools/pollEtfMetrics';
 (global as any).POSITIONS = [];
 (global as any).LAST_PRICES = [];
 
-const debug = require('debug')('bot').extend('provider');
+const debugProvider = debug('bot').extend('provider');
 
 const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
 
@@ -30,46 +31,46 @@ export const provider = async (options?: { runOnce?: boolean }) => {
 };
 
 export const generateOrders = async (wallet: Wallet) => {
-  debug('generateOrders');
+  debugProvider('generateOrders');
   for (const position of wallet) {
     await generateOrder(position);
   }
 };
 
 export const generateOrder = async (position: Position) => {
-  debug('generateOrder');
-  debug('position', position);
+  debugProvider('generateOrder');
+  debugProvider('position', position);
 
   if (position.base === 'RUB') {
-    debug('Если позиция это рубль, то ничего не делаем');
+    debugProvider('Если позиция это рубль, то ничего не делаем');
     return false;
   }
 
-  debug('Позиция не валюта');
+  debugProvider('Позиция не валюта');
 
-  debug('position.toBuyLots', position.toBuyLots);
+  debugProvider('position.toBuyLots', position.toBuyLots);
 
   if (!isFinite(position.toBuyLots)) {
-    debug('toBuyLots is NaN/Infinity. Пропускаем позицию.');
+    debugProvider('toBuyLots is NaN/Infinity. Пропускаем позицию.');
     return 0;
   }
 
   if ((-1 < position.toBuyLots) && (position.toBuyLots < 1)) {
-    debug('Выставление ордера меньше 1 лота. Не имеет смысла выполнять.');
+    debugProvider('Выставление ордера меньше 1 лота. Не имеет смысла выполнять.');
     return 0;
   }
 
-  debug('Позиция больше или равно 1 лоту');
+  debugProvider('Позиция больше или равно 1 лоту');
 
   const direction = position.toBuyLots >= 1 ? OrderDirection.ORDER_DIRECTION_BUY : OrderDirection.ORDER_DIRECTION_SELL;
-  debug('direction', direction);
+  debugProvider('direction', direction);
 
   // for (const i of _.range(position.toBuyLots)) {
   //   // Идея создавать однолотовые ордера, для того, чтобы они всегда исполнялись полностью, а не частично.
   //   // Могут быть сложности с:
   //   // - кол-вом разрешенных запросов к api, тогда придется реализовывать очередь.
   //   // - минимальный ордер может быть больше одного лота
-  //   debug(`Создаем однолотовый ордер #${i} of ${_.range(position.toBuyLots).length}`);
+  //   debugProvider(`Создаем однолотовый ордер #${i} of ${_.range(position.toBuyLots).length}`);
   //   const order = {
   //     accountId: ACCOUNT_ID,
   //     figi: position.figi,
@@ -79,32 +80,32 @@ export const generateOrder = async (position: Position) => {
   //     orderType: OrderType.ORDER_TYPE_MARKET,
   //     orderId: uniqid(),
   //   };
-  //   debug('Отправляем ордер', order);
+  //   debugProvider('Отправляем ордер', order);
 
   //   try {
   //     const setOrder = await orders.postOrder(order);
-  //     debug('Успешно поставили ордер', setOrder);
+  //     debugProvider('Успешно поставили ордер', setOrder);
   //   } catch (err) {
-  //     debug('Ошибка при выставлении ордера');
-  //     debug(err);
+  //     debugProvider('Ошибка при выставлении ордера');
+  //     debugProvider(err);
   //     console.trace(err);
   //   }
   //   await sleep(1000);
   // }
 
   // Или можно создавать обычные ордера
-  debug('position', position);
+  debugProvider('position', position);
 
-  debug('Создаем рыночный ордер');
+  debugProvider('Создаем рыночный ордер');
   const quantityLots = Math.floor(Math.abs(position.toBuyLots));
 
   if (quantityLots < 1) {
-    debug('Количество лотов после округления < 1. Пропускаем ордер.');
+    debugProvider('Количество лотов после округления < 1. Пропускаем ордер.');
     return 0;
   }
 
   if (!position.figi) {
-    debug('У позиции отсутствует figi. Пропускаем ордер.');
+    debugProvider('У позиции отсутствует figi. Пропускаем ордер.');
     return 0;
   }
 
@@ -117,14 +118,14 @@ export const generateOrder = async (position: Position) => {
     orderType: OrderType.ORDER_TYPE_MARKET,
     orderId: uniqid(),
   };
-  debug('Отправляем рыночный ордер', order);
+  debugProvider('Отправляем рыночный ордер', order);
 
   try {
     const setOrder = await orders.postOrder(order);
-    debug('Успешно поставили ордер', setOrder);
+    debugProvider('Успешно поставили ордер', setOrder);
   } catch (err) {
-    debug('Ошибка при выставлении ордера');
-    debug(err);
+    debugProvider('Ошибка при выставлении ордера');
+    debugProvider(err);
     // console.trace(err);
   }
   await sleep(SLEEP_BETWEEN_ORDERS);
@@ -139,19 +140,19 @@ export const getAccountId = async (type) => {
 
   // Если пришла конкретная строка id, возвращаем как есть
   if (indexMatch === null && type !== 'ISS' && type !== 'BROKER') {
-    debug('Передан ACCOUNT_ID (как строка id)', type);
+    debugProvider('Передан ACCOUNT_ID (как строка id)', type);
     return type;
   }
 
-  debug('Получаем список аккаунтов');
+  debugProvider('Получаем список аккаунтов');
   let accountsResponse: any;
   try {
     accountsResponse = await users.getAccounts({});
   } catch (err) {
-    debug('Ошибка получения списка аккаунтов');
-    debug(err);
+    debugProvider('Ошибка получения списка аккаунтов');
+    debugProvider(err);
   }
-  debug('accountsResponse', accountsResponse);
+  debugProvider('accountsResponse', accountsResponse);
 
   // Поддержка разных форматов ответа: { accounts: [...] } или сразу массив
   const accounts: any[] = Array.isArray(accountsResponse)
@@ -162,7 +163,7 @@ export const getAccountId = async (type) => {
   if (indexMatch !== null) {
     const byIndex = accounts[indexMatch];
     const byIndexId = byIndex?.id || byIndex?.accountId || byIndex?.account_id;
-    debug('Выбран аккаунт по индексу', byIndex);
+    debugProvider('Выбран аккаунт по индексу', byIndex);
     if (!byIndexId) {
       throw new Error(`Не удалось определить ACCOUNT_ID по индексу ${indexMatch}.`);
     }
@@ -174,7 +175,7 @@ export const getAccountId = async (type) => {
     // 1 — брокерский, 2 — ИИС (по enum API v2)
     const desiredType = type === 'ISS' ? 2 : 1;
     const account = _.find(accounts, { type: desiredType });
-    debug('Найден аккаунт по типу', account);
+    debugProvider('Найден аккаунт по типу', account);
     const accountId = account?.id || account?.accountId || account?.account_id;
     if (!accountId) {
       throw new Error('Не удалось определить ACCOUNT_ID по типу. Проверьте доступ токена к нужному счету.');
@@ -183,7 +184,7 @@ export const getAccountId = async (type) => {
   }
 
   // Фоллбек: вернуть как есть
-  debug('Передан ACCOUNT_ID (как строка id фоллбек)', type);
+  debugProvider('Передан ACCOUNT_ID (как строка id фоллбек)', type);
   return type;
 };
 
@@ -196,51 +197,51 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       try {
         const isOpen = await isExchangeOpenNow('MOEX');
         if (!isOpen) {
-          debug('Биржа закрыта (MOEX). Пропускаем балансировку и ждём следующей итерации.');
+          debugProvider('Биржа закрыта (MOEX). Пропускаем балансировку и ждём следующей итерации.');
           if (options?.runOnce) {
-            debug('runOnce=true и биржа закрыта: завершаем без выполнения балансировки');
+            debugProvider('runOnce=true и биржа закрыта: завершаем без выполнения балансировки');
             resolve();
             return;
           }
           return; // просто ждём следующий tick по интервалу
         }
       } catch (e) {
-        debug('Не удалось проверить расписание торгов. Продолжаем по умолчанию.', e);
+        debugProvider('Не удалось проверить расписание торгов. Продолжаем по умолчанию.', e);
       }
 
       let portfolio: any;
       let portfolioPositions: any;
       try {
-        debug('Получение портфолио');
+        debugProvider('Получение портфолио');
         portfolio = await operations.getPortfolio({
           accountId: ACCOUNT_ID,
         });
-        debug('portfolio', portfolio);
+        debugProvider('portfolio', portfolio);
 
         portfolioPositions = portfolio.positions;
-        debug('portfolioPositions', portfolioPositions);
+        debugProvider('portfolioPositions', portfolioPositions);
       } catch (err) {
         console.warn('Ошибка при получении портфолио');
-        debug(err);
+        debugProvider(err);
         console.trace(err);
       }
 
       let positions: any;
       try {
-        debug('Получение позиций');
+        debugProvider('Получение позиций');
         positions = await operations.getPositions({
           accountId: ACCOUNT_ID,
         });
-        debug('positions', positions);
+        debugProvider('positions', positions);
       } catch (err) {
         console.warn('Ошибка при получении позиций');
-        debug(err);
+        debugProvider(err);
         console.trace(err);
       }
 
       const coreWallet: Wallet = [];
 
-      debug('Добавляем валюты в Wallet');
+      debugProvider('Добавляем валюты в Wallet');
       for (const currency of positions.money) {
         const corePosition = {
           pair: `${currency.currency.toUpperCase()}/${currency.currency.toUpperCase()}`,
@@ -259,26 +260,26 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
             nano: 0,
           },
         };
-        debug('corePosition', corePosition);
+        debugProvider('corePosition', corePosition);
         coreWallet.push(corePosition);
       }
 
       (global as any).POSITIONS = portfolioPositions;
 
-      debug('Добавляем позиции в Wallet');
+      debugProvider('Добавляем позиции в Wallet');
       for (const position of portfolioPositions) {
-        debug('position', position);
+        debugProvider('position', position);
 
         const instrument = _.find((global as any).INSTRUMENTS,  { figi: position.figi });
-        debug('instrument', instrument);
+        debugProvider('instrument', instrument);
 
         if (!instrument) {
-          debug('instrument not found by figi, skip position', position.figi);
+          debugProvider('instrument not found by figi, skip position', position.figi);
           continue;
         }
 
         const priceWhenAddToWallet = await getLastPrice(instrument.figi);
-        debug('priceWhenAddToWallet', priceWhenAddToWallet);
+        debugProvider('priceWhenAddToWallet', priceWhenAddToWallet);
 
         const corePosition = {
           pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
@@ -291,11 +292,11 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           priceNumber: convertTinkoffNumberToNumber(position.currentPrice),
           lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet)),
         };
-        debug('corePosition', corePosition);
+        debugProvider('corePosition', corePosition);
         coreWallet.push(corePosition);
       }
 
-      debug(coreWallet);
+      debugProvider(coreWallet);
 
       // Перед расчетом желаемых весов можно собрать свежие метрики для нужных тикеров
       try {
@@ -315,11 +316,11 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       const resultObject = entries.reduce((acc, [k, v]) => { (acc as any)[k] = v; return acc; }, {} as Record<string, string>);
       // eslint-disable-next-line no-console
       console.log('RESULT:', resultObject);
-      debug(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
+      debugProvider(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
       count++;
 
       if (options?.runOnce) {
-        debug('runOnce=true: завершаем после первого тика');
+        debugProvider('runOnce=true: завершаем после первого тика');
         resolve();
         return;
       }
@@ -385,115 +386,115 @@ export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<bool
     return false;
   } catch (err) {
     // В случае ошибок не блокируем работу бота
-    debug('Ошибка при запросе расписания торгов', err);
+    debugProvider('Ошибка при запросе расписания торгов', err);
     return true;
   }
 };
 
 export const getLastPrice = async (figi) => {
-  debug('Получаем последнюю цену');
+  debugProvider('Получаем последнюю цену');
   let lastPriceResult;
   try {
     lastPriceResult = await marketData.getLastPrices({
       figi: [figi],
     });
-    debug('lastPriceResult', lastPriceResult);
+    debugProvider('lastPriceResult', lastPriceResult);
   } catch (err) {
-    debug(err);
+    debugProvider(err);
   }
 
   const lastPrice = lastPriceResult?.lastPrices?.[0]?.price;
-  debug('lastPrice', lastPrice);
+  debugProvider('lastPrice', lastPrice);
   await sleep(SLEEP_BETWEEN_ORDERS);
   return lastPrice;
 };
 
 export const getInstruments = async () => {
 
-  debug('Получаем список акций');
+  debugProvider('Получаем список акций');
   let sharesResult;
   try {
     sharesResult = await instruments.shares({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
-    debug(err);
+    debugProvider(err);
   }
   const shares = sharesResult?.instruments;
-  debug('shares count', shares?.length);
+  debugProvider('shares count', shares?.length);
   (global as any).INSTRUMENTS = _.union(shares, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
-  debug('Получаем список фондов');
+  debugProvider('Получаем список фондов');
   let etfsResult;
   try {
     etfsResult = await instruments.etfs({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
-    debug(err);
+    debugProvider(err);
   }
   const etfs = etfsResult?.instruments;
-  debug('etfs count', etfs?.length);
+  debugProvider('etfs count', etfs?.length);
   (global as any).INSTRUMENTS = _.union(etfs, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
-  debug('Получаем список облигаций');
+  debugProvider('Получаем список облигаций');
   let bondsResult;
   try {
     bondsResult = await instruments.bonds({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
-    debug(err);
+    debugProvider(err);
   }
   const bonds = bondsResult?.instruments;
-  debug('bonds count', bonds?.length);
+  debugProvider('bonds count', bonds?.length);
   (global as any).INSTRUMENTS = _.union(bonds, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
-  debug('Получаем список валют');
+  debugProvider('Получаем список валют');
   let currenciesResult;
   try {
     currenciesResult = await instruments.currencies({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
-    debug(err);
+    debugProvider(err);
   }
   const currencies = currenciesResult?.instruments;
-  debug('currencies count', currencies?.length);
+  debugProvider('currencies count', currencies?.length);
   (global as any).INSTRUMENTS = _.union(currencies, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
-  debug('Получаем список фьючерсов');
+  debugProvider('Получаем список фьючерсов');
   let futuresResult;
   try {
     futuresResult = await instruments.futures({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
-    debug(err);
+    debugProvider(err);
   }
   const futures = futuresResult?.instruments;
-  debug('futures count', futures?.length);
+  debugProvider('futures count', futures?.length);
   (global as any).INSTRUMENTS = _.union(futures, (global as any).INSTRUMENTS);
   await sleep(SLEEP_BETWEEN_ORDERS);
 
-  debug('=========================');
+  debugProvider('=========================');
 };
 
 export const getLastPrices = async () => {
   const lastPrices = (await marketData.getLastPrices({
     figi: [],
   }))?.lastPrices;
-  debug('lastPrices', JSON.stringify(lastPrices, null, 2));
+  debugProvider('lastPrices', JSON.stringify(lastPrices, null, 2));
   const lastPricesFormatted = _.map(lastPrices, (item) => {
     item.price = convertTinkoffNumberToNumber(item.price);
-    debug('fffff', convertTinkoffNumberToNumber(item.price));
+    debugProvider('fffff', convertTinkoffNumberToNumber(item.price));
     return item;
   });
-  debug('lastPricesFormatted', JSON.stringify(lastPricesFormatted, null, 2));
+  debugProvider('lastPricesFormatted', JSON.stringify(lastPricesFormatted, null, 2));
   (global as any).LAST_PRICES = lastPricesFormatted;
 
   writeFile(lastPricesFormatted, 'lastPrices');

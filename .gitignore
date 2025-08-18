@@ -10,6 +10,7 @@ news/
 etf_metrics/
 
 # dependencies
+.bun/
 node_modules/
 /invest-api/node_modules/
 

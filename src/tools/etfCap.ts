@@ -442,7 +442,7 @@ const main = async () => {
 
 // Run only when executed directly, not when imported as a module
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const isMain = (require as any)?.main === module;
+const isMain = process.argv[1] === import.meta.url || process.argv[1]?.endsWith('etfCap.ts');
 if (isMain) {
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   main();

@@ -2,6 +2,7 @@
   "name": "deep-tinkoff-invest-api",
   "version": "1.0.0",
   "description": "Trading bot",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/suenot/deep-tinkoff-invest-api.git"
@@ -13,17 +14,19 @@
     "bot"
   ],
   "scripts": {
-    "start": "ts-node ./src/index.ts",
-    "dev": "DEBUG=bot:main,bot:provider,bot:balancer ts-node ./src/index.ts",
-    "accounts": "ts-node ./src/index.ts --list-accounts",
-    "etf-cap": "ts-node ./src/tools/etfCap.ts",
-    "scrape:tbank:news": "ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=10",
-    "analyze:news": "ts-node --transpile-only ./src/tools/analyzeNews.ts TRUR --limit=10",
-    "update:shares": "ts-node --transpile-only ./src/tools/updateSharesCount.ts TRUR",
-    "poll:metrics": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TGLD,TRAY,TRUR,TRND,TLCB,TOFZ,TBRU,TMON,TMOS,TITR,TDIV --once",
-    "poll:metrics:all": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TGLD,TSPV,TBRU,TUSD,TEUR,TEMS,TSPX,TEUS,TBUY,TBEU,TRUR,TPAS,TBIO,TCBR,TECH,TSST,TGRN,TSOX,TRAI,TIPO,TFNX,TMOS,TLCB,TOFZ,TMON,TITR,TDIV --once",
-    "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts",
-    "test:margin": "ts-node ./src/balancer/testMargin.ts"
+    "start": "bun run ./src/index.ts",
+    "dev": "DEBUG=bot:main,bot:provider,bot:balancer bun run ./src/index.ts",
+    "accounts": "bun run ./src/index.ts --list-accounts",
+    "etf-cap": "bun run ./src/tools/etfCap.ts",
+    "scrape:tbank:news": "bun run ./src/tools/scrapeTbankNews.ts TRUR --limit=10",
+    "analyze:news": "bun run ./src/tools/analyzeNews.ts TRUR --limit=10",
+    "update:shares": "bun run ./src/tools/updateSharesCount.ts TRUR",
+    "poll:metrics": "bun run ./src/tools/pollEtfMetrics.ts TGLD,TRAY,TRUR,TRND,TLCB,TOFZ,TBRU,TMON,TMOS,TITR,TDIV --once",
+    "poll:metrics:all": "bun run ./src/tools/pollEtfMetrics.ts TGLD,TSPV,TBRU,TUSD,TEUR,TEMS,TSPX,TEUS,TBUY,TBEU,TRUR,TPAS,TBIO,TCBR,TECH,TSST,TGRN,TSOX,TRAI,TIPO,TFNX,TMOS,TLCB,TOFZ,TMON,TITR,TDIV --once",
+    "test": "DEBUG=\"*\" bun test --timeout 10000",
+    "test:margin": "bun run ./src/balancer/testMargin.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "clean": "rm -rf dist node_modules bun.lockb"
   },
   "author": "Eugen Soloviov",
   "license": "Apache-2.0",
@@ -54,12 +57,17 @@
     "subscriptions-transport-ws": "^0.9.19",
     "tinkoff-sdk-grpc-js": "^1.8.0-fix",
     "ts-mocha": "^6.0.0",
-    "ts-node": "^8.5.2",
     "tslint": "^5.20.1",
     "tslint-config-airbnb": "^5.11.2",
     "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.8.3",
     "uniqid": "^5.1.0",
     "ws": "^8.4.2"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
   }
 }
