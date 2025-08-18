@@ -93,6 +93,7 @@ const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Recor
   const result: Record<string, AumEntry> = {};
   const rowRegex = /<tr[\s\S]*?<\/tr>/gi;
   const rows = tableHtml.match(rowRegex) || [];
+  
   // Определим индекс колонки "СЧА за последний день"
   let lastDayIdx = -1;
   if (rows.length) {
@@ -100,12 +101,15 @@ const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Recor
     const headers = (header.match(/<t[hd][\s\S]*?<\/t[hd]>/gi) || []).map((h) => htmlToText(h).toLowerCase());
     lastDayIdx = headers.findIndex((h) => h.includes('сча за последний день'));
   }
+  
   for (const rowHtml of rows) {
     const rowText = htmlToText(rowHtml);
     if (!rowText) continue;
+    
     // Кандидаты на тикер: токены из ВЕРХНЕГО РЕГИСТРА 3-6 символов
     const tokens = rowText.split(/\s+/);
     let foundTicker: string | null = null;
+    
     for (const token of tokens) {
       if (/^[A-Z]{3,6}$/.test(token)) {
         const normalized = normalizeTicker(token) || token;
@@ -115,7 +119,9 @@ const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Recor
         }
       }
     }
+    
     if (!foundTicker) continue;
+    
     // Попытаемся вытащить конкретную ячейку колонки "СЧА за последний день"
     const cells = (rowHtml.match(/<t[hd][\s\S]*?<\/t[hd]>/gi) || []);
     let cellHtml = '';
@@ -124,20 +130,25 @@ const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Recor
     } else {
       cellHtml = rowHtml;
     }
+    
     const cellText = htmlToText(cellHtml);
     const currency: 'RUB' | 'USD' | 'EUR' = /\$/i.test(cellText)
       ? 'USD'
       : /€/.test(cellText)
       ? 'EUR'
       : 'RUB';
+    
     const numberLikeMatches = cellText.match(/[0-9][0-9\s.,]*[0-9]/g) || [];
     const parsed = numberLikeMatches.map(parseMoneyToNumber).filter((n): n is number => typeof n === 'number');
+    
     if (!parsed.length) continue;
+    
     const aum = Math.max(...parsed);
     if (Number.isFinite(aum)) {
       result[foundTicker] = { amount: aum, currency };
     }
   }
+  
   return result;
 };
 
@@ -163,22 +174,41 @@ const ETF_TICKER_NAME_PATTERNS: Record<string, RegExp[]> = {
   TGLD: [/золото/i],
   // TRND — «Т-Капитал Трендовые акции»
   TRND: [/трендов.*акци/i],
+  // TLCB — «Локальные валютные облигации»
+  TLCB: [/локальные\s+валютные\s+облигации/i, /валютные\s+облигации/i, /т-капитал\s+локальные\s+валютные\s+облигации/i],
+  // TOFZ — «БПИФ рыночных финансовых инструментов Т-Капитал ОФЗ»
+  TOFZ: [/т-капитал\s+офз/i, /бпиф.*офз/i, /рыночных.*офз/i],
+  // TBRU — «БПИФ рыночных финансовых инструментов Т-Капитал Облигации»
+  TBRU: [/т-капитал\s+облигации/i, /бпиф.*облигации/i, /рыночных.*облигации/i],
+  // TMON — «БПИФ рыночных финансовых инструментов Т-Капитал Денежный рынок»
+  TMON: [/т-капитал\s+денежный\s+рынок/i, /бпиф.*денежный\s+рынок/i, /рыночных.*денежный\s+рынок/i],
+  // TMOS — «БПИФ рыночных финансовых инструментов Т-Капитал Индекс МосБиржи»
+  TMOS: [/т-капитал\s+индекс\s+мосбиржи/i, /бпиф.*индекс\s+мосбиржи/i, /рыночных.*индекс\s+мосбиржи/i],
+  // TITR — «БПИФ рыночных финансовых инструментов Т-Капитал Российские Технологии»
+  TITR: [/т-капитал\s+российские\s+технологии/i, /бпиф.*российские\s+технологии/i, /рыночных.*российские\s+технологии/i],
+  // TDIV — «БПИФ рыночных финансовых инструментов Т-Капитал Дивидендные акции»
+  TDIV: [/т-капитал\s+дивидендные\s+акции/i, /бпиф.*дивидендные\s+акции/i, /рыночных.*дивидендные\s+акции/i],
 };
 
 const findAumForTickerByName = (html: string, normalizedTicker: string): AumEntry | undefined => {
   const patterns = ETF_TICKER_NAME_PATTERNS[normalizedTicker];
   if (!patterns) return undefined;
+  
   const tableHtml = extractStatisticsTableHtml(html);
   if (!tableHtml) return undefined;
+  
   const rowRegex = /<tr[\s\S]*?<\/tr>/gi;
   const rows = tableHtml.match(rowRegex) || [];
+  
   for (const rowHtml of rows) {
     const text = htmlToText(rowHtml);
     if (!text) continue;
+    
     if (patterns.every((re) => re.test(text))) {
       // Используем общий парс ячеек, как в parseAumTable
       const dummy = parseAumTable(`<table>${rowHtml}</table>`, new Set([normalizedTicker]));
       if (dummy[normalizedTicker]) return dummy[normalizedTicker];
+      
       // fallback: вытащим максимальное число из строки
       const currency: 'RUB' | 'USD' | 'EUR' = /\$/i.test(text) ? 'USD' : /€/i.test(text) ? 'EUR' : 'RUB';
       const nums = (text.match(/[0-9][0-9\s.,]*[0-9]/g) || []).map(parseMoneyToNumber).filter((n): n is number => typeof n === 'number');
@@ -187,6 +217,7 @@ const findAumForTickerByName = (html: string, normalizedTicker: string): AumEntr
       }
     }
   }
+  
   return undefined;
 };
 
@@ -194,16 +225,28 @@ export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Rec
   // Пытаемся сначала через авто-сопоставление тикеров, затем через паттерны имен
   try {
     const html: string = await fetchStatisticsHtml();
+    console.log(`[etfCap] buildAumMapSmart: fetched HTML length=${html.length}`);
+    
     const auto = await fetchAumMapFromTCapital(normalizedTickers);
+    console.log(`[etfCap] buildAumMapSmart: auto result:`, auto);
+    
     const result: Record<string, AumEntry> = { ...auto };
     for (const t of normalizedTickers) {
       if (result[t]) continue;
       const byName = findAumForTickerByName(html, t);
       if (byName) result[t] = byName;
+      
+      // Детальное логирование для отладки AUM
+      if (t === 'TBRU' || t === 'TOFZ' || t === 'TMON' || t === 'TMOS' || t === 'TITR' || t === 'TDIV') {
+        console.log(`[etfCap] [DEBUG] ${t} AUM search: ${byName ? 'FOUND' : 'NOT FOUND'}`);
+      }
     }
+    
+    console.log(`[etfCap] buildAumMapSmart: final result:`, result);
     return result;
-  } catch {
-    return {};
+  } catch (e) {
+    console.error(`[etfCap] buildAumMapSmart error:`, e);
+    return result;
   }
 };
 

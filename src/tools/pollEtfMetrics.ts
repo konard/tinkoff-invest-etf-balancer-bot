@@ -19,9 +19,44 @@ function getTickersFromArgs(): string[] {
     .filter(Boolean);
 }
 
-function getSharesSearchUrl(symbol: string): string {
-  // Страница новостей фонда (для ссылки-источника)
-  return `https://www.tbank.ru/invest/etfs/${symbol}/news/`;
+// Получаем URL новостей фонда из существующих метрик или создаем новый
+async function getSharesSearchUrl(symbol: string): Promise<string> {
+  const normalized = normalizeTicker(symbol) || symbol;
+  
+  // Пробуем прочитать из существующих метрик
+  try {
+    const metricsPath = path.join(getMetricsDir(), `${normalized}.json`);
+    const metricsData = await fs.readFile(metricsPath, 'utf-8');
+    const metrics = JSON.parse(metricsData);
+    if (metrics.sharesSearchUrl) {
+      return metrics.sharesSearchUrl;
+    }
+  } catch {
+    // Файл метрик не существует или не читается
+  }
+  
+  // Если метрик нет, проверяем оба варианта URL
+  const candidates = [
+    `https://www.tbank.ru/invest/etfs/${normalized}@/news/`,
+    `https://www.tbank.ru/invest/etfs/${normalized}/news/`,
+  ];
+  
+  for (const url of candidates) {
+    try {
+      const resp = await rp({ uri: url, method: 'GET', resolveWithFullResponse: true, simple: false });
+      const status = (resp as any)?.statusCode || 0;
+      const body = String((resp as any)?.body || '');
+      const notFound = /Такой страницы нет/i.test(body);
+      if (status === 200 && !notFound) {
+        return url;
+      }
+    } catch {
+      // ignore and try next candidate
+    }
+  }
+  
+  // fallback — стандартный URL
+  return `https://www.tbank.ru/invest/etfs/${normalized}/news/`;
 }
 
 function getSharesPath(symbol: string): string {
@@ -97,7 +132,7 @@ async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ co
   let cursor: string | null = null;
   let pages = 0;
 
-  const titleMatches = (t?: string) => !!t && /количеств[оа] па[её]в/i.test(t);
+  const titleMatches = (t?: string) => !!t && (/количеств[оа] па[её]в|в фонд поступили новые деньги/i).test(t);
   const extractCountFromItem = (item: SmartfeedNewsItem): number | null => {
     const fields = item.additional_fields || [];
     for (const f of fields) {
@@ -123,6 +158,21 @@ async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ co
       const nextCursor: string | null = data?.payload?.meta?.cursor || null;
       // eslint-disable-next-line no-console
       console.log(`${LOG_PREFIX} smartfeed brand=${brand} news=${news.length} cursorNext=${nextCursor ? nextCursor.slice(0, 16) + '…' : 'null'}`);
+      
+      // Детальное логирование для отладки AUM
+      if (symbol === 'TBRU') {
+        console.log(`${LOG_PREFIX} [DEBUG] Parsing API: ${url}`);
+        console.log(`${LOG_PREFIX} [DEBUG] Found ${news.length} news items`);
+        
+        for (let i = 0; i < Math.min(5, news.length); i++) {
+          const item = news[i];
+          console.log(`${LOG_PREFIX} [DEBUG] News ${i+1}: id=${item.id}, title="${item.title}"`);
+          if (item.additional_fields && item.additional_fields.length > 0) {
+            console.log(`${LOG_PREFIX} [DEBUG] Additional fields: ${JSON.stringify(item.additional_fields)}`);
+          }
+        }
+      }
+      
       for (const item of news) {
         if (!titleMatches(item.title)) continue;
         const count = extractCountFromItem(item);
@@ -203,6 +253,14 @@ export async function collectOnceForSymbols(symbols: string[]): Promise<void> {
       // eslint-disable-next-line no-console
       console.log(`${LOG_PREFIX} symbol=${sym} sharesCount from local cache: ${sharesCount}`);
     }
+    
+    // Логирование AUM для отладки
+    if (sym === 'TBRU') {
+      console.log(`${LOG_PREFIX} [DEBUG] AUM search for TBRU:`);
+      console.log(`${LOG_PREFIX} [DEBUG] AUM map entry: ${JSON.stringify(aumMap[sym])}`);
+      console.log(`${LOG_PREFIX} [DEBUG] AUM result: ${aumMap[sym] ? 'found' : 'not found'}`);
+    }
+    
     const aum: AumEntry | undefined = aumMap[sym];
     const aumRUB = aum
       ? aum.currency === 'RUB'
@@ -241,6 +299,7 @@ export async function collectOnceForSymbols(symbols: string[]): Promise<void> {
     // Отрицательное значение — недооценка (AUM > marketCap), положительное — переоценка (marketCap > AUM)
     const decorrelationPct = aumRUB && marketCap ? ((marketCap - aumRUB) / aumRUB) * 100 : null;
 
+    const sharesSearchUrl = await getSharesSearchUrl(sym);
     const payload = {
       symbol: sym,
       timestamp: nowIso,
@@ -249,7 +308,7 @@ export async function collectOnceForSymbols(symbols: string[]): Promise<void> {
       marketCap: marketCap,
       aum: aumRUB ?? null,
       decorrelationPct: decorrelationPct,
-      sharesSearchUrl: getSharesSearchUrl(sym),
+      sharesSearchUrl: sharesSearchUrl,
       sharesSourceUrl: sharesSourceUrl || null,
       figi: figi,
       uid: uid,

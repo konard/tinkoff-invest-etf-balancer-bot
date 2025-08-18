@@ -179,3 +179,9 @@ npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --first-limit=3
 # Циклично каждые 10 минут
 npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=50 --interval=600000
 ```
+
+
+# Источники данных
+- СЧА (AUM) - https://t-capital-funds.ru/statistics/
+- Количество паев, капитализация - https://www.tbank.ru/invest/etfs/TDIV@/news/
+- Полное название фонда + тикер - https://investfunds.ru/funds/7067/
