@@ -6,15 +6,87 @@ import _ from 'lodash';
 import uniqid from 'uniqid';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
-import { SLEEP_BETWEEN_ORDERS } from '../config';
-import { Wallet, DesiredWallet, Position } from '../types.d';
+import { SLEEP_BETWEEN_ORDERS, MARGIN_MULTIPLIER, FREE_MARGIN_THRESHOLD, MARGIN_BALANCING_STRATEGY } from '../config';
+import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
-import { normalizeTicker, tickersEqual } from '../utils';
+import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 
 const debug = require('debug')('bot').extend('balancer');
 
 // const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
+
+// Инициализация калькулятора маржи
+const marginConfig: MarginConfig = {
+  multiplier: MARGIN_MULTIPLIER,
+  freeThreshold: FREE_MARGIN_THRESHOLD,
+  strategy: MARGIN_BALANCING_STRATEGY
+};
+
+const marginCalculator = new MarginCalculator(marginConfig);
+
+/**
+ * Определяет маржинальные позиции в портфеле
+ */
+export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
+  const marginPositions: MarginPosition[] = [];
+  
+  for (const position of wallet) {
+    if (position.totalPriceNumber && position.totalPriceNumber > 0) {
+      // Определяем маржинальную часть позиции
+      const baseValue = position.totalPriceNumber / MARGIN_MULTIPLIER;
+      const marginValue = position.totalPriceNumber - baseValue;
+      
+      if (marginValue > 0) {
+        const marginPosition: MarginPosition = {
+          ...position,
+          isMargin: true,
+          marginValue,
+          leverage: MARGIN_MULTIPLIER,
+          marginCall: false
+        };
+        marginPositions.push(marginPosition);
+      }
+    }
+  }
+  
+  return marginPositions;
+};
+
+/**
+ * Применяет стратегию управления маржинальными позициями
+ */
+export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date()): {
+  shouldRemoveMargin: boolean;
+  reason: string;
+  transferCost: number;
+  marginPositions: MarginPosition[];
+} => {
+  const marginPositions = identifyMarginPositions(wallet);
+  
+  if (marginPositions.length === 0) {
+    return {
+      shouldRemoveMargin: false,
+      reason: 'Нет маржинальных позиций',
+      transferCost: 0,
+      marginPositions: []
+    };
+  }
+  
+  const strategy = marginCalculator.applyMarginStrategy(marginPositions, MARGIN_BALANCING_STRATEGY, currentTime);
+  
+  return {
+    ...strategy,
+    marginPositions
+  };
+};
+
+/**
+ * Рассчитывает оптимальные размеры позиций с учетом множителя
+ */
+export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWallet) => {
+  return marginCalculator.calculateOptimalPositionSizes(wallet, desiredWallet);
+};
 
 
 export const normalizeDesire = (wallet: DesiredWallet): DesiredWallet => {
@@ -66,6 +138,18 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   };
 
   const wallet = positions;
+
+  // Применяем стратегию управления маржинальными позициями
+  const marginStrategy = applyMarginStrategy(wallet);
+  debug('Стратегия маржи:', marginStrategy);
+
+  if (marginStrategy.shouldRemoveMargin) {
+    debug(`Применяем стратегию: ${marginStrategy.reason}`);
+    debug(`Стоимость переноса: ${marginStrategy.transferCost.toFixed(2)} руб`);
+    
+    // Здесь можно добавить логику для закрытия маржинальных позиций
+    // или их переноса на следующий день
+  }
 
   const normalizedDesire = normalizeDesire(desiredWallet);
 
@@ -163,6 +247,10 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   debug(sortedWallet);
   debug('walletSumNumber', walletSumNumber);
 
+  // Рассчитываем оптимальные размеры позиций с учетом множителя
+  const optimalSizes = calculateOptimalSizes(sortedWallet, desiredMap);
+  debug('Оптимальные размеры позиций:', optimalSizes);
+
   for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
     const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
     debug(' Ищем base (ticker) в wallet');
@@ -196,11 +284,15 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     const position: Position = sortedWallet[positionIndex];
     debug('position', position);
 
-    debug('Рассчитываем сколько в рублях будет ожидаемая доля (допустим, 50%)');
+    debug('Рассчитываем сколько в рублях будет ожидаемая доля с учетом множителя');
     debug('walletSumNumber', walletSumNumber);
     debug('desiredPercent', desiredPercent);
-    const desiredAmountNumber = walletSumNumber / 100 * desiredPercent;
-    debug('desiredAmountNumber', desiredAmountNumber);
+    
+    // Используем оптимальные размеры с учетом множителя
+    const optimalSize = optimalSizes[desiredTicker];
+    const desiredAmountNumber = optimalSize ? optimalSize.totalSize : (walletSumNumber / 100 * desiredPercent);
+    
+    debug('desiredAmountNumber (с учетом множителя)', desiredAmountNumber);
     position.desiredAmountNumber = desiredAmountNumber;
 
     debug('Высчитываем сколько лотов можно купить до желаемого таргета');

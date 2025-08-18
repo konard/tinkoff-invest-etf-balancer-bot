@@ -94,3 +94,6 @@ export const listAccounts = async (usersClient: any) => {
     return [];
   }
 };
+
+// Экспортируем MarginCalculator
+export { MarginCalculator } from './marginCalculator';

@@ -45,4 +45,9 @@ export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
 // - 'decorrelation' — балансировка по расстоянию от decorrelationPct до максимума среди decorrelationPct.
 export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
 
-export const DESIRED_MODE: DesiredMode = 'marketcap';
+export const DESIRED_MODE: DesiredMode = 'decorrelation';
+
+// Настройки маржинальной торговли
+export const MARGIN_MULTIPLIER: number = 4; // Множитель портфеля (1-4)
+export const FREE_MARGIN_THRESHOLD: number = 5000; // Порог бесплатного переноса позиций в рублях
+export const MARGIN_BALANCING_STRATEGY: 'remove' | 'keep' | 'keep_if_small' = 'keep_if_small';

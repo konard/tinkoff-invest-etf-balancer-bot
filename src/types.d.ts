@@ -32,6 +32,23 @@ export type Wallet = Position[];
 export interface DesiredWallet {
   [key: string]: number;
 }
+
+// Маржинальная торговля
+export interface MarginPosition extends Position {
+  isMargin: boolean;
+  marginValue?: number; // Стоимость маржинальной части
+  leverage?: number; // Плечо по позиции
+  marginCall?: boolean; // Риск маржин-колла
+}
+
+export type MarginBalancingStrategy = 'remove' | 'keep' | 'keep_if_small';
+
+export interface MarginConfig {
+  multiplier: number; // Множитель портфеля (1-4)
+  freeThreshold: number; // Порог бесплатного переноса в рублях
+  strategy: MarginBalancingStrategy; // Стратегия балансировки
+}
+
 export interface Ohlcv {
   open: number;
   high: number;

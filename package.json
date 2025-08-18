@@ -22,7 +22,8 @@
     "update:shares": "ts-node --transpile-only ./src/tools/updateSharesCount.ts TRUR",
     "poll:metrics": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TGLD,TRAY,TRUR,TRND --once",
     "poll:metrics:all": "ts-node --transpile-only ./src/tools/pollEtfMetrics.ts TGLD,TSPV,TBRU,TUSD,TEUR,TEMS,TSPX,TEUS,TBUY,TBEU,TRUR,TPAS,TBIO,TCBR,TECH,TSST,TGRN,TSOX,TRAI,TIPO,TFNX,TMOS --once",
-    "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts"
+    "test": "DEBUG=\"*\" ts-mocha --timeout 10000 --project ./tsconfig.json /.src/test.ts",
+    "test:margin": "ts-node ./src/balancer/testMargin.ts"
   },
   "author": "Eugen Soloviov",
   "license": "Apache-2.0",
