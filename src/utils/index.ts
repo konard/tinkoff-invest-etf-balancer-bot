@@ -74,7 +74,12 @@ export const convertNumberToTinkoffNumber = (n: number): TinkoffNumber => {
   };
 };
 
-export const sumValues = obj => Object.values(obj).reduce((a: any, b: any) => a + b);
+export const sumValues = (obj: Record<string, any>): number => {
+  if (!obj || Object.keys(obj).length === 0) return 0;
+  return Object.values(obj)
+    .filter(value => typeof value === 'number' && !isNaN(value))
+    .reduce((sum: number, value: number) => sum + value, 0);
+};
 
 export const zeroPad = (num, places) => String(num).padStart(places, '0');
 

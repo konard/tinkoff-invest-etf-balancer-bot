@@ -107,16 +107,22 @@ export const addNumbersToPosition = (position: Position): Position => {
   debug('addNumbersToPosition start');
 
   debug('position.price', position.price);
-  position.priceNumber = convertTinkoffNumberToNumber(position.price);
-  debug('position.priceNumber', position.priceNumber);
+  if (position.price) {
+    position.priceNumber = convertTinkoffNumberToNumber(position.price);
+    debug('position.priceNumber', position.priceNumber);
+  }
 
   debug('position.lotPrice', position.lotPrice);
-  position.lotPriceNumber = convertTinkoffNumberToNumber(position.lotPrice);
-  debug('position.lotPriceNumber', position.lotPriceNumber);
+  if (position.lotPrice) {
+    position.lotPriceNumber = convertTinkoffNumberToNumber(position.lotPrice);
+    debug('position.lotPriceNumber', position.lotPriceNumber);
+  }
 
   debug('position.totalPrice', position.totalPrice);
-  position.totalPriceNumber = convertTinkoffNumberToNumber(position.totalPrice);
-  debug('position.totalPriceNumber', position.totalPriceNumber);
+  if (position.totalPrice) {
+    position.totalPriceNumber = convertTinkoffNumberToNumber(position.totalPrice);
+    debug('position.totalPriceNumber', position.totalPriceNumber);
+  }
 
   debug('addNumbersToPosition end', position);
   return position;
@@ -163,10 +169,12 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   debug('Добавляем в DesireWallet недостающие инструменты в портфеле со значением 0');
   for (const position of wallet) {
-    const baseNormalized = normalizeTicker(position.base) || position.base;
-    if (desiredMap[baseNormalized] === undefined) {
-      debug(`${position.base} не найден в желаемом портфеле, добавляем со значением 0.`);
-      desiredMap[baseNormalized] = 0;
+    if (position.base) {
+      const baseNormalized = normalizeTicker(position.base) || position.base;
+      if (desiredMap[baseNormalized] === undefined) {
+        debug(`${position.base} не найден в желаемом портфеле, добавляем со значением 0.`);
+        desiredMap[baseNormalized] = 0;
+      }
     }
   }
 
@@ -219,18 +227,22 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   const walletWithTotalPrice = _.map(wallet, (position: Position): Position => {
     debug('walletWithtotalPrice: map start: position', position);
 
-    const lotPriceNumber = convertTinkoffNumberToNumber(position.lotPrice);
-    debug('lotPriceNumber', lotPriceNumber);
+    if (position.lotPrice) {
+      const lotPriceNumber = convertTinkoffNumberToNumber(position.lotPrice);
+      debug('lotPriceNumber', lotPriceNumber);
+    }
 
     debug('position.amount, position.priceNumber');
     debug(position.amount, position.priceNumber);
 
-    const totalPriceNumber = convertTinkoffNumberToNumber(position.price) * position.amount; // position.amount * position.priceNumber; //
-    debug('totalPriceNumber', totalPriceNumber);
+    if (position.amount && position.price) {
+      const totalPriceNumber = convertTinkoffNumberToNumber(position.price) * position.amount;
+      debug('totalPriceNumber', totalPriceNumber);
 
-    const totalPrice = convertNumberToTinkoffNumber(totalPriceNumber);
-    position.totalPrice = totalPrice;
-    debug('totalPrice', totalPrice);
+      const totalPrice = convertNumberToTinkoffNumber(totalPriceNumber);
+      position.totalPrice = totalPrice;
+      debug('totalPrice', totalPrice);
+    }
 
     debug('walletWithtotalPrice: map end: position', position);
     return position;
@@ -296,40 +308,48 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     position.desiredAmountNumber = desiredAmountNumber;
 
     debug('Высчитываем сколько лотов можно купить до желаемого таргета');
-    const canBuyBeforeTargetLots = Math.trunc(desiredAmountNumber / position.lotPriceNumber);
-    debug('canBuyBeforeTargetLots', canBuyBeforeTargetLots);
-    position.canBuyBeforeTargetLots = canBuyBeforeTargetLots;
+    if (position.lotPriceNumber) {
+      const canBuyBeforeTargetLots = Math.trunc(desiredAmountNumber / position.lotPriceNumber);
+      debug('canBuyBeforeTargetLots', canBuyBeforeTargetLots);
+      position.canBuyBeforeTargetLots = canBuyBeforeTargetLots;
 
-    debug('Высчитываем стоимость позиции, которую можно купить до желаемого таргета');
-    const canBuyBeforeTargetNumber = canBuyBeforeTargetLots * position.lotPriceNumber;
-    debug('canBuyBeforeTargetNumber', canBuyBeforeTargetNumber);
-    position.canBuyBeforeTargetNumber = canBuyBeforeTargetNumber;
+      debug('Высчитываем стоимость позиции, которую можно купить до желаемого таргета');
+      const canBuyBeforeTargetNumber = canBuyBeforeTargetLots * position.lotPriceNumber;
+      debug('canBuyBeforeTargetNumber', canBuyBeforeTargetNumber);
+      position.canBuyBeforeTargetNumber = canBuyBeforeTargetNumber;
 
-    debug('Высчитываем разницу между желаемым значением и значением до таргета. Нераспеределенный остаток.');
-    const beforeDiffNumber = Math.abs(desiredAmountNumber - canBuyBeforeTargetNumber);
-    debug('beforeDiffNumber', beforeDiffNumber);
-    position.beforeDiffNumber = beforeDiffNumber;
+      debug('Высчитываем разницу между желаемым значением и значением до таргета. Нераспеределенный остаток.');
+      const beforeDiffNumber = Math.abs(desiredAmountNumber - canBuyBeforeTargetNumber);
+      debug('beforeDiffNumber', beforeDiffNumber);
+      position.beforeDiffNumber = beforeDiffNumber;
 
-    debug('Суммируем остатки'); // TODO: нужно определить валюту и записать остаток в этой валюте
-    walletInfo.remains += beforeDiffNumber; // Пока только в рублях
+      debug('Суммируем остатки'); // TODO: нужно определить валюту и записать остаток в этой валюте
+      walletInfo.remains += beforeDiffNumber; // Пока только в рублях
 
-    debug('Сколько нужно купить (может быть отрицательным, тогда нужно продать)');
-    const toBuyNumber = canBuyBeforeTargetNumber - position.totalPriceNumber;
-    debug('toBuyNumber', toBuyNumber);
-    position.toBuyNumber = toBuyNumber;
+      debug('Сколько нужно купить (может быть отрицательным, тогда нужно продать)');
+      if (position.totalPriceNumber) {
+        const toBuyNumber = canBuyBeforeTargetNumber - position.totalPriceNumber;
+        debug('toBuyNumber', toBuyNumber);
+        position.toBuyNumber = toBuyNumber;
+      }
 
-    debug('Сколько нужно купить лотов (может быть отрицательным, тогда нужно продать)');
-    const toBuyLots = canBuyBeforeTargetLots - (position.amount / position.lotSize);
-    debug('toBuyLots', toBuyLots);
-    position.toBuyLots = toBuyLots;
+      debug('Сколько нужно купить лотов (может быть отрицательным, тогда нужно продать)');
+      if (position.amount && position.lotSize) {
+        const toBuyLots = canBuyBeforeTargetLots - (position.amount / position.lotSize);
+        debug('toBuyLots', toBuyLots);
+        position.toBuyLots = toBuyLots;
 
-    // Гарантируем минимум 1 лот для каждой позиции с положительной целевой долей
-    const currentLots = position.amount / position.lotSize;
-    if (Number(desiredPercent) > 0 && currentLots < 1 && position.toBuyLots < 1) {
-      debug('Минимум 1 лот по стратегии: увеличиваем toBuyLots до 1', position.base);
-      position.toBuyLots = 1;
-      const recalculatedToBuyNumber = position.toBuyLots * position.lotPriceNumber - position.totalPriceNumber;
-      position.toBuyNumber = recalculatedToBuyNumber;
+        // Гарантируем минимум 1 лот для каждой позиции с положительной целевой долей
+        const currentLots = position.amount / position.lotSize;
+        if (Number(desiredPercent) > 0 && currentLots < 1 && position.toBuyLots < 1) {
+          debug('Минимум 1 лот по стратегии: увеличиваем toBuyLots до 1', position.base);
+          position.toBuyLots = 1;
+          if (position.lotPriceNumber && position.totalPriceNumber) {
+            const recalculatedToBuyNumber = position.toBuyLots * position.lotPriceNumber - position.totalPriceNumber;
+            position.toBuyNumber = recalculatedToBuyNumber;
+          }
+        }
+      }
     }
   }
 
@@ -338,9 +358,9 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   // Порядок исполнения:
   // 1) Сначала продажи (получаем рубли)
   // 2) Затем покупки, отсортированные по стоимости лота по убыванию (дорогие сначала)
-  const sellsFirst = _.filter(sortedWallet, (p: Position) => p.toBuyLots <= -1);
+  const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
   const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
-  const buysOnly = _.filter(sortedWallet, (p: Position) => p.toBuyLots >= 1);
+  const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
   const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);
   const ordersPlanned = [...sellsSorted, ...buysSortedByLotDesc];
   debug('ordersPlanned', ordersPlanned);
@@ -356,22 +376,26 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   for (const p of simulated) {
     if (p.base && p.quote && p.base === p.quote) continue;
     const lotSize = Number(p.lotSize) || 1;
-    const currentLots = p.amount / lotSize;
-    const plannedLots = Math.sign(p.toBuyLots || 0) * Math.floor(Math.abs(p.toBuyLots || 0));
-    const finalLots = currentLots + plannedLots;
-    const finalAmount = finalLots * lotSize;
-    const priceNum = Number(p.priceNumber) || convertTinkoffNumberToNumber(p.price);
-    (p as any).__finalValue = Math.max(0, priceNum * finalAmount);
+    if (p.amount) {
+      const currentLots = p.amount / lotSize;
+      const plannedLots = Math.sign(p.toBuyLots || 0) * Math.floor(Math.abs(p.toBuyLots || 0));
+      const finalLots = currentLots + plannedLots;
+      const finalAmount = finalLots * lotSize;
+      const priceNum = Number(p.priceNumber) || (p.price ? convertTinkoffNumberToNumber(p.price) : 0);
+      (p as any).__finalValue = Math.max(0, priceNum * finalAmount);
+    }
   }
   const onlySecurities = simulated.filter((p) => !(p.base && p.quote && p.base === p.quote));
   const totalFinal = _.sumBy(onlySecurities, (p: any) => Number(p.__finalValue) || 0);
   const finalPercents: Record<string, number> = {};
   if (totalFinal > 0) {
     for (const p of onlySecurities) {
-      const ticker = normalizeTicker(p.base) || p.base;
-      const val = Number((p as any).__finalValue) || 0;
-      const pct = (val / totalFinal) * 100;
-      finalPercents[ticker] = (finalPercents[ticker] || 0) + pct;
+      if (p.base) {
+        const ticker = normalizeTicker(p.base) || p.base;
+        const val = Number((p as any).__finalValue) || 0;
+        const pct = (val / totalFinal) * 100;
+        finalPercents[ticker] = (finalPercents[ticker] || 0) + pct;
+      }
     }
   }
   

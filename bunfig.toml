@@ -8,6 +8,7 @@ registry = "https://registry.npmjs.org/"
 [test]
 # Настройки для тестирования
 preload = ["./src/test-setup.ts"]
+timeout = 10000
 
 [run]
 # Настройки для выполнения скриптов
@@ -20,3 +21,10 @@ dir = ".bun"
 [install.lockfile]
 # Использовать bun.lockb
 format = "bun"
+
+[build]
+# Настройки сборки для оптимизации
+target = "bun"
+minify = true
+sourcemap = true
+splitting = true

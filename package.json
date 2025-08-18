@@ -23,10 +23,19 @@
     "update:shares": "bun run ./src/tools/updateSharesCount.ts TRUR",
     "poll:metrics": "bun run ./src/tools/pollEtfMetrics.ts TGLD,TRAY,TRUR,TRND,TLCB,TOFZ,TBRU,TMON,TMOS,TITR,TDIV --once",
     "poll:metrics:all": "bun run ./src/tools/pollEtfMetrics.ts TGLD,TSPV,TBRU,TUSD,TEUR,TEMS,TSPX,TEUS,TBUY,TBEU,TRUR,TPAS,TBIO,TCBR,TECH,TSST,TGRN,TSOX,TRAI,TIPO,TFNX,TMOS,TLCB,TOFZ,TMON,TITR,TDIV --once",
-    "test": "DEBUG=\"*\" bun test --timeout 10000",
+    "test": "bun test --timeout 10000",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "test:utils": "bun test src/__tests__/utils/",
+    "test:balancer": "bun test src/__tests__/balancer/",
     "test:margin": "bun run ./src/balancer/testMargin.ts",
     "build": "bun build ./src/index.ts --outdir ./dist --target bun",
-    "clean": "rm -rf dist node_modules bun.lockb"
+    "build:optimized": "bun build ./src/index.ts --outdir ./dist --target bun --minify --sourcemap --splitting",
+    "build:analyze": "bun build ./src/index.ts --outdir ./dist --target bun --analyze",
+    "clean": "rm -rf dist node_modules bun.lockb",
+    "perf:etf-cap": "time bun run etf-cap",
+    "perf:build": "time bun run build",
+    "perf:test": "time bun test"
   },
   "author": "Eugen Soloviov",
   "license": "Apache-2.0",
@@ -65,6 +74,8 @@
     "ws": "^8.4.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.20",
+    "@types/uniqid": "^5.3.4",
     "bun-types": "latest"
   },
   "engines": {

@@ -98,8 +98,10 @@ const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Recor
   let lastDayIdx = -1;
   if (rows.length) {
     const header = rows[0];
-    const headers = (header.match(/<t[hd][\s\S]*?<\/t[hd]>/gi) || []).map((h) => htmlToText(h).toLowerCase());
-    lastDayIdx = headers.findIndex((h) => h.includes('сча за последний день'));
+    if (header) {
+      const headers = (header.match(/<t[hd][\s\S]*?<\/t[hd]>/gi) || []).map((h) => htmlToText(h).toLowerCase());
+      lastDayIdx = headers.findIndex((h) => h.includes('сча за последний день'));
+    }
   }
   
   for (const rowHtml of rows) {
