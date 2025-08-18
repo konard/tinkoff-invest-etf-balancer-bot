@@ -67,6 +67,13 @@ const TICKER_TO_BRAND: Record<string, string> = {
   TRUR: 'Вечный портфель',
   TGLD: 'Золото',
   TRND: 'Трендовые акции',
+  TLCB: 'Локальные валютные облигации',
+  TOFZ: 'Государственные облигации',
+  TBRU: 'Российские облигации',
+  TMON: 'Денежный рынок',
+  TMOS: 'Крупнейшие компании РФ',
+  TITR: 'Российские Технологии',
+  TDIV: 'Дивидендные акции',
 };
 
 function getBrandNameForTicker(symbol: string): string | null {
