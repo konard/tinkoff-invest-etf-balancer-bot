@@ -223,6 +223,8 @@ const findAumForTickerByName = (html: string, normalizedTicker: string): AumEntr
 
 export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Record<string, AumEntry>> => {
   // Пытаемся сначала через авто-сопоставление тикеров, затем через паттерны имен
+  const result: Record<string, AumEntry> = {};
+  
   try {
     const html: string = await fetchStatisticsHtml();
     console.log(`[etfCap] buildAumMapSmart: fetched HTML length=${html.length}`);
@@ -230,7 +232,7 @@ export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Rec
     const auto = await fetchAumMapFromTCapital(normalizedTickers);
     console.log(`[etfCap] buildAumMapSmart: auto result:`, auto);
     
-    const result: Record<string, AumEntry> = { ...auto };
+    Object.assign(result, auto);
     for (const t of normalizedTickers) {
       if (result[t]) continue;
       const byName = findAumForTickerByName(html, t);
