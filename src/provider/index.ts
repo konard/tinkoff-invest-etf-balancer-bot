@@ -13,6 +13,7 @@ import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToN
 import { balancer } from '../balancer';
 import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
 import { collectOnceForSymbols } from '../tools/pollEtfMetrics';
+import { normalizeTicker } from '../utils';
 
 (global as any).INSTRUMENTS = [];
 (global as any).POSITIONS = [];
@@ -21,6 +22,28 @@ import { collectOnceForSymbols } from '../tools/pollEtfMetrics';
 const debugProvider = debug('bot').extend('provider');
 
 const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
+
+/**
+ * Рассчитывает доли каждого инструмента в портфеле
+ * @param wallet - массив позиций портфеля
+ * @returns объект с тикерами и их долями в процентах
+ */
+const calculatePortfolioShares = (wallet: Wallet): Record<string, number> => {
+  // Исключаем валюты (позиции где base === quote)
+  const securities = wallet.filter(p => p.base !== p.quote);
+  const totalValue = _.sumBy(securities, 'totalPriceNumber');
+  
+  if (totalValue <= 0) return {};
+  
+  const shares: Record<string, number> = {};
+  for (const position of securities) {
+    if (position.base && position.totalPriceNumber) {
+      const ticker = normalizeTicker(position.base) || position.base;
+      shares[ticker] = (position.totalPriceNumber / totalValue) * 100;
+    }
+  }
+  return shares;
+};
 
 let ACCOUNT_ID: string;
 
@@ -281,16 +304,22 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         const priceWhenAddToWallet = await getLastPrice(instrument.figi);
         debugProvider('priceWhenAddToWallet', priceWhenAddToWallet);
 
+        const amount = convertTinkoffNumberToNumber(position.quantity);
+        const priceNumber = convertTinkoffNumberToNumber(position.currentPrice);
+        const totalPriceNumber = amount * priceNumber;
+        
         const corePosition = {
           pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
           base: instrument.ticker,
           quote: instrument.currency.toUpperCase(),
           figi: position.figi,
-          amount: convertTinkoffNumberToNumber(position.quantity),
+          amount: amount,
           lotSize: instrument.lot,
           price: priceWhenAddToWallet,
-          priceNumber: convertTinkoffNumberToNumber(position.currentPrice),
+          priceNumber: priceNumber,
           lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet)),
+          totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
+          totalPriceNumber: totalPriceNumber,
         };
         debugProvider('corePosition', corePosition);
         coreWallet.push(corePosition);
@@ -308,14 +337,51 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       }
 
       const desiredForRun = await buildDesiredWalletByMode(DESIRED_MODE, DESIRED_WALLET);
+      
+      // Сохраняем текущие доли портфеля ДО балансировки
+      // Важно: вызываем после buildDesiredWalletByMode, но до balancer
+      const beforeShares = calculatePortfolioShares(coreWallet);
+      
       const { finalPercents } = await balancer(coreWallet, desiredForRun);
-      // Форматированный вывод результата: только бумаги (исключая валюты), округлённые проценты
-      const entries = Object.entries(finalPercents)
-        .filter(([t]) => t && t !== 'RUB')
-        .map(([t, v]) => [t, `${Math.round(v)}%`] as [string, string]);
-      const resultObject = entries.reduce((acc, [k, v]) => { (acc as any)[k] = v; return acc; }, {} as Record<string, string>);
-      // eslint-disable-next-line no-console
-      console.log('RESULT:', resultObject);
+      
+      // Получаем обновленные доли ПОСЛЕ балансировки
+      const afterShares = calculatePortfolioShares(coreWallet);
+      
+      // Детальный вывод результата балансировки
+      console.log('BALANCING RESULT:');
+      console.log('Format: TICKER: diff: before% -> after% (target%)');
+      console.log('Where: before% = current share, after% = actual share after balancing, (target%) = target from balancer, diff = change in percentage points\n');
+      
+      // Сортируем тикеры по убыванию доли после балансировки (after)
+      const sortedTickers = Object.keys(finalPercents).sort((a, b) => {
+        const afterA = afterShares[a] || 0;
+        const afterB = afterShares[b] || 0;
+        return afterB - afterA; // Убывание: от большего к меньшему
+      });
+      
+      for (const ticker of sortedTickers) {
+        if (ticker && ticker !== 'RUB') {
+          const beforePercent = beforeShares[ticker] || 0;
+          const afterPercent = afterShares[ticker] || 0;
+          const targetPercent = finalPercents[ticker] || 0;
+          
+          // Вычисляем изменение в процентных пунктах
+          const diff = afterPercent - beforePercent;
+          const diffSign = diff > 0 ? '+' : '';
+          const diffText = diff === 0 ? '0%' : `${diffSign}${diff.toFixed(2)}%`;
+          
+          console.log(`${ticker}: ${diffText}: ${beforePercent.toFixed(2)}% -> ${afterPercent.toFixed(2)}% (${targetPercent.toFixed(2)}%)`);
+        }
+      }
+      
+      // Добавляем баланс рублей (может быть отрицательным при маржинальной торговле)
+      const rubPosition = coreWallet.find(p => p.base === 'RUB' && p.quote === 'RUB');
+      if (rubPosition) {
+        const rubBalance = rubPosition.totalPriceNumber || 0;
+        const rubSign = rubBalance >= 0 ? '' : '-';
+        const rubAbs = Math.abs(rubBalance);
+        console.log(`RUR: ${rubSign}${rubAbs.toFixed(2)} RUB`);
+      }
       debugProvider(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
       count++;
 

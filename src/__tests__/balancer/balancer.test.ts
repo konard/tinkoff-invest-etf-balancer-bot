@@ -1,6 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { balancer } from "../../balancer";
 import { Wallet, Position } from "../../types.d";
+import { normalizeDesire } from '../../balancer';
 
 describe("Balancer", () => {
   describe("Portfolio Balancing", () => {
@@ -174,6 +175,65 @@ describe("Balancer", () => {
       expect(position.amount).toBe(largeAmount);
       expect(position.lotSize).toBe(1000);
       expect(position.toBuyLots).toBe(1000);
+    });
+  });
+
+  describe('normalizeDesire', () => {
+    it('should normalize desired wallet percentages to sum to 100%', () => {
+      const desiredWallet = {
+        TGLD: 25,
+        TPAY: 25,
+        TRUR: 25,
+        TRND: 25
+      };
+
+      const result = normalizeDesire(desiredWallet);
+
+      // Проверяем, что сумма равна 100%
+      const sum = Object.values(result).reduce((acc, val) => acc + val, 0);
+      expect(sum).toBeCloseTo(100, 2);
+
+      // Проверяем, что каждая доля равна 25%
+      Object.values(result).forEach(percentage => {
+        expect(percentage).toBeCloseTo(25, 2);
+      });
+    });
+
+    it('should handle different percentage values correctly', () => {
+      const desiredWallet = {
+        TGLD: 50,
+        TPAY: 30,
+        TRUR: 20
+      };
+
+      const result = normalizeDesire(desiredWallet);
+
+      // Проверяем, что сумма равна 100%
+      const sum = Object.values(result).reduce((acc, val) => acc + val, 0);
+      expect(sum).toBeCloseTo(100, 2);
+
+      // Проверяем пропорции
+      expect(result.TGLD).toBeCloseTo(50, 2);
+      expect(result.TPAY).toBeCloseTo(30, 2);
+      expect(result.TRUR).toBeCloseTo(20, 2);
+    });
+
+    it('should handle single asset correctly', () => {
+      const desiredWallet = {
+        TGLD: 100
+      };
+
+      const result = normalizeDesire(desiredWallet);
+
+      expect(result.TGLD).toBe(100);
+    });
+
+    it('should handle empty wallet', () => {
+      const desiredWallet = {};
+
+      const result = normalizeDesire(desiredWallet);
+
+      expect(result).toEqual({});
     });
   });
 });

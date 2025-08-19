@@ -89,14 +89,14 @@ export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWall
 };
 
 
-export const normalizeDesire = (wallet: DesiredWallet): DesiredWallet => {
+export const normalizeDesire = (desiredWallet: DesiredWallet): DesiredWallet => {
   debug('Нормализуем проценты, чтобы общая сумма была равна 100%, чтобы исключить человеческий фактор');
-  debug('wallet', wallet);
+  debug('desiredWallet', desiredWallet);
 
-  const walletSum: number = Number(sumValues(wallet));
-  debug('walletSum', walletSum);
+  const desiredSum: number = Number(sumValues(desiredWallet));
+  debug('desiredSum', desiredSum);
 
-  const normalizedDesire = Object.entries(wallet).reduce((p, [k, v]) => ({ ...p, [k]: (Number(v) / walletSum * 100) }), {});
+  const normalizedDesire = Object.entries(desiredWallet).reduce((p, [k, v]) => ({ ...p, [k]: (Number(v) / desiredSum * 100) }), {});
   debug('normalizedDesire', normalizedDesire);
 
   return normalizedDesire;
@@ -165,7 +165,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     acc[nk] = (acc[nk] || 0) + Number(v);
     return acc;
   }, {} as Record<string, number>);
-  const desiredMap = normalizeDesire(desiredAliased);
+  const desiredMap = desiredAliased; // Убираем повторную нормализацию
 
   debug('Добавляем в DesireWallet недостающие инструменты в портфеле со значением 0');
   for (const position of wallet) {
@@ -180,6 +180,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
     const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
+    const desiredPercentNumber = Number(desiredPercent);
     debug(' Ищем base (ticker) в wallet');
     const positionIndex = _.findIndex(wallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
@@ -265,6 +266,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
     const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
+    const desiredPercentNumber = Number(desiredPercent);
     debug(' Ищем base (ticker) в wallet');
     const positionIndex = _.findIndex(sortedWallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
@@ -298,11 +300,11 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
     debug('Рассчитываем сколько в рублях будет ожидаемая доля с учетом множителя');
     debug('walletSumNumber', walletSumNumber);
-    debug('desiredPercent', desiredPercent);
+    debug('desiredPercent', desiredPercentNumber);
     
     // Используем оптимальные размеры с учетом множителя
     const optimalSize = optimalSizes[desiredTicker];
-    const desiredAmountNumber = optimalSize ? optimalSize.totalSize : (walletSumNumber / 100 * desiredPercent);
+    const desiredAmountNumber = optimalSize ? optimalSize.totalSize : (walletSumNumber / 100 * desiredPercentNumber);
     
     debug('desiredAmountNumber (с учетом множителя)', desiredAmountNumber);
     position.desiredAmountNumber = desiredAmountNumber;
@@ -341,7 +343,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
         // Гарантируем минимум 1 лот для каждой позиции с положительной целевой долей
         const currentLots = position.amount / position.lotSize;
-        if (Number(desiredPercent) > 0 && currentLots < 1 && position.toBuyLots < 1) {
+        if (desiredPercentNumber > 0 && currentLots < 1 && position.toBuyLots < 1) {
           debug('Минимум 1 лот по стратегии: увеличиваем toBuyLots до 1', position.base);
           position.toBuyLots = 1;
           if (position.lotPriceNumber && position.totalPriceNumber) {

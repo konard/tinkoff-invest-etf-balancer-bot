@@ -18,6 +18,8 @@
     "dev": "DEBUG=bot:main,bot:provider,bot:balancer bun run ./src/index.ts",
     "accounts": "bun run ./src/index.ts --list-accounts",
     "etf-cap": "bun run ./src/tools/etfCap.ts",
+    "demo:detailed-output": "bun run ./src/tools/demoDetailedOutput.ts",
+    "test:balancer-logic": "bun run ./src/tools/testBalancerLogic.ts",
     "scrape:tbank:news": "bun run ./src/tools/scrapeTbankNews.ts TRUR --limit=10",
     "analyze:news": "bun run ./src/tools/analyzeNews.ts TRUR --limit=10",
     "update:shares": "bun run ./src/tools/updateSharesCount.ts TRUR",
