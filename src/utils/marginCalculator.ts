@@ -136,7 +136,7 @@ export class MarginCalculator {
    */
   applyMarginStrategy(
     marginPositions: MarginPosition[],
-    strategy: MarginBalancingStrategy,
+    strategy?: MarginBalancingStrategy,
     currentTime: Date = new Date(),
     balanceInterval: number = 60000 * 60,
     marketCloseTime: string = '18:45'
@@ -150,6 +150,9 @@ export class MarginCalculator {
       isLastBalance: boolean;
     };
   } {
+    // Если стратегия не передана, используем стратегию из конфига или по умолчанию
+    const effectiveStrategy = strategy || this.config.strategy || 'keep';
+    
     if (!this.shouldApplyMarginStrategy(currentTime, balanceInterval, marketCloseTime)) {
       return {
         shouldRemoveMargin: false,
@@ -176,7 +179,7 @@ export class MarginCalculator {
     const timeToNextBalance = balanceInterval / (1000 * 60);
     const isLastBalance = timeToClose < timeToNextBalance || timeToClose < 15;
 
-    switch (strategy) {
+    switch (effectiveStrategy) {
       case 'remove':
         return {
           shouldRemoveMargin: true,

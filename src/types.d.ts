@@ -46,7 +46,7 @@ export type MarginBalancingStrategy = 'remove' | 'keep' | 'keep_if_small';
 export interface MarginConfig {
   multiplier: number; // Множитель портфеля (1-4)
   freeThreshold: number; // Порог бесплатного переноса в рублях
-  strategy: MarginBalancingStrategy; // Стратегия балансировки
+  strategy?: MarginBalancingStrategy; // Стратегия балансировки (опционально)
 }
 
 export interface Ohlcv {

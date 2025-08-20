@@ -31,6 +31,8 @@
     "test:utils": "bun test src/__tests__/utils/",
     "test:balancer": "bun test src/__tests__/balancer/",
     "test:margin": "bun run ./src/balancer/testMargin.ts",
+    "test:margin:disabled": "bun run ./src/balancer/testMarginDisabled.ts",
+    "test:margin:config": "bun run ./src/balancer/testMarginConfig.ts",
     "build": "bun build ./src/index.ts --outdir ./dist --target bun",
     "build:optimized": "bun build ./src/index.ts --outdir ./dist --target bun --minify --sourcemap --splitting",
     "build:analyze": "bun build ./src/index.ts --outdir ./dist --target bun --analyze",

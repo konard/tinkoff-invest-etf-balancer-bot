@@ -56,6 +56,7 @@ export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'de
 export const DESIRED_MODE: DesiredMode = 'decorrelation';
 
 // Настройки маржинальной торговли
+export const MARGIN_TRADING_ENABLED: boolean = false; // Включить/выключить маржинальную торговлю
 export const MARGIN_MULTIPLIER: number = 4; // Множитель портфеля (1-4)
 export const FREE_MARGIN_THRESHOLD: number = 5000; // Порог бесплатного переноса позиций в рублях
 export const MARGIN_BALANCING_STRATEGY: 'remove' | 'keep' | 'keep_if_small' = 'keep_if_small';

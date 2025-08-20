@@ -6,7 +6,7 @@ import _ from 'lodash';
 import uniqid from 'uniqid';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
-import { SLEEP_BETWEEN_ORDERS, MARGIN_MULTIPLIER, FREE_MARGIN_THRESHOLD, MARGIN_BALANCING_STRATEGY } from '../config';
+import { SLEEP_BETWEEN_ORDERS, MARGIN_MULTIPLIER, FREE_MARGIN_THRESHOLD, MARGIN_BALANCING_STRATEGY, MARGIN_TRADING_ENABLED } from '../config';
 import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
@@ -20,7 +20,7 @@ const debug = require('debug')('bot').extend('balancer');
 const marginConfig: MarginConfig = {
   multiplier: MARGIN_MULTIPLIER,
   freeThreshold: FREE_MARGIN_THRESHOLD,
-  strategy: MARGIN_BALANCING_STRATEGY
+  ...(MARGIN_TRADING_ENABLED && { strategy: MARGIN_BALANCING_STRATEGY })
 };
 
 const marginCalculator = new MarginCalculator(marginConfig);
@@ -29,6 +29,11 @@ const marginCalculator = new MarginCalculator(marginConfig);
  * Определяет маржинальные позиции в портфеле
  */
 export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
+  // Если маржинальная торговля выключена, возвращаем пустой массив
+  if (!MARGIN_TRADING_ENABLED) {
+    return [];
+  }
+  
   const marginPositions: MarginPosition[] = [];
   
   for (const position of wallet) {
@@ -62,6 +67,16 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
   transferCost: number;
   marginPositions: MarginPosition[];
 } => {
+  // Если маржинальная торговля выключена, возвращаем результат без маржи
+  if (!MARGIN_TRADING_ENABLED) {
+    return {
+      shouldRemoveMargin: false,
+      reason: 'Маржинальная торговля отключена',
+      transferCost: 0,
+      marginPositions: []
+    };
+  }
+  
   const marginPositions = identifyMarginPositions(wallet);
   
   if (marginPositions.length === 0) {
@@ -73,7 +88,11 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
     };
   }
   
-  const strategy = marginCalculator.applyMarginStrategy(marginPositions, MARGIN_BALANCING_STRATEGY, currentTime);
+  const strategy = marginCalculator.applyMarginStrategy(
+    marginPositions, 
+    MARGIN_TRADING_ENABLED ? MARGIN_BALANCING_STRATEGY : 'keep', 
+    currentTime
+  );
   
   return {
     ...strategy,
@@ -85,6 +104,23 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
  * Рассчитывает оптимальные размеры позиций с учетом множителя
  */
 export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWallet) => {
+  // Если маржинальная торговля выключена, возвращаем размеры без маржи
+  if (!MARGIN_TRADING_ENABLED) {
+    const totalPortfolioValue = wallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
+    const result: Record<string, { baseSize: number; marginSize: number; totalSize: number }> = {};
+    
+    for (const [ticker, percentage] of Object.entries(desiredWallet)) {
+      const targetValue = (totalPortfolioValue * percentage) / 100;
+      result[ticker] = {
+        baseSize: targetValue,
+        marginSize: 0,
+        totalSize: targetValue
+      };
+    }
+    
+    return result;
+  }
+  
   return marginCalculator.calculateOptimalPositionSizes(wallet, desiredWallet);
 };
 
