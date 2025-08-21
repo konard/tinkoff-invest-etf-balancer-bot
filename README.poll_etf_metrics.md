@@ -27,7 +27,7 @@
 - Разовый прогон для TRUR:
 
 ```bash
-npm run poll:metrics
+bun run poll:metrics
 ```
 
 - Несколько тикеров и цикл раз в час:
@@ -55,5 +55,5 @@ npx ts-node --transpile-only src/tools/pollEtfMetrics.ts TRUR,TPAY --once
 Пример cron (каждый час):
 
 ```
-0 * * * * /usr/bin/env -S bash -lc 'cd /path/to/repo && npm run poll:metrics >> logs/poll_metrics.log 2>&1'
+0 * * * * /usr/bin/env -S bash -lc 'cd /path/to/repo && bun run poll:metrics >> logs/poll_metrics.log 2>&1'
 ```

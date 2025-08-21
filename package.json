@@ -17,6 +17,7 @@
     "start": "bun run ./src/index.ts",
     "dev": "DEBUG=bot:main,bot:provider,bot:balancer bun run ./src/index.ts",
     "accounts": "bun run ./src/index.ts --list-accounts",
+    "config": "bun run ./src/tools/configManager.ts",
     "etf-cap": "bun run ./src/tools/etfCap.ts",
     "demo:detailed-output": "bun run ./src/tools/demoDetailedOutput.ts",
     "test:balancer-logic": "bun run ./src/tools/testBalancerLogic.ts",

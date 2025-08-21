@@ -20,7 +20,7 @@ coverage/
 # production
 build/
 
-# false folder when use npm i --no-cache
+# false folder when use bun install --no-cache
 false/
 
 # misc
@@ -31,11 +31,7 @@ false/
 .env.test.local
 .env.production.local
 
-npm-debug.log*
-package-lock.json
-yarn-debug.log*
-yarn-error.log*
-yarn.lock
+
 
 
 .vscode
@@ -47,4 +43,4 @@ yarn.lock
 __pycache__
 temp/
 tmp/
-npm-debug.log*
+

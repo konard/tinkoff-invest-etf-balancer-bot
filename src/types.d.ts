@@ -49,6 +49,32 @@ export interface MarginConfig {
   strategy?: MarginBalancingStrategy; // Стратегия балансировки (опционально)
 }
 
+// Новая конфигурация для множественных аккаунтов
+export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
+
+export interface AccountMarginConfig {
+  enabled: boolean;
+  multiplier: number;
+  free_threshold: number;
+  balancing_strategy: MarginBalancingStrategy;
+}
+
+export interface AccountConfig {
+  id: string;
+  name: string;
+  t_invest_token: string;
+  account_id: string;
+  desired_wallet: DesiredWallet;
+  desired_mode: DesiredMode;
+  balance_interval: number;
+  sleep_between_orders: number;
+  margin_trading: AccountMarginConfig;
+}
+
+export interface ProjectConfig {
+  accounts: AccountConfig[];
+}
+
 export interface Ohlcv {
   open: number;
   high: number;

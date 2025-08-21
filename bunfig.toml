@@ -1,6 +1,6 @@
 [install]
-# Использовать npm registry для совместимости
-registry = "https://registry.npmjs.org/"
+# Использовать bun registry для оптимальной производительности
+registry = "https://registry.bun.sh/"
 
 [install.scopes]
 # Настройки для различных scope'ов если понадобятся

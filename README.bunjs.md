@@ -107,7 +107,7 @@ bun run poll:metrics:all
 
 ```toml
 [install]
-registry = "https://registry.npmjs.org/"
+registry = "https://registry.bun.sh/"
 
 [test]
 preload = ["./src/test-setup.ts"]

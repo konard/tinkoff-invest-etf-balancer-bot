@@ -1,62 +1,97 @@
-import { DesiredWallet } from './types.d';
+// DEPRECATED: Этот файл устарел. Используйте configLoader для загрузки конфигурации из CONFIG.json
+// Оставлен для обратной совместимости
 
-export const DESIRED_WALLET: DesiredWallet = {
-  TRAY: 25, // 25% Tinkoff Passive
-  TGLD: 25, // 25% Tinkoff Gold
-  TRUR: 25, // 25% Tinkoff Eternal Portfolio
-  TRND: 25, // 25% Tinkoff Trend 
-  TBRU: 25,
-  TDIV: 25,
-  TITR: 25,
-  TLCB: 25,
-  TMON: 25,
-  TMOS: 25,
-  TOFZ: 25,
-  TPAY: 25
-};
+import { configLoader } from './configLoader';
+import { DesiredWallet, DesiredMode, MarginBalancingStrategy } from './types.d';
 
-// TODO: Добавить target: BASE/QUOTE
-// export const DESIRED_WALLETS: DesiredWallet[] = [
-//   {
-//     ESPR: 1.99,
-//     GTLB: 2.63,
-//     OZON: 6.5,
-//     TCSG: 39.42,
-//     TCS: 5.34,
-//     VKCO: 14.75,
-//     TBRU: 0.58,
-//     TBUY: 0.49,
-//     TFNX: 1.7,
-//     TSPV: 0.09,
-//     FESH: 1,
-//     RUB: 26.51,
-//   },
-//   {
-//     TMOS: 30, // 30% Тинькофф iMOEX (TMOS)
-//     TBRU: 30, // 30% Тинькофф Bonds
-//     TRUR: 30, // 30% Тинькофф Вечный портфель (TRUR)
-//     RUB: 0, // 0% Рублей
-//     // MTLR: 10, // 10% Мечел
-//   },
-// ];
+// Функции для получения конфигурации конкретного аккаунта
+export function getDesiredWallet(accountId: string): DesiredWallet {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.desired_wallet;
+}
 
-// export const BALANCE_INTERVAL: number = 60000; // Раз в 1 минуту
-export const BALANCE_INTERVAL: number = 60000 * 60; // Раз в 1 час
+export function getDesiredMode(accountId: string): DesiredMode {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.desired_mode;
+}
 
-export const SLEEP_BETWEEN_ORDERS: number = 3000; // 3 секунды
+export function getBalanceInterval(accountId: string): number {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.balance_interval;
+}
 
-// Режим формирования целевых весов:
-// - 'manual' — использовать DESIRED_WALLET как задано пользователем
-// - 'marketcap_aum' — пересчитывать веса пропорционально капитализации; если капа недоступна — используем AUM как прокси
-// - 'marketcap' — пересчитывать веса только по капитализации (без AUM-фолбэка)
-// - 'aum' — пересчитывать веса только по AUM (для ETF; для прочих инструментов — 0)
-// - 'decorrelation' — балансировка по расстоянию от decorrelationPct до максимума среди decorrelationPct.
-export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
+export function getSleepBetweenOrders(accountId: string): number {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.sleep_between_orders;
+}
 
+export function isMarginTradingEnabled(accountId: string): boolean {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.margin_trading.enabled;
+}
+
+export function getMarginMultiplier(accountId: string): number {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.margin_trading.multiplier;
+}
+
+export function getFreeMarginThreshold(accountId: string): number {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.margin_trading.free_threshold;
+}
+
+export function getMarginBalancingStrategy(accountId: string): MarginBalancingStrategy {
+  const account = configLoader.getAccountById(accountId);
+  if (!account) {
+    throw new Error(`Аккаунт с id ${accountId} не найден в конфигурации`);
+  }
+  return account.margin_trading.balancing_strategy;
+}
+
+
+
+// Устаревшие экспорты для обратной совместимости
+// @deprecated Используйте getDesiredWallet('account_id') вместо DESIRED_WALLET
+export const DESIRED_WALLET: DesiredWallet = getDesiredWallet('account_1') || {};
+
+// @deprecated Используйте getDesiredMode('account_id') вместо DESIRED_MODE
 export const DESIRED_MODE: DesiredMode = 'manual';
 
-// Настройки маржинальной торговли
-export const MARGIN_TRADING_ENABLED: boolean = false; // Включить/выключить маржинальную торговлю
-export const MARGIN_MULTIPLIER: number = 4; // Множитель портфеля (1-4)
-export const FREE_MARGIN_THRESHOLD: number = 5000; // Порог бесплатного переноса позиций в рублях
-export const MARGIN_BALANCING_STRATEGY: 'remove' | 'keep' | 'keep_if_small' = 'keep_if_small';
+// @deprecated Используйте getBalanceInterval('account_id') вместо BALANCE_INTERVAL
+export const BALANCE_INTERVAL: number = 3600000;
+
+// @deprecated Используйте getSleepBetweenOrders('account_id') вместо SLEEP_BETWEEN_ORDERS
+export const SLEEP_BETWEEN_ORDERS: number = 3000;
+
+// @deprecated Используйте isMarginTradingEnabled('account_id') вместо MARGIN_TRADING_ENABLED
+export const MARGIN_TRADING_ENABLED: boolean = false;
+
+// @deprecated Используйте getMarginMultiplier('account_id') вместо MARGIN_MULTIPLIER
+export const MARGIN_MULTIPLIER: number = 4;
+
+// @deprecated Используйте getFreeMarginThreshold('account_id') вместо FREE_MARGIN_THRESHOLD
+export const FREE_MARGIN_THRESHOLD: number = 5000;
+
+// @deprecated Используйте getMarginBalancingStrategy('account_id') вместо MARGIN_BALANCING_STRATEGY
+export const MARGIN_BALANCING_STRATEGY: MarginBalancingStrategy = 'keep_if_small';

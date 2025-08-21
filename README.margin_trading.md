@@ -177,7 +177,7 @@ const timeInfo = calculator.shouldApplyMarginStrategy(
 Запуск тестов маржинальной торговли:
 
 ```bash
-npm run test:margin
+bun run test:margin
 ```
 
 Тест проверяет:

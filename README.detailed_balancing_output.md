@@ -58,14 +58,14 @@ RUR: 5000.00 RUB
 Для демонстрации функциональности:
 
 ```bash
-npm run demo:detailed-output
+bun run demo:detailed-output
 ```
 
 ### Тестирование
 Для проверки логики расчета долей:
 
 ```bash
-npm run test:utils
+bun run test:utils
 ```
 
 ## Технические детали
