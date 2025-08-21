@@ -2,7 +2,7 @@ import { Position, MarginPosition, MarginConfig, MarginBalancingStrategy } from 
 import { convertTinkoffNumberToNumber } from './index';
 
 /**
- * Калькулятор маржинальной торговли
+ * Margin trading calculator
  */
 export class MarginCalculator {
   private config: MarginConfig;
@@ -12,19 +12,19 @@ export class MarginCalculator {
   }
 
   /**
-   * Рассчитывает доступную маржу для портфеля
+   * Calculates available margin for portfolio
    */
   calculateAvailableMargin(portfolio: Position[]): number {
     const totalValue = portfolio.reduce((sum, position) => {
       return sum + (position.totalPriceNumber || 0);
     }, 0);
 
-    // Доступная маржа = общая стоимость * (множитель - 1)
+    // Available margin = total value * (multiplier - 1)
     return totalValue * (this.config.multiplier - 1);
   }
 
   /**
-   * Проверяет лимиты маржинальной торговли
+   * Checks margin trading limits
    */
   checkMarginLimits(portfolio: Position[], marginPositions: MarginPosition[]): {
     isValid: boolean;
@@ -58,7 +58,7 @@ export class MarginCalculator {
   }
 
   /**
-   * Рассчитывает стоимость переноса маржинальных позиций
+   * Calculates cost of transferring margin positions
    */
   calculateTransferCost(marginPositions: MarginPosition[]): {
     totalCost: number;
@@ -74,7 +74,7 @@ export class MarginCalculator {
     for (const position of marginPositions) {
       const positionValue = position.totalPriceNumber || 0;
       const isFree = positionValue <= this.config.freeThreshold;
-      const cost = isFree ? 0 : positionValue * 0.01; // 1% от стоимости позиции
+      const cost = isFree ? 0 : positionValue * 0.01; // 1% of position value
 
       if (isFree) {
         freeTransfers++;
@@ -99,40 +99,40 @@ export class MarginCalculator {
   }
 
   /**
-   * Определяет стратегию балансировки маржи на основе времени
+   * Determines margin balancing strategy based on time
    */
   shouldApplyMarginStrategy(
     currentTime: Date = new Date(),
-    balanceInterval: number = 60000 * 60, // 1 час по умолчанию
-    marketCloseTime: string = '18:45' // Время закрытия рынка МосБиржи
+    balanceInterval: number = 60000 * 60, // 1 hour by default
+    marketCloseTime: string = '18:45' // Moscow Exchange market close time
   ): boolean {
     const currentHour = currentTime.getHours();
     const currentMinute = currentTime.getMinutes();
     const currentTimeMinutes = currentHour * 60 + currentMinute;
     
-    // Парсим время закрытия рынка
+    // Parse market close time
     const [closeHour, closeMinute] = marketCloseTime.split(':').map(Number);
     const closeTimeMinutes = closeHour * 60 + closeMinute;
     
-    // Время до закрытия рынка в минутах
+    // Time until market close in minutes
     const timeToClose = closeTimeMinutes - currentTimeMinutes;
     
-    // Если рынок уже закрыт, считаем что это конец дня
+    // If market is already closed, consider it the end of the day
     if (timeToClose <= 0) {
       return true;
     }
     
-    // Время до следующей балансировки в минутах
+    // Time until next balance in minutes
     const timeToNextBalance = balanceInterval / (1000 * 60);
     
-    // Применяем стратегию если:
-    // 1. До закрытия рынка меньше времени до следующей балансировки
-    // 2. Или если это последняя балансировка дня (до закрытия < 15 минут)
+    // Apply strategy if:
+    // 1. Less than time until next balance until market close
+    // 2. Or if it's the last balance of the day (less than 15 minutes until close)
     return timeToClose < timeToNextBalance || timeToClose < 15;
   }
 
   /**
-   * Применяет стратегию балансировки маржи
+   * Applies margin balancing strategy
    */
   applyMarginStrategy(
     marginPositions: MarginPosition[],
@@ -150,13 +150,13 @@ export class MarginCalculator {
       isLastBalance: boolean;
     };
   } {
-    // Если стратегия не передана, используем стратегию из конфига или по умолчанию
+    // If strategy is not passed, use strategy from config or default
     const effectiveStrategy = strategy || this.config.strategy || 'keep';
     
     if (!this.shouldApplyMarginStrategy(currentTime, balanceInterval, marketCloseTime)) {
       return {
         shouldRemoveMargin: false,
-        reason: 'Не время для применения стратегии маржи',
+        reason: 'Not time to apply margin strategy',
         transferCost: 0,
         timeInfo: {
           timeToClose: 0,
@@ -169,7 +169,7 @@ export class MarginCalculator {
     const transferInfo = this.calculateTransferCost(marginPositions);
     const totalMarginValue = marginPositions.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
     
-    // Вычисляем информацию о времени
+    // Calculate time information
     const currentHour = currentTime.getHours();
     const currentMinute = currentTime.getMinutes();
     const currentTimeMinutes = currentHour * 60 + currentMinute;
@@ -183,7 +183,7 @@ export class MarginCalculator {
       case 'remove':
         return {
           shouldRemoveMargin: true,
-          reason: `Стратегия: убирать маржу в конце дня (до закрытия: ${timeToClose} мин)`,
+          reason: `Strategy: remove margin at market close (time to close: ${timeToClose} min)`,
           transferCost: transferInfo.totalCost,
           timeInfo: { timeToClose, timeToNextBalance, isLastBalance }
         };
@@ -191,7 +191,7 @@ export class MarginCalculator {
       case 'keep':
         return {
           shouldRemoveMargin: false,
-          reason: `Стратегия: оставлять маржу (до закрытия: ${timeToClose} мин)`,
+          reason: `Strategy: keep margin (time to close: ${timeToClose} min)`,
           transferCost: 0,
           timeInfo: { timeToClose, timeToNextBalance, isLastBalance }
         };
@@ -201,8 +201,8 @@ export class MarginCalculator {
         return {
           shouldRemoveMargin: shouldRemove,
           reason: shouldRemove 
-            ? `Стратегия: убирать маржу (сумма ${totalMarginValue.toFixed(2)} руб > ${this.config.freeThreshold} руб, до закрытия: ${timeToClose} мин)`
-            : `Стратегия: оставлять маржу (сумма ${totalMarginValue.toFixed(2)} руб <= ${this.config.freeThreshold} руб, до закрытия: ${timeToClose} мин)`,
+            ? `Strategy: remove margin (sum ${totalMarginValue.toFixed(2)} rub > ${this.config.freeThreshold} rub, time to close: ${timeToClose} min)`
+            : `Strategy: keep margin (sum ${totalMarginValue.toFixed(2)} rub <= ${this.config.freeThreshold} rub, time to close: ${timeToClose} min)`,
           transferCost: shouldRemove ? transferInfo.totalCost : 0,
           timeInfo: { timeToClose, timeToNextBalance, isLastBalance }
         };
@@ -210,7 +210,7 @@ export class MarginCalculator {
       default:
         return {
           shouldRemoveMargin: false,
-          reason: 'Неизвестная стратегия',
+          reason: 'Unknown strategy',
           transferCost: 0,
           timeInfo: { timeToClose, timeToNextBalance, isLastBalance }
         };
@@ -218,7 +218,7 @@ export class MarginCalculator {
   }
 
   /**
-   * Рассчитывает оптимальный размер позиций с учетом множителя
+   * Calculates optimal position sizes considering multiplier
    */
   calculateOptimalPositionSizes(
     portfolio: Position[],

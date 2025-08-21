@@ -16,7 +16,7 @@ const debug = require('debug')('bot').extend('balancer');
 
 // const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
 
-// Инициализация калькулятора маржи
+// Initialize margin calculator
 const marginConfig: MarginConfig = {
   multiplier: MARGIN_MULTIPLIER,
   freeThreshold: FREE_MARGIN_THRESHOLD,
@@ -26,10 +26,10 @@ const marginConfig: MarginConfig = {
 const marginCalculator = new MarginCalculator(marginConfig);
 
 /**
- * Определяет маржинальные позиции в портфеле
+ * Identifies margin positions in portfolio
  */
 export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
-  // Если маржинальная торговля выключена, возвращаем пустой массив
+  // If margin trading is disabled, return empty array
   if (!MARGIN_TRADING_ENABLED) {
     return [];
   }
@@ -38,7 +38,7 @@ export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
   
   for (const position of wallet) {
     if (position.totalPriceNumber && position.totalPriceNumber > 0) {
-      // Определяем маржинальную часть позиции
+      // Determine margin part of position
       const baseValue = position.totalPriceNumber / MARGIN_MULTIPLIER;
       const marginValue = position.totalPriceNumber - baseValue;
       
@@ -59,7 +59,7 @@ export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
 };
 
 /**
- * Применяет стратегию управления маржинальными позициями
+ * Applies margin position management strategy
  */
 export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date()): {
   shouldRemoveMargin: boolean;
@@ -67,11 +67,11 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
   transferCost: number;
   marginPositions: MarginPosition[];
 } => {
-  // Если маржинальная торговля выключена, возвращаем результат без маржи
+  // If margin trading is disabled, return result without margin
   if (!MARGIN_TRADING_ENABLED) {
     return {
       shouldRemoveMargin: false,
-      reason: 'Маржинальная торговля отключена',
+      reason: 'Margin trading disabled',
       transferCost: 0,
       marginPositions: []
     };
@@ -82,7 +82,7 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
   if (marginPositions.length === 0) {
     return {
       shouldRemoveMargin: false,
-      reason: 'Нет маржинальных позиций',
+      reason: 'No margin positions',
       transferCost: 0,
       marginPositions: []
     };
@@ -101,10 +101,10 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
 };
 
 /**
- * Рассчитывает оптимальные размеры позиций с учетом множителя
+ * Calculates optimal position sizes considering multiplier
  */
 export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWallet) => {
-  // Если маржинальная торговля выключена, возвращаем размеры без маржи
+  // If margin trading is disabled, return sizes without margin
   if (!MARGIN_TRADING_ENABLED) {
     const totalPortfolioValue = wallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
     const result: Record<string, { baseSize: number; marginSize: number; totalSize: number }> = {};
@@ -181,7 +181,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   const wallet = positions;
 
-  // Применяем стратегию управления маржинальными позициями
+  // Applies margin position management strategy
   const marginStrategy = applyMarginStrategy(wallet);
   debug('Стратегия маржи:', marginStrategy);
 
@@ -189,19 +189,19 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     debug(`Применяем стратегию: ${marginStrategy.reason}`);
     debug(`Стоимость переноса: ${marginStrategy.transferCost.toFixed(2)} руб`);
     
-    // Здесь можно добавить логику для закрытия маржинальных позиций
-    // или их переноса на следующий день
+    // Here you can add logic for closing margin positions
+    // or transferring them to the next day
   }
 
   const normalizedDesire = normalizeDesire(desiredWallet);
 
-  // Приводим ключи тикеров к алиасам (например, TRAY -> TPAY) и пере-нормализуем
+  // Bring ticker keys to aliases (e.g., TRAY -> TPAY) and re-normalize
   const desiredAliased = Object.entries(normalizedDesire).reduce((acc: any, [k, v]) => {
     const nk = normalizeTicker(k) || k;
     acc[nk] = (acc[nk] || 0) + Number(v);
     return acc;
   }, {} as Record<string, number>);
-  const desiredMap = desiredAliased; // Убираем повторную нормализацию
+  const desiredMap = desiredAliased; // Remove repeated normalization
 
   debug('Добавляем в DesireWallet недостающие инструменты в портфеле со значением 0');
   for (const position of wallet) {
@@ -238,7 +238,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
         continue;
       }
 
-      const lastPrice = await getLastPrice(figi); // sleep внутри есть
+      const lastPrice = await getLastPrice(figi); // sleep is inside
       if (!lastPrice) {
         debug(`Не удалось получить lastPrice для ${desiredTicker}/${figi}. Пропускаем добавление.`);
         continue;
@@ -296,7 +296,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   debug(sortedWallet);
   debug('walletSumNumber', walletSumNumber);
 
-  // Рассчитываем оптимальные размеры позиций с учетом множителя
+  // Calculate optimal position sizes considering multiplier
   const optimalSizes = calculateOptimalSizes(sortedWallet, desiredMap);
   debug('Оптимальные размеры позиций:', optimalSizes);
 
@@ -310,7 +310,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     // TODO:
     // const position: Position;
     // if (positionIndex === -1) {
-    //   debug('В портфеле нету тикера из DesireWallet. Создаем.');
+    //   debug('Ticker from DesireWallet not found in portfolio. Creating.');
     //   const newPosition = {
     //     pair: `${desiredTicker}/RUB`,
     //     base: desiredTicker,
@@ -338,7 +338,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     debug('walletSumNumber', walletSumNumber);
     debug('desiredPercent', desiredPercentNumber);
     
-    // Используем оптимальные размеры с учетом множителя
+    // Use optimal sizes considering multiplier
     const optimalSize = optimalSizes[desiredTicker];
     const desiredAmountNumber = optimalSize ? optimalSize.totalSize : (walletSumNumber / 100 * desiredPercentNumber);
     
@@ -361,8 +361,8 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
       debug('beforeDiffNumber', beforeDiffNumber);
       position.beforeDiffNumber = beforeDiffNumber;
 
-      debug('Суммируем остатки'); // TODO: нужно определить валюту и записать остаток в этой валюте
-      walletInfo.remains += beforeDiffNumber; // Пока только в рублях
+      debug('Summing up remainders'); // TODO: need to determine currency and write remainder in that currency
+      walletInfo.remains += beforeDiffNumber; // Only in rubles for now
 
       debug('Сколько нужно купить (может быть отрицательным, тогда нужно продать)');
       if (position.totalPriceNumber) {

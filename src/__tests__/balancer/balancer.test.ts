@@ -189,11 +189,11 @@ describe("Balancer", () => {
 
       const result = normalizeDesire(desiredWallet);
 
-      // Проверяем, что сумма равна 100%
+      // Check that sum equals 100%
       const sum = Object.values(result).reduce((acc, val) => acc + val, 0);
       expect(sum).toBeCloseTo(100, 2);
 
-      // Проверяем, что каждая доля равна 25%
+      // Check that each share equals 25%
       Object.values(result).forEach(percentage => {
         expect(percentage).toBeCloseTo(25, 2);
       });
@@ -208,11 +208,11 @@ describe("Balancer", () => {
 
       const result = normalizeDesire(desiredWallet);
 
-      // Проверяем, что сумма равна 100%
+      // Check that sum equals 100%
       const sum = Object.values(result).reduce((acc, val) => acc + val, 0);
       expect(sum).toBeCloseTo(100, 2);
 
-      // Проверяем пропорции
+      // Check proportions
       expect(result.TGLD).toBeCloseTo(50, 2);
       expect(result.TPAY).toBeCloseTo(30, 2);
       expect(result.TRUR).toBeCloseTo(20, 2);

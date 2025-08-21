@@ -1,20 +1,18 @@
-import _ from 'lodash';
-import { DesiredWallet } from '../types.d';
-import { normalizeTicker } from '../utils';
-import { DesiredMode } from '../config';
-import { buildAumMapSmart, getEtfMarketCapRUB, getShareMarketCapRUB, getFxRateToRub, AumEntry } from '../tools/etfCap';
-import { promises as fs } from 'fs';
 import path from 'path';
+import { promises as fs } from 'fs';
+import _ from 'lodash';
+import { DesiredWallet, DesiredMode } from '../types.d';
+import { normalizeTicker } from '../utils';
+import { getEtfMarketCapRUB } from '../tools/etfCap';
+import { getShareMarketCapRUB } from '../tools/shareCap';
+import { buildAumMapSmart, toRubFromAum } from '../tools/pollEtfMetrics';
 
 const debug = require('debug')('bot').extend('desiredBuilder');
 
-type Metric = number; // RUB
-
-const toRubFromAum = async (entry: AumEntry | undefined): Promise<number> => {
-  if (!entry || !entry.amount) return 0;
-  const rate = await getFxRateToRub(entry.currency);
-  return entry.amount * (rate || 0);
-};
+interface Metric {
+  marketCap?: number | null;
+  aum?: number | null;
+}
 
 export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: DesiredWallet): Promise<DesiredWallet> => {
   if (mode === 'manual') return baseDesired;
@@ -39,7 +37,7 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
   };
 
   const calcMarketcap = async (nt: string): Promise<number> => {
-    // 1) локальный JSON, 2) live для ETF, 3) live для акций
+    // 1) local JSON, 2) live for ETF, 3) live for shares
     const json = await readMetricFromJson(nt);
     if (json && typeof json.marketCap === 'number' && Number.isFinite(json.marketCap)) return json.marketCap;
     const etfCap = await getEtfMarketCapRUB(nt);
@@ -50,7 +48,7 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
   };
 
   const calcAumRub = async (nt: string): Promise<number> => {
-    // 1) локальный JSON, 2) live через T-Capital + FX
+    // 1) local JSON, 2) live via T-Capital + FX
     const json = await readMetricFromJson(nt);
     if (json && typeof json.aum === 'number' && Number.isFinite(json.aum)) return json.aum;
     const aumMap = await buildAumMapSmart([nt]);
@@ -75,12 +73,12 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
   }
 
   if (mode === 'decorrelation') {
-    // Алгоритм:
-    // 1) decorrelationPct = (marketCap - AUM) / AUM * 100 (может быть отрицательной или положительной)
-    // 2) Находим max среди всех decorrelationPct
-    // 3) Строим метрику для распределения: metric = max - decorrelationPct
-    //    Пример: [100, 0, -100] -> max=100 -> metrics=[0, 100, 200]
-    // 4) Веса ∝ metric. Если сумма == 0 — возвращаем базовый портфель
+    // Algorithm:
+    // 1) decorrelationPct = (marketCap - AUM) / AUM * 100 (can be negative or positive)
+    // 2) Find max among all decorrelationPct
+    // 3) Build distribution metric: metric = max - decorrelationPct
+    //    Example: [100, 0, -100] -> max=100 -> metrics=[0, 100, 200]
+    // 4) Weights ∝ metric. If sum == 0 — return base portfolio
 
     const dPctByTicker: Record<string, number> = {};
     for (const nt of normalizedTickers) {

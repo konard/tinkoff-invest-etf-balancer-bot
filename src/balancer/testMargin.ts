@@ -1,7 +1,7 @@
 import { MarginCalculator } from '../utils/marginCalculator';
 import { MarginConfig, MarginBalancingStrategy } from '../types.d';
 
-// Тестовая конфигурация
+// Test configuration
 const testConfig: MarginConfig = {
   multiplier: 4,
   freeThreshold: 5000,
@@ -10,7 +10,7 @@ const testConfig: MarginConfig = {
 
 const marginCalculator = new MarginCalculator(testConfig);
 
-// Тестовые данные
+// Test data
 const testPortfolio = [
   {
     base: 'TPAY',
@@ -36,7 +36,7 @@ const testMarginPositions = [
   {
     base: 'TPAY',
     totalPriceNumber: 50000,
-    marginValue: 37500, // При множителе x4: 50000 - (50000/4) = 37500
+    marginValue: 37500, // With x4 multiplier: 50000 - (50000/4) = 37500
     isMargin: true,
     leverage: 4,
     marginCall: false
@@ -44,7 +44,7 @@ const testMarginPositions = [
   {
     base: 'TGLD',
     totalPriceNumber: 40000,
-    marginValue: 30000, // При множителе x4: 40000 - (40000/4) = 30000
+    marginValue: 30000, // With x4 multiplier: 40000 - (40000/4) = 30000
     isMargin: true,
     leverage: 4,
     marginCall: false
@@ -57,88 +57,88 @@ const testDesiredWallet = {
   TRUR: 45
 };
 
-// Тесты
-console.log('=== Тест маржинальной торговли ===\n');
+// Tests
+console.log('=== Margin Trading Test ===\n');
 
-// 1. Расчет доступной маржи
-console.log('1. Доступная маржа:');
+// 1. Calculate available margin
+console.log('1. Available margin:');
 const availableMargin = marginCalculator.calculateAvailableMargin(testPortfolio);
-console.log(`   Доступная маржа: ${availableMargin.toFixed(2)} руб\n`);
+console.log(`   Available margin: ${availableMargin.toFixed(2)} RUB\n`);
 
-// 2. Проверка лимитов
-console.log('2. Проверка лимитов:');
+// 2. Check limits
+console.log('2. Check limits:');
 const limits = marginCalculator.checkMarginLimits(testPortfolio, testMarginPositions);
-console.log(`   Валидность: ${limits.isValid}`);
-console.log(`   Доступная маржа: ${limits.availableMargin.toFixed(2)} руб`);
-console.log(`   Использованная маржа: ${limits.usedMargin.toFixed(2)} руб`);
-console.log(`   Оставшаяся маржа: ${limits.remainingMargin.toFixed(2)} руб`);
-console.log(`   Уровень риска: ${limits.riskLevel}\n`);
+console.log(`   Validity: ${limits.isValid}`);
+console.log(`   Available margin: ${limits.availableMargin.toFixed(2)} RUB`);
+console.log(`   Used margin: ${limits.usedMargin.toFixed(2)} RUB`);
+console.log(`   Remaining margin: ${limits.remainingMargin.toFixed(2)} RUB`);
+console.log(`   Risk level: ${limits.riskLevel}\n`);
 
-// 3. Стоимость переноса
-console.log('3. Стоимость переноса:');
+// 3. Transfer cost
+console.log('3. Transfer cost:');
 const transferCost = marginCalculator.calculateTransferCost(testMarginPositions);
-console.log(`   Общая стоимость: ${transferCost.totalCost.toFixed(2)} руб`);
-console.log(`   Бесплатные переносы: ${transferCost.freeTransfers}`);
-console.log(`   Платные переносы: ${transferCost.paidTransfers}`);
-console.log('   Детализация:');
+console.log(`   Total cost: ${transferCost.totalCost.toFixed(2)} RUB`);
+console.log(`   Free transfers: ${transferCost.freeTransfers}`);
+console.log(`   Paid transfers: ${transferCost.paidTransfers}`);
+console.log('   Breakdown:');
 transferCost.costBreakdown.forEach(item => {
-  console.log(`     ${item.ticker}: ${item.cost.toFixed(2)} руб (${item.isFree ? 'бесплатно' : 'платно'})`);
+  console.log(`     ${item.ticker}: ${item.cost.toFixed(2)} RUB (${item.isFree ? 'free' : 'paid'})`);
 });
 console.log();
 
-// 4. Стратегия балансировки
-console.log('4. Стратегия балансировки:');
+// 4. Balancing strategy
+console.log('4. Balancing strategy:');
 const currentTime = new Date();
 const shouldApply = marginCalculator.shouldApplyMarginStrategy(currentTime);
-console.log(`   Время применения стратегии: ${shouldApply ? 'Да' : 'Нет'}`);
+console.log(`   Strategy application time: ${shouldApply ? 'Yes' : 'No'}`);
 
 const strategy = marginCalculator.applyMarginStrategy(testMarginPositions, 'keep_if_small', currentTime);
-console.log(`   Убирать маржу: ${strategy.shouldRemoveMargin ? 'Да' : 'Нет'}`);
-console.log(`   Причина: ${strategy.reason}`);
-console.log(`   Стоимость переноса: ${strategy.transferCost.toFixed(2)} руб`);
-console.log(`   Информация о времени:`);
-console.log(`     До закрытия рынка: ${strategy.timeInfo.timeToClose} мин`);
-console.log(`     До следующей балансировки: ${strategy.timeInfo.timeToNextBalance.toFixed(1)} мин`);
-console.log(`     Последняя балансировка дня: ${strategy.timeInfo.isLastBalance ? 'Да' : 'Нет'}\n`);
+console.log(`   Remove margin: ${strategy.shouldRemoveMargin ? 'Yes' : 'No'}`);
+console.log(`   Reason: ${strategy.reason}`);
+console.log(`   Transfer cost: ${strategy.transferCost.toFixed(2)} RUB`);
+console.log(`   Time information:`);
+console.log(`     Time to market close: ${strategy.timeInfo.timeToClose} min`);
+console.log(`     Time to next rebalancing: ${strategy.timeInfo.timeToNextBalance.toFixed(1)} min`);
+console.log(`     Last rebalancing of the day: ${strategy.timeInfo.isLastBalance ? 'Yes' : 'No'}\n`);
 
-// Тест разных временных сценариев
-console.log('4.1. Тест временных сценариев:');
+// Test different time scenarios
+console.log('4.1. Test time scenarios:');
 const testTimes = [
-  { time: new Date(2024, 0, 1, 9, 0), desc: 'Утро (9:00)' },
-  { time: new Date(2024, 0, 1, 14, 0), desc: 'День (14:00)' },
-  { time: new Date(2024, 0, 1, 18, 30), desc: 'Перед закрытием (18:30)' },
-  { time: new Date(2024, 0, 1, 19, 0), desc: 'После закрытия (19:00)' }
+  { time: new Date(2024, 0, 1, 9, 0), desc: 'Morning (9:00)' },
+  { time: new Date(2024, 0, 1, 14, 0), desc: 'Day (14:00)' },
+  { time: new Date(2024, 0, 1, 18, 30), desc: 'Before close (18:30)' },
+  { time: new Date(2024, 0, 1, 19, 0), desc: 'After close (19:00)' }
 ];
 
 testTimes.forEach(({ time, desc }) => {
   const shouldApply = marginCalculator.shouldApplyMarginStrategy(time);
   const strategy = marginCalculator.applyMarginStrategy(testMarginPositions, 'keep_if_small', time);
-  console.log(`   ${desc}: ${shouldApply ? 'Применяем' : 'Не применяем'} стратегию`);
+  console.log(`   ${desc}: ${shouldApply ? 'Apply' : 'Do not apply'} strategy`);
   if (shouldApply) {
-    console.log(`     Убирать маржу: ${strategy.shouldRemoveMargin ? 'Да' : 'Нет'}`);
-    console.log(`     До закрытия: ${strategy.timeInfo.timeToClose} мин`);
+    console.log(`     Remove margin: ${strategy.shouldRemoveMargin ? 'Yes' : 'No'}`);
+    console.log(`     Time to close: ${strategy.timeInfo.timeToClose} min`);
   }
 });
 console.log();
 
-// 5. Оптимальные размеры позиций
-console.log('5. Оптимальные размеры позиций:');
+// 5. Optimal position sizes
+console.log('5. Optimal position sizes:');
 const optimalSizes = marginCalculator.calculateOptimalPositionSizes(testPortfolio, testDesiredWallet);
 Object.entries(optimalSizes).forEach(([ticker, sizes]) => {
   console.log(`   ${ticker}:`);
-  console.log(`     Базовый размер: ${sizes.baseSize.toFixed(2)} руб`);
-  console.log(`     Маржинальный размер: ${sizes.marginSize.toFixed(2)} руб`);
-  console.log(`     Общий размер: ${sizes.totalSize.toFixed(2)} руб`);
+  console.log(`     Base size: ${sizes.baseSize.toFixed(2)} RUB`);
+  console.log(`     Margin size: ${sizes.marginSize.toFixed(2)} RUB`);
+  console.log(`     Total size: ${sizes.totalSize.toFixed(2)} RUB`);
 });
 console.log();
 
-// 6. Тест разных стратегий
-console.log('6. Тест разных стратегий:');
+// 6. Test different strategies
+console.log('6. Test different strategies:');
 const strategies: MarginBalancingStrategy[] = ['remove', 'keep', 'keep_if_small'];
 
 strategies.forEach(strategyType => {
   const result = marginCalculator.applyMarginStrategy(testMarginPositions, strategyType, currentTime);
-  console.log(`   ${strategyType}: ${result.shouldRemoveMargin ? 'Убирать' : 'Оставлять'} - ${result.reason}`);
+  console.log(`   ${strategyType}: ${result.shouldRemoveMargin ? 'Remove' : 'Keep'} - ${result.reason}`);
 });
 
-console.log('\n=== Тест завершен ===');
+console.log('\n=== Test completed ===');

@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 
 /**
- * Демонстрация детального вывода результатов балансировки
- * Показывает формат: TICKER: before% -> after% (target%)
+ * Demonstration of detailed balancing output results
+ * Shows format: TICKER: before% -> after% (target%)
  */
 
-// Имитация данных портфеля до балансировки
+// Portfolio data simulation before balancing
 const initialShares = {
   TMON: 0,
   TPAY: 18.5,
@@ -20,7 +20,7 @@ const initialShares = {
   TITR: 0,
 };
 
-// Имитация целевых долей от балансировщика
+// Target shares from balancer simulation
 const targetPercents = {
   TMON: 0,
   TPAY: 19,
@@ -35,7 +35,7 @@ const targetPercents = {
   TITR: 0,
 };
 
-// Имитация фактических долей после балансировки
+// Actual shares after balancing simulation
 const finalShares = {
   TMON: 0,
   TPAY: 19,
@@ -51,39 +51,39 @@ const finalShares = {
 };
 
 /**
- * Рассчитывает доли каждого инструмента в портфеле
- * @param wallet - массив позиций портфеля
- * @returns объект с тикерами и их долями в процентах
+ * Calculates shares of each instrument in portfolio
+ * @param wallet - array of portfolio positions
+ * @returns object with tickers and their shares in percentages
  */
 const calculatePortfolioShares = (shares: Record<string, number>): Record<string, number> => {
   return shares;
 };
 
 /**
- * Демонстрация детального вывода результата балансировки
+ * Demonstration of detailed balancing output result
  */
 const demoDetailedOutput = () => {
-  console.log('=== ДЕМОНСТРАЦИЯ ДЕТАЛЬНОГО ВЫВОДА БАЛАНСИРОВКИ ===\n');
+  console.log('=== DEMONSTRATION OF DETAILED BALANCING OUTPUT ===\n');
   
-  // Сохраняем текущие доли портфеля ДО балансировки
+  // Save current portfolio shares BEFORE balancing
   const beforeShares = calculatePortfolioShares(initialShares);
   
-  // Получаем целевые доли от балансировщика
+  // Get target shares from balancer
   const finalPercents = targetPercents;
   
-  // Получаем обновленные доли ПОСЛЕ балансировки
+  // Get updated shares AFTER balancing
   const afterShares = calculatePortfolioShares(finalShares);
   
-        // Детальный вывод результата балансировки
+        // Detailed balancing output result
       console.log('BALANCING RESULT:');
       console.log('Format: TICKER: diff: before% -> after% (target%)');
       console.log('Where: before% = current share, after% = actual share after balancing, (target%) = target from balancer, diff = change in percentage points\n');
       
-      // Сортируем тикеры по убыванию доли после балансировки (after)
+      // Sort tickers by decreasing share after balancing (after)
       const sortedTickers = Object.keys(finalPercents).sort((a, b) => {
         const afterA = afterShares[a] || 0;
         const afterB = afterShares[b] || 0;
-        return afterB - afterA; // Убывание: от большего к меньшему
+        return afterB - afterA; // Decreasing: from larger to smaller
       });
       
       for (const ticker of sortedTickers) {
@@ -92,7 +92,7 @@ const demoDetailedOutput = () => {
           const afterPercent = afterShares[ticker] || 0;
           const targetPercent = finalPercents[ticker] || 0;
           
-          // Вычисляем изменение в процентных пунктах
+          // Calculate change in percentage points
           const diff = afterPercent - beforePercent;
           const diffSign = diff > 0 ? '+' : '';
           const diffText = diff === 0 ? '0%' : `${diffSign}${diff.toFixed(2)}%`;
@@ -101,12 +101,12 @@ const demoDetailedOutput = () => {
         }
       }
       
-      // Добавляем баланс рублей (может быть отрицательным при маржинальной торговле)
+      // Add ruble balance (can be negative with margin trading)
       console.log(`RUR: 5000.00 RUB`);
   
-  console.log('\n=== АНАЛИЗ ИЗМЕНЕНИЙ ===');
+  console.log('\n=== CHANGE ANALYSIS ===');
   
-  // Анализируем изменения
+  // Analyze changes
   for (const ticker of sortedTickers) {
     if (ticker && ticker !== 'RUB') {
       const beforePercent = Math.round(beforeShares[ticker] || 0);
@@ -118,15 +118,15 @@ const demoDetailedOutput = () => {
         const changeSymbol = change > 0 ? '+' : '';
         console.log(`${ticker}: ${changeSymbol}${change}% (${beforePercent}% → ${afterPercent}%)`);
       } else if (beforePercent !== targetPercent) {
-        console.log(`${ticker}: без изменений (${beforePercent}% = ${targetPercent}%)`);
+        console.log(`${ticker}: no changes (${beforePercent}% = ${targetPercent}%)`);
       } else {
-        console.log(`${ticker}: уже сбалансирован (${beforePercent}%)`);
+        console.log(`${ticker}: already balanced (${beforePercent}%)`);
       }
     }
   }
 };
 
-// Запускаем демонстрацию
+// Run demonstration
 if (import.meta.main) {
   demoDetailedOutput();
 }

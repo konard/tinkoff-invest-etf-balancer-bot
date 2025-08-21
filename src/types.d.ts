@@ -33,23 +33,23 @@ export interface DesiredWallet {
   [key: string]: number;
 }
 
-// Маржинальная торговля
+// Margin trading
 export interface MarginPosition extends Position {
   isMargin: boolean;
-  marginValue?: number; // Стоимость маржинальной части
-  leverage?: number; // Плечо по позиции
-  marginCall?: boolean; // Риск маржин-колла
+  marginValue?: number; // Cost of margin part
+  leverage?: number; // Position leverage
+  marginCall?: boolean; // Margin call risk
 }
 
 export type MarginBalancingStrategy = 'remove' | 'keep' | 'keep_if_small';
 
 export interface MarginConfig {
-  multiplier: number; // Множитель портфеля (1-4)
-  freeThreshold: number; // Порог бесплатного переноса в рублях
-  strategy?: MarginBalancingStrategy; // Стратегия балансировки (опционально)
+  multiplier: number; // Portfolio multiplier (1-4)
+  freeThreshold: number; // Free transfer threshold in rubles
+  strategy?: MarginBalancingStrategy; // Balancing strategy (optional)
 }
 
-// Новая конфигурация для множественных аккаунтов
+// New configuration for multiple accounts
 export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
 
 export interface AccountMarginConfig {

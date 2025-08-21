@@ -13,7 +13,7 @@ const main = async () => {
   if (process.argv.includes('--list-accounts')) {
     const { users } = createSdk(process.env.TOKEN || '');
     const accounts = await listAccounts(users);
-    console.log('Доступные счета:');
+    console.log('Available accounts:');
     for (const acc of accounts) {
       console.log(`#${acc.index}: id=${acc.id} type=${acc.type} name=${acc.name}`);
     }
@@ -21,7 +21,7 @@ const main = async () => {
   }
   const runOnce = process.argv.includes('--once');
   await provider({ runOnce });
-  // TODO: сейчас balancer вызывается из provider, а не из main. Нужно переделать.
+  // TODO: currently balancer is called from provider, not from main. Need to refactor.
   // debugMain('provider done');
   // await balancer((global as any).POSITIONS, DESIRED_WALLET);
 };

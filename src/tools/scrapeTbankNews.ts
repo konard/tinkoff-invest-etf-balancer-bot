@@ -121,7 +121,7 @@ function buildMarkdown(id: string, url: string, title: string, dateText: string,
 }
 
 async function clickShowMoreUntilExhausted(page: Page, targetLinks: number | null = null): Promise<void> {
-  // Iteratively click the bottom-most "Показать ещё" button with a fixed 2s wait after each click
+  // Iteratively click the bottom-most "Show more" button with a fixed 2s wait after each click
   let iteration = 0;
   for (;;) {
     iteration += 1;
@@ -133,7 +133,7 @@ async function clickShowMoreUntilExhausted(page: Page, targetLinks: number | nul
       const normalizeText = (t: string) => t.replace(/\u00a0/g, ' ').trim().toLowerCase();
       const isShowMore = (el: HTMLElement) => {
         const text = normalizeText(el.textContent || '');
-        return text.includes('показать') && text.includes('ещ');
+        return text.includes('show') && text.includes('more');
       };
       const allButtons = Array.from(document.querySelectorAll('button')) as HTMLElement[];
       const candidates = allButtons.filter(isShowMore);
@@ -209,7 +209,7 @@ type ScrapeOptions = {
 async function runSingleScrape(symbol: string, opts: ScrapeOptions): Promise<void> {
   const argv = process.argv.slice(2);
   // symbol is already provided
-  // Flags: --limit=N (всегда), --first-limit=N (только первый запуск), позиционное число трактуем как --limit
+  // Flags: --limit=N (always), --first-limit=N (first run only), positional number treated as --limit
   let limitAll: number | null = opts.limitAll;
   let firstRunLimit: number | null = opts.firstRunLimit;
   for (const arg of argv.slice(1)) {

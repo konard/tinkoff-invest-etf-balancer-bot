@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'bun:test';
 import { Position } from '../types.d';
 
-// Импортируем функцию из provider (если она экспортируется)
-// Если нет, то тестируем логику здесь
+// Import function from provider (if exported)
+// If not, test logic here
 
 /**
- * Рассчитывает доли каждого инструмента в портфеле
- * @param wallet - массив позиций портфеля
- * @returns объект с тикерами и их долями в процентах
+ * Calculates shares of each instrument in portfolio
+ * @param wallet - array of portfolio positions
+ * @returns object with tickers and their shares in percentages
  */
 const calculatePortfolioShares = (wallet: Position[]): Record<string, number> => {
-  // Исключаем валюты (позиции где base === quote)
+  // Exclude currencies (positions where base === quote)
   const securities = wallet.filter(p => p.base !== p.quote);
   const totalValue = securities.reduce((sum, p) => sum + (p.totalPriceNumber || 0), 0);
   
@@ -19,7 +19,7 @@ const calculatePortfolioShares = (wallet: Position[]): Record<string, number> =>
   const shares: Record<string, number> = {};
   for (const position of securities) {
     if (position.base && position.totalPriceNumber) {
-      const ticker = position.base; // Упрощенная версия без normalizeTicker
+      const ticker = position.base; // Simplified version without normalizeTicker
       shares[ticker] = (position.totalPriceNumber / totalValue) * 100;
     }
   }
@@ -27,7 +27,7 @@ const calculatePortfolioShares = (wallet: Position[]): Record<string, number> =>
 };
 
 describe('calculatePortfolioShares', () => {
-  it('должна корректно рассчитывать доли портфеля', () => {
+  it('should correctly calculate portfolio shares', () => {
     const mockWallet: Position[] = [
       {
         pair: 'TGLD/RUB',
@@ -72,10 +72,10 @@ describe('calculatePortfolioShares', () => {
 
     const result = calculatePortfolioShares(mockWallet);
     
-    // Общая стоимость ценных бумаг: 10000 + 10000 = 20000
+    // Total securities value: 10000 + 10000 = 20000
     // TGLD: 10000 / 20000 * 100 = 50%
     // TRUR: 10000 / 20000 * 100 = 50%
-    // RUB должен быть исключен
+    // RUB should be excluded
     
     expect(result).toEqual({
       TGLD: 50,
@@ -85,12 +85,12 @@ describe('calculatePortfolioShares', () => {
     expect(result.RUB).toBeUndefined();
   });
 
-  it('должна возвращать пустой объект для пустого портфеля', () => {
+  it('should return empty object for empty portfolio', () => {
     const result = calculatePortfolioShares([]);
     expect(result).toEqual({});
   });
 
-  it('должна возвращать пустой объект для портфеля только с валютами', () => {
+  it('should return empty object for portfolio with only currencies', () => {
     const mockWallet: Position[] = [
       {
         pair: 'RUB/RUB',
@@ -111,7 +111,7 @@ describe('calculatePortfolioShares', () => {
     expect(result).toEqual({});
   });
 
-  it('должна корректно обрабатывать позиции без totalPriceNumber', () => {
+  it('should correctly handle positions without totalPriceNumber', () => {
     const mockWallet: Position[] = [
       {
         pair: 'TGLD/RUB',
@@ -137,13 +137,13 @@ describe('calculatePortfolioShares', () => {
         priceNumber: 50,
         lotPrice: { units: 50, nano: 0 },
         totalPrice: { units: 10000, nano: 0 },
-        totalPriceNumber: undefined, // Отсутствует totalPriceNumber
+        totalPriceNumber: undefined, // totalPriceNumber is missing
       }
     ];
 
     const result = calculatePortfolioShares(mockWallet);
     
-    // Только TGLD должен быть включен, так как у TRUR нет totalPriceNumber
+    // Only TGLD should be included, as TRUR has no totalPriceNumber
     expect(result).toEqual({
       TGLD: 100
     });

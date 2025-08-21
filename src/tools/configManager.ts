@@ -4,58 +4,58 @@ import { configLoader } from '../configLoader';
 import { AccountConfig } from '../types.d';
 
 /**
- * Утилита для управления конфигурацией множественных аккаунтов
- * Позволяет просматривать, валидировать и управлять настройками
+ * Utility for managing multiple account configurations
+ * Allows viewing, validating and managing settings
  */
 
 function printAccountInfo(account: AccountConfig): void {
-  console.log(`\n📊 Аккаунт: ${account.name} (ID: ${account.id})`);
+  console.log(`\n📊 Account: ${account.name} (ID: ${account.id})`);
   
-  // Отображаем информацию о токене
+  // Display token information
   const rawToken = configLoader.getRawTokenValue(account.id);
   const resolvedToken = configLoader.getAccountToken(account.id);
   const isFromEnv = configLoader.isTokenFromEnv(account.id);
   
   if (isFromEnv) {
-    console.log(`🔑 Токен: ${rawToken} → ${resolvedToken || 'НЕ НАЙДЕН'}`);
+    console.log(`🔑 Token: ${rawToken} → ${resolvedToken || 'NOT FOUND'}`);
     if (!resolvedToken) {
-      console.log(`⚠️  Переменная окружения не установлена!`);
+      console.log(`⚠️  Environment variable not set!`);
     }
   } else {
-    console.log(`🔑 Токен: ${rawToken} (прямо указан)`);
+    console.log(`🔑 Token: ${rawToken} (directly specified)`);
   }
   
-  console.log(`💼 Счет: ${account.account_id}`);
-  console.log(`⚙️  Режим: ${account.desired_mode}`);
-  console.log(`⏰ Интервал балансировки: ${account.balance_interval / 1000 / 60} мин`);
-  console.log(`⏳ Задержка между ордерами: ${account.sleep_between_orders} мс`);
+  console.log(`💼 Account: ${account.account_id}`);
+  console.log(`⚙️  Mode: ${account.desired_mode}`);
+  console.log(`⏰ Rebalancing interval: ${account.balance_interval / 1000 / 60} min`);
+  console.log(`⏳ Delay between orders: ${account.sleep_between_orders} ms`);
   
-  console.log(`\n📈 Целевые веса:`);
+  console.log(`\n📈 Target weights:`);
   const totalWeight = Object.values(account.desired_wallet).reduce((sum, weight) => sum + weight, 0);
   Object.entries(account.desired_wallet).forEach(([ticker, weight]) => {
     console.log(`  ${ticker}: ${weight}%`);
   });
-  console.log(`  Итого: ${totalWeight}%`);
+  console.log(`  Total: ${totalWeight}%`);
   
   if (Math.abs(totalWeight - 100) > 1) {
-    console.log(`⚠️  Внимание: сумма весов не равна 100%`);
+    console.log(`⚠️  Warning: sum of weights is not equal to 100%`);
   }
   
-  console.log(`\n💰 Маржинальная торговля:`);
-  console.log(`  Включена: ${account.margin_trading.enabled ? '✅' : '❌'}`);
+  console.log(`\n💰 Margin trading:`);
+  console.log(`  Enabled: ${account.margin_trading.enabled ? '✅' : '❌'}`);
   if (account.margin_trading.enabled) {
-    console.log(`  Множитель: ${account.margin_trading.multiplier}x`);
-    console.log(`  Порог: ${account.margin_trading.free_threshold} ₽`);
-    console.log(`  Стратегия: ${account.margin_trading.balancing_strategy}`);
+    console.log(`  Multiplier: ${account.margin_trading.multiplier}x`);
+    console.log(`  Threshold: ${account.margin_trading.free_threshold} ₽`);
+    console.log(`  Strategy: ${account.margin_trading.balancing_strategy}`);
   }
 }
 
 function validateConfig(): void {
   try {
     const config = configLoader.loadConfig();
-    console.log('✅ Конфигурация загружена успешно');
+    console.log('✅ Configuration loaded successfully');
     
-    // Дополнительная валидация
+    // Additional validation
     const accounts = config.accounts;
     const accountIds = new Set();
     const tokens = new Set();
@@ -64,11 +64,11 @@ function validateConfig(): void {
     
     for (const account of accounts) {
       if (accountIds.has(account.id)) {
-        console.log(`❌ Дублирующийся ID аккаунта: ${account.id}`);
+        console.log(`❌ Duplicate account ID: ${account.id}`);
       }
       accountIds.add(account.id);
       
-      // Проверяем токены
+      // Check tokens
       const rawToken = account.t_invest_token;
       const isFromEnv = configLoader.isTokenFromEnv(account.id);
       const resolvedToken = configLoader.getAccountToken(account.id);
@@ -76,25 +76,25 @@ function validateConfig(): void {
       if (isFromEnv) {
         envTokensCount++;
         if (!resolvedToken) {
-          console.log(`⚠️  Переменная окружения не найдена для ${account.id}: ${rawToken}`);
+          console.log(`⚠️  Environment variable not found for ${account.id}: ${rawToken}`);
         }
       } else {
         directTokensCount++;
         if (tokens.has(resolvedToken || rawToken)) {
-          console.log(`❌ Дублирующийся токен: ${resolvedToken || rawToken}`);
+          console.log(`❌ Duplicate token: ${resolvedToken || rawToken}`);
         }
         tokens.add(resolvedToken || rawToken);
       }
     }
     
-    console.log(`\n📋 Статистика:`);
-    console.log(`  Всего аккаунтов: ${accounts.length}`);
-    console.log(`  Уникальных ID: ${accountIds.size}`);
-    console.log(`  Токены из переменных окружения: ${envTokensCount}`);
-    console.log(`  Прямо указанные токены: ${directTokensCount}`);
+    console.log(`\n📋 Statistics:`);
+    console.log(`  Total accounts: ${accounts.length}`);
+    console.log(`  Unique IDs: ${accountIds.size}`);
+    console.log(`  Tokens from environment variables: ${envTokensCount}`);
+    console.log(`  Directly specified tokens: ${directTokensCount}`);
     
   } catch (error) {
-    console.error(`❌ Ошибка валидации: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    console.error(`❌ Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     process.exit(1);
   }
 }
@@ -103,20 +103,20 @@ function listAccounts(): void {
   const accounts = configLoader.getAllAccounts();
   
   if (accounts.length === 0) {
-    console.log('❌ Аккаунты не найдены в конфигурации');
+    console.log('❌ No accounts found in configuration');
     return;
   }
   
-  console.log(`\n📋 Найдено аккаунтов: ${accounts.length}`);
+  console.log(`\n📋 Found accounts: ${accounts.length}`);
   
   accounts.forEach((account, index) => {
     const isFromEnv = configLoader.isTokenFromEnv(account.id);
-    const tokenStatus = isFromEnv ? '${ENV}' : 'прямо';
+    const tokenStatus = isFromEnv ? '${ENV}' : 'direct';
     
     console.log(`\n${index + 1}. ${account.name} (${account.id})`);
-    console.log(`   Токен: ${account.t_invest_token} [${tokenStatus}]`);
-    console.log(`   Счет: ${account.account_id}`);
-    console.log(`   Режим: ${account.desired_mode}`);
+    console.log(`   Token: ${account.t_invest_token} [${tokenStatus}]`);
+    console.log(`   Account: ${account.account_id}`);
+    console.log(`   Mode: ${account.desired_mode}`);
   });
 }
 
@@ -124,8 +124,8 @@ function showAccountDetails(accountId: string): void {
   const account = configLoader.getAccountById(accountId);
   
   if (!account) {
-    console.error(`❌ Аккаунт с ID '${accountId}' не найден`);
-    console.log('\nДоступные аккаунты:');
+    console.error(`❌ Account with ID '${accountId}' not found`);
+    console.log('\nAvailable accounts:');
     const accounts = configLoader.getAllAccounts();
     accounts.forEach(acc => console.log(`  - ${acc.id}: ${acc.name}`));
     process.exit(1);
@@ -135,8 +135,8 @@ function showAccountDetails(accountId: string): void {
 }
 
 function showEnvironmentSetup(): void {
-  console.log('\n🔧 Настройка переменных окружения:');
-  console.log('\nСоздайте файл .env со следующими переменными:');
+  console.log('\n🔧 Environment variables setup:');
+  console.log('\nCreate .env file with the following variables:');
   
   const accounts = configLoader.getAllAccounts();
   const envTokens = new Set<string>();
@@ -153,28 +153,28 @@ function showEnvironmentSetup(): void {
       console.log(`${token}=`);
     });
   } else {
-    console.log('(Нет токенов из переменных окружения)');
+    console.log('(No tokens from environment variables)');
   }
   
   console.log('\nOPENROUTER_API_KEY=your_api_key_here');
   console.log('OPENROUTER_MODEL=qwen/qwen3-235b-a22b-2507');
   
-  console.log('\n💡 Примеры токенов в CONFIG.json:');
-  console.log('  "t_invest_token": "${T_INVEST_TOKEN_1}"  # Из переменной окружения');
-  console.log('  "t_invest_token": "t.1234567890abcdef"   # Прямо указанный токен');
+  console.log('\n💡 Token examples in CONFIG.json:');
+  console.log('  "t_invest_token": "${T_INVEST_TOKEN_1}"  # From environment variable');
+  console.log('  "t_invest_token": "t.1234567890abcdef"   # Directly specified token');
 }
 
 function showTokenInfo(): void {
-  console.log('\n🔑 Информация о токенах:');
-  console.log('\nВ CONFIG.json можно указывать токены двумя способами:');
-  console.log('\n1️⃣ Из переменных окружения:');
+  console.log('\n🔑 Token information:');
+  console.log('\nIn CONFIG.json you can specify tokens in two ways:');
+  console.log('\n1️⃣ From environment variables:');
   console.log('   "t_invest_token": "${T_INVEST_TOKEN_1}"');
-  console.log('   → Будет искать значение в process.env.T_INVEST_TOKEN_1');
-  console.log('\n2️⃣ Прямо указанный токен:');
+  console.log('   → Will look for value in process.env.T_INVEST_TOKEN_1');
+  console.log('\n2️⃣ Directly specified token:');
   console.log('   "t_invest_token": "t.1234567890abcdef"');
-  console.log('   → Будет использован как есть');
+  console.log('   → Will be used as is');
   
-  console.log('\n📋 Текущие токены:');
+  console.log('\n📋 Current tokens:');
   const accounts = configLoader.getAllAccounts();
   accounts.forEach(account => {
     const isFromEnv = configLoader.isTokenFromEnv(account.id);
@@ -185,40 +185,40 @@ function showTokenInfo(): void {
     
     console.log(`  ${account.id}: ${account.t_invest_token} ${status}`);
     if (isFromEnv && !resolvedToken) {
-      console.log(`    ⚠️  Переменная окружения не найдена`);
+      console.log(`    ⚠️  Environment variable not found`);
     }
   });
 }
 
 function printHelp(): void {
   console.log(`
-🔧 Менеджер конфигурации Tinkoff Invest ETF Balancer Bot
+🔧 Tinkoff Invest ETF Balancer Bot Configuration Manager
 
-Использование:
-  npm run config [команда] [аргументы]
+Usage:
+  npm run config [command] [arguments]
 
-Команды:
-  list                    - Показать список всех аккаунтов
-  show <account_id>       - Показать детали конкретного аккаунта
-  validate               - Валидировать конфигурацию
-  env                    - Показать настройку переменных окружения
-  tokens                 - Показать информацию о токенах
-  help                   - Показать эту справку
+Commands:
+  list                    - Show list of all accounts
+  show <account_id>       - Show details of specific account
+  validate               - Validate configuration
+  env                    - Show environment variables setup
+  tokens                 - Show token information
+  help                   - Show this help
 
-Примеры:
+Examples:
   npm run config list
   npm run config show account_1
   npm run config validate
   npm run config env
   npm run config tokens
 
-Файлы конфигурации:
-  CONFIG.json            - Основная конфигурация аккаунтов
-  .env                   - Переменные окружения с токенами
+Configuration files:
+  CONFIG.json            - Main account configuration
+  .env                   - Environment variables with tokens
 
-Форматы токенов:
-  "${VARIABLE_NAME}"     - Из переменной окружения
-  "t.1234567890abcdef"   - Прямо указанный токен
+Token formats:
+  "${VARIABLE_NAME}"     - From environment variable
+  "t.1234567890abcdef"   - Directly specified token
   `);
 }
 
@@ -235,7 +235,7 @@ function main(): void {
       case 'show':
         const accountId = args[1];
         if (!accountId) {
-          console.error('❌ Укажите ID аккаунта: npm run config show <account_id>');
+          console.error('❌ Specify account ID: npm run config show <account_id>');
           process.exit(1);
         }
         showAccountDetails(accountId);
@@ -259,12 +259,12 @@ function main(): void {
         break;
     }
   } catch (error) {
-    console.error(`❌ Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    console.error(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     process.exit(1);
   }
 }
 
-// Запуск только если файл вызван напрямую
+// Run only if file is called directly
 if (require.main === module) {
   main();
 }

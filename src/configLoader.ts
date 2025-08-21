@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { ProjectConfig, AccountConfig, GlobalSettings } from './types.d';
+import { ProjectConfig, AccountConfig } from './types.d';
 
-export class ConfigLoader {
+class ConfigLoader {
   private static instance: ConfigLoader;
   private config: ProjectConfig | null = null;
 
@@ -25,12 +25,12 @@ export class ConfigLoader {
       const configData = readFileSync(configPath, 'utf8');
       this.config = JSON.parse(configData);
       
-      // Валидация конфигурации
+      // Configuration validation
       this.validateConfig(this.config);
       
       return this.config;
     } catch (error) {
-      throw new Error(`Ошибка загрузки конфигурации: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      throw new Error(`Configuration loading error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -55,13 +55,13 @@ export class ConfigLoader {
     
     const tokenValue = account.t_invest_token;
     
-    // Если токен в формате ${VARIABLE_NAME}, извлекаем из переменных окружения
+    // If token is in ${VARIABLE_NAME} format, extract from environment variables
     if (tokenValue.startsWith('${') && tokenValue.endsWith('}')) {
       const envVarName = tokenValue.slice(2, -1);
       return process.env[envVarName];
     }
     
-    // Иначе возвращаем токен как есть (прямо указанный)
+    // Otherwise return token as is (directly specified)
     return tokenValue;
   }
 
@@ -85,7 +85,7 @@ export class ConfigLoader {
 
   private validateConfig(config: ProjectConfig): void {
     if (!config.accounts || !Array.isArray(config.accounts)) {
-      throw new Error('Конфигурация должна содержать массив accounts');
+      throw new Error('Configuration must contain accounts array');
     }
 
     for (const account of config.accounts) {
@@ -98,22 +98,22 @@ export class ConfigLoader {
     
     for (const field of requiredFields) {
       if (!(field in account)) {
-        throw new Error(`Аккаунт ${account.id || 'unknown'} должен содержать поле ${field}`);
+        throw new Error(`Account ${account.id || 'unknown'} must contain field ${field}`);
       }
     }
 
     if (!account.desired_wallet || Object.keys(account.desired_wallet).length === 0) {
-      throw new Error(`Аккаунт ${account.id} должен содержать непустой desired_wallet`);
+      throw new Error(`Account ${account.id} must contain non-empty desired_wallet`);
     }
 
-    // Проверка, что сумма весов равна 100 (или близко к 100)
+    // Check that sum of weights equals 100 (or close to 100)
     const totalWeight = Object.values(account.desired_wallet).reduce((sum, weight) => sum + weight, 0);
     if (Math.abs(totalWeight - 100) > 1) {
-      console.warn(`Предупреждение: сумма весов для аккаунта ${account.id} равна ${totalWeight}%, а не 100%`);
+      console.warn(`Warning: sum of weights for account ${account.id} equals ${totalWeight}%, not 100%`);
     }
   }
 
 }
 
-// Экспорт синглтона для удобства
+// Export singleton for convenience
 export const configLoader = ConfigLoader.getInstance();

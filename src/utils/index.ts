@@ -6,7 +6,7 @@ const debugUtils = debug('bot').extend('utils');
 
 export const sleep = (ms: any) => new Promise(resolve => setTimeout(resolve, ms));
 
-// TODO: Сделать запись не в корень проекта https://stackoverflow.com/questions/16316330/how-to-write-file-if-parent-folder-doesnt-exist
+// TODO: Make write not to project root https://stackoverflow.com/questions/16316330/how-to-write-file-if-parent-folder-doesnt-exist
 export const writeFile = (obj: object, filename: string) => {
   console.log(filename, JSON.stringify(obj, null, 2));
   const objStringify = JSON.stringify(obj, null, 2);
@@ -31,20 +31,20 @@ export const writeToFile = (obj: object, filename: string) => {
   }
 };
 
-// Алиасы тикеров для унификации сопоставления (смены тикеров на бирже)
+// Ticker aliases for unified mapping (ticker changes on exchange)
 const TICKER_ALIASES: Record<string, string> = {
-  // TRAY (стар.) → TPAY (нов.)
+  // TRAY (old) → TPAY (new)
   TRAY: 'TPAY',
-  // Некоторые инструменты в API могут иметь суффикс '@' (например, TGLD@)
-  // Нормализуем такие тикеры к базовой форме без '@'
+  // Some instruments in API may have '@' suffix (e.g., TGLD@)
+  // Normalize such tickers to base form without '@'
 };
 
 export const normalizeTicker = (ticker: string | undefined): string | undefined => {
   if (!ticker) return ticker;
   let t = ticker.trim();
-  // Уберём суффикс '@' если присутствует (пример: 'TGLD@' → 'TGLD')
+  // Remove '@' suffix if present (example: 'TGLD@' → 'TGLD')
   if (t.endsWith('@')) t = t.slice(0, -1);
-  // Применим явные алиасы
+  // Apply explicit aliases
   return TICKER_ALIASES[t] || t;
 };
 
@@ -96,10 +96,10 @@ export const listAccounts = async (usersClient: any) => {
       status: acc.status,
     }));
   } catch (err) {
-    debugUtils('Ошибка при получении списка счетов', err);
+    debugUtils('Error getting accounts list', err);
     return [];
   }
 };
 
-// Экспортируем MarginCalculator
+// Export MarginCalculator
 export { MarginCalculator } from './marginCalculator';

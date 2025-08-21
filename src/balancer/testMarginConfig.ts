@@ -1,6 +1,6 @@
 import { identifyMarginPositions, applyMarginStrategy, calculateOptimalSizes } from './index';
 
-// Тестовые данные
+// Test data
 const testWallet = [
   {
     base: 'TPAY',
@@ -25,56 +25,56 @@ const testDesiredWallet = {
   TRUR: 45
 };
 
-console.log('=== Тест конфигурации маржинальной торговли ===\n');
+console.log('=== Test margin trading configuration ===\n');
 
-// Тест 1: Проверяем, что функции экспортируются корректно
-console.log('1. Проверка экспорта функций:');
+// Test 1: Check that functions are exported correctly
+console.log('1. Check function exports:');
 console.log(`   identifyMarginPositions: ${typeof identifyMarginPositions === 'function' ? '✅' : '❌'}`);
 console.log(`   applyMarginStrategy: ${typeof applyMarginStrategy === 'function' ? '✅' : '❌'}`);
 console.log(`   calculateOptimalSizes: ${typeof calculateOptimalSizes === 'function' ? '✅' : '❌'}\n`);
 
-// Тест 2: Тестируем функцию identifyMarginPositions
-console.log('2. Тест функции identifyMarginPositions:');
+// Test 2: Test identifyMarginPositions function
+console.log('2. Test identifyMarginPositions function:');
 try {
   const marginPositions = identifyMarginPositions(testWallet);
-  console.log(`   Результат: найдено ${marginPositions.length} маржинальных позиций`);
+  console.log(`   Result: found ${marginPositions.length} margin positions`);
   if (marginPositions.length > 0) {
-    console.log('   Детализация:');
+    console.log('   Details:');
     marginPositions.forEach(pos => {
-      console.log(`     ${pos.base}: маржинальная стоимость ${pos.marginValue?.toFixed(2)} руб`);
+      console.log(`     ${pos.base}: margin value ${pos.marginValue?.toFixed(2)} RUB`);
     });
   }
 } catch (error) {
-  console.log(`   ❌ Ошибка: ${error}`);
+  console.log(`   ❌ Error: ${error}`);
 }
 console.log();
 
-// Тест 3: Тестируем функцию applyMarginStrategy
-console.log('3. Тест функции applyMarginStrategy:');
+// Test 3: Test applyMarginStrategy function
+console.log('3. Test applyMarginStrategy function:');
 try {
   const marginStrategy = applyMarginStrategy(testWallet);
-  console.log(`   Убирать маржу: ${marginStrategy.shouldRemoveMargin ? 'Да' : 'Нет'}`);
-  console.log(`   Причина: ${marginStrategy.reason}`);
-  console.log(`   Стоимость переноса: ${marginStrategy.transferCost} руб`);
-  console.log(`   Маржинальных позиций: ${marginStrategy.marginPositions.length}`);
+  console.log(`   Remove margin: ${marginStrategy.shouldRemoveMargin ? 'Yes' : 'No'}`);
+  console.log(`   Reason: ${marginStrategy.reason}`);
+  console.log(`   Transfer cost: ${marginStrategy.transferCost} RUB`);
+  console.log(`   Margin positions: ${marginStrategy.marginPositions.length}`);
 } catch (error) {
-  console.log(`   ❌ Ошибка: ${error}`);
+  console.log(`   ❌ Error: ${error}`);
 }
 console.log();
 
-// Тест 4: Тестируем функцию calculateOptimalSizes
-console.log('4. Тест функции calculateOptimalSizes:');
+// Test 4: Test calculateOptimalSizes function
+console.log('4. Test calculateOptimalSizes function:');
 try {
   const optimalSizes = calculateOptimalSizes(testWallet, testDesiredWallet);
-  console.log('   Результат:');
+  console.log('   Result:');
   for (const [ticker, sizes] of Object.entries(optimalSizes)) {
     console.log(`   ${ticker}:`);
-    console.log(`     Базовый размер: ${sizes.baseSize.toFixed(2)} руб`);
-    console.log(`     Маржинальный размер: ${sizes.marginSize.toFixed(2)} руб`);
-    console.log(`     Общий размер: ${sizes.totalSize.toFixed(2)} руб`);
+    console.log(`     Base size: ${sizes.baseSize.toFixed(2)} RUB`);
+    console.log(`     Margin size: ${sizes.marginSize.toFixed(2)} RUB`);
+    console.log(`     Total size: ${sizes.totalSize.toFixed(2)} RUB`);
   }
 } catch (error) {
-  console.log(`   ❌ Ошибка: ${error}`);
+  console.log(`   ❌ Error: ${error}`);
 }
 
-console.log('\n=== Тест завершен ===');
+console.log('\n=== Test completed ===');

@@ -48,7 +48,7 @@ const main = async () => {
 
   // // 1. Axios get https://www.tinkoff.ru/api/invest-gw/capital/funds/v1/portfolio/structure?ticker=TRUR
 
-  // // 2. Посчитать сумму стоимости всех инструментов в портфеле.
+  // // 2. Calculate sum of all instrument costs in portfolio.
   const etf_instruments = data.payload.instruments;
   // // debug(instruments);
 

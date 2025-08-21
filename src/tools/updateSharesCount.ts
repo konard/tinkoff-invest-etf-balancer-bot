@@ -23,9 +23,9 @@ async function listNewsMdFiles(symbol: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(dir);
     return entries
-      .filter((f) => f.endsWith('.md'))
-      .map((f) => path.join(dir, f))
-      .sort((a, b) => {
+      .filter((f: string) => f.endsWith('.md'))
+      .map((f: string) => path.join(dir, f))
+      .sort((a: string, b: string) => {
         const ida = parseInt(path.basename(a, '.md'), 10) || 0;
         const idb = parseInt(path.basename(b, '.md'), 10) || 0;
         return idb - ida; // newest first by id
@@ -37,19 +37,19 @@ async function listNewsMdFiles(symbol: string): Promise<string[]> {
 
 function parseRussianNumberWithUnits(text: string): number | null {
   // Only parse lines that explicitly mention total shares
-  // Support both "паев" and "паёв"
-  const guard = /(всего па[её]в|общее количество па[её]в)/i;
+  // Support both "shares" and "units"
+  const guard = /(total shares|total units|general quantity of shares)/i;
   if (!guard.test(text)) return null;
-  // Examples: "Всего паев 1799,1 млн шт.", "Общее количество паев — 1799,1 млн шт."
-  const re = /(всего па[её]в|общее количество па[её]в)[^\d]{0,20}(\d[\d\s]*[\,\.]?\d*)\s*(млн|тыс)?/i;
+  // Examples: "Total shares 1799.1 million units", "General quantity of shares — 1799.1 million units"
+  const re = /(total shares|total units|general quantity of shares)[^\d]{0,20}(\d[\d\s]*[\,\.]?\d*)\s*(million|thousand)?/i;
   const m = text.match(re);
   if (!m) return null;
   const numRaw = (m[2] || '').replace(/\s+/g, '').replace(',', '.');
   const unit = (m[3] || '').toLowerCase();
   const base = parseFloat(numRaw);
   if (!isFinite(base)) return null;
-  if (unit.includes('млн')) return Math.round(base * 1_000_000);
-  if (unit.includes('тыс')) return Math.round(base * 1_000);
+  if (unit.includes('million')) return Math.round(base * 1_000_000);
+  if (unit.includes('thousand')) return Math.round(base * 1_000);
   return Math.round(base);
 }
 
@@ -58,22 +58,22 @@ async function extractLatestSharesCountFromFile(filePath: string): Promise<numbe
   // Quick prefilter by title/keywords
   const lower = content.toLowerCase();
   // Extract title from markdown: first line starting with '# '
-  const firstTitleLine = content.split(/\r?\n/).find((l) => l.trim().startsWith('# ')) || '';
+  const firstTitleLine = content.split(/\r?\n/).find((l: string) => l.trim().startsWith('# ')) || '';
   const titleLower = firstTitleLine.toLowerCase();
   const hasSharesKeywords = [
-    'количество паев',
-    'количества паев',
-    'количество паёв',
-    'количества паёв',
+    'shares count',
+    'quantity of shares',
+    'number of shares',
+    'total shares',
   ].some((kw) => lower.includes(kw));
-  const hasGuardPhrases = /(всего па[её]в|общее количество па[её]в)/i.test(lower);
-  const isMoneyInflowTitle = titleLower.includes('в фонд поступили новые деньги');
+  const hasGuardPhrases = /(total shares|total units|general quantity of shares)/i.test(lower);
+  const isMoneyInflowTitle = titleLower.includes('new money received in fund');
   const prefilterMatches = hasSharesKeywords || hasGuardPhrases || isMoneyInflowTitle;
   if (!prefilterMatches) {
     // Might still contain the field, but to be efficient we only consider targeted news
     return null;
   }
-  // Try to extract the "Всего паев"/"Общее количество паев" number from the body
+  // Try to extract the "Total shares"/"General quantity of shares" number from the body
   const lines = content.split(/\r?\n/);
   for (const line of lines) {
     const value = parseRussianNumberWithUnits(line);
@@ -100,7 +100,7 @@ async function updateSymbol(symbol: string): Promise<{ symbol: string; value: nu
       return { symbol, value };
     }
   }
-  console.log(`${LOG_PREFIX} no matching "Количество паев" news found for ${symbol}`);
+  console.log(`${LOG_PREFIX} no matching "Shares count" news found for ${symbol}`);
   return { symbol, value: null };
 }
 

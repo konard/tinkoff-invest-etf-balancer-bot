@@ -1,7 +1,7 @@
 import { MarginConfig, MarginBalancingStrategy } from '../types.d';
 import { MarginCalculator } from '../utils/marginCalculator';
 
-// Тестовые данные
+// Test data
 const testWallet = [
   {
     base: 'TPAY',
@@ -26,22 +26,22 @@ const testDesiredWallet = {
   TRUR: 45
 };
 
-console.log('=== Тест с выключенной маржинальной торговлей ===\n');
+console.log('=== Test with disabled margin trading ===\n');
 
-// Тест 1: Создаем калькулятор маржи без стратегии (имитируем выключенную маржинальную торговлю)
-console.log('1. Тест калькулятора маржи без стратегии:');
+// Test 1: Create margin calculator without strategy (simulate disabled margin trading)
+console.log('1. Test margin calculator without strategy:');
 const marginConfig: MarginConfig = {
   multiplier: 4,
   freeThreshold: 5000
-  // strategy не передаем - имитируем выключенную маржинальную торговлю
+  // strategy not passed - simulate disabled margin trading
 };
 
 const marginCalculator = new MarginCalculator(marginConfig);
-console.log(`   Конфигурация: multiplier=${marginConfig.multiplier}, freeThreshold=${marginConfig.freeThreshold}`);
-console.log(`   Стратегия: ${marginConfig.strategy || 'не определена'}\n`);
+console.log(`   Configuration: multiplier=${marginConfig.multiplier}, freeThreshold=${marginConfig.freeThreshold}`);
+console.log(`   Strategy: ${marginConfig.strategy || 'not defined'}\n`);
 
-// Тест 2: Применение стратегии маржи без стратегии
-console.log('2. Применение стратегии маржи без стратегии:');
+// Test 2: Apply margin strategy without strategy
+console.log('2. Apply margin strategy without strategy:');
 const marginPositions = [
   {
     base: 'TPAY',
@@ -55,33 +55,33 @@ const marginPositions = [
 ];
 
 const strategy = marginCalculator.applyMarginStrategy(marginPositions);
-console.log(`   Убирать маржу: ${strategy.shouldRemoveMargin ? 'Да' : 'Нет'}`);
-console.log(`   Причина: ${strategy.reason}`);
-console.log(`   Стоимость переноса: ${strategy.transferCost} руб`);
-console.log(`   Ожидается: стратегия по умолчанию 'keep' (оставлять маржу)\n`);
+console.log(`   Remove margin: ${strategy.shouldRemoveMargin ? 'Yes' : 'No'}`);
+console.log(`   Reason: ${strategy.reason}`);
+console.log(`   Transfer cost: ${strategy.transferCost} RUB`);
+console.log(`   Expected: default strategy 'keep' (keep margin)\n`);
 
-// Тест 3: Расчет оптимальных размеров без маржи
-console.log('3. Расчет оптимальных размеров позиций (без маржи):');
+// Test 3: Calculate optimal sizes without margin
+console.log('3. Calculate optimal position sizes (without margin):');
 const totalPortfolioValue = testWallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
-console.log(`   Общая стоимость портфеля: ${totalPortfolioValue.toFixed(2)} руб`);
+console.log(`   Total portfolio value: ${totalPortfolioValue.toFixed(2)} RUB`);
 
 const result: Record<string, { baseSize: number; marginSize: number; totalSize: number }> = {};
 for (const [ticker, percentage] of Object.entries(testDesiredWallet)) {
   const targetValue = (totalPortfolioValue * percentage) / 100;
   result[ticker] = {
     baseSize: targetValue,
-    marginSize: 0, // Без маржи
+    marginSize: 0, // Without margin
     totalSize: targetValue
   };
 }
 
-console.log('   Результат:');
+console.log('   Result:');
 for (const [ticker, sizes] of Object.entries(result)) {
   console.log(`   ${ticker}:`);
-  console.log(`     Базовый размер: ${sizes.baseSize.toFixed(2)} руб`);
-  console.log(`     Маржинальный размер: ${sizes.marginSize.toFixed(2)} руб`);
-  console.log(`     Общий размер: ${sizes.totalSize.toFixed(2)} руб`);
-  console.log(`     Ожидается: marginSize = 0 (маржинальная торговля выключена)`);
+  console.log(`     Base size: ${sizes.baseSize.toFixed(2)} RUB`);
+  console.log(`     Margin size: ${sizes.marginSize.toFixed(2)} RUB`);
+  console.log(`     Total size: ${sizes.totalSize.toFixed(2)} RUB`);
+  console.log(`     Expected: marginSize = 0 (margin trading disabled)`);
 }
 
-console.log('\n=== Тест завершен ===');
+console.log('\n=== Test completed ===');
