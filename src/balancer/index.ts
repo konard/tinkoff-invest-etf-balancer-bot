@@ -141,7 +141,7 @@ export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWall
 
 
 export const normalizeDesire = (desiredWallet: DesiredWallet): DesiredWallet => {
-  debug('Нормализуем проценты, чтобы общая сумма была равна 100%, чтобы исключить человеческий фактор');
+  debug('Normalizing percentages to make total sum equal 100%, to exclude human factor');
   debug('desiredWallet', desiredWallet);
 
   const desiredSum: number = Number(sumValues(desiredWallet));
@@ -198,12 +198,12 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   // Applies margin position management strategy
   const marginStrategy = applyMarginStrategy(wallet);
-  debug('Стратегия маржи:', marginStrategy);
+  debug('Margin strategy:', marginStrategy);
 
   if (marginStrategy.shouldRemoveMargin) {
-    debug(`Применяем стратегию: ${marginStrategy.reason}`);
-    debug(`Стоимость переноса: ${marginStrategy.transferCost.toFixed(2)} руб`);
-    
+    debug(`Applying strategy: ${marginStrategy.reason}`);
+    debug(`Transfer cost: ${marginStrategy.transferCost.toFixed(2)} RUB`);
+
     // Here you can add logic for closing margin positions
     // or transferring them to the next day
   }
@@ -218,12 +218,12 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   }, {} as Record<string, number>);
   const desiredMap = desiredAliased; // Remove repeated normalization
 
-  debug('Добавляем в DesireWallet недостающие инструменты в портфеле со значением 0');
+  debug('Adding missing instruments from portfolio to DesireWallet with value 0');
   for (const position of wallet) {
     if (position.base) {
       const baseNormalized = normalizeTicker(position.base) || position.base;
       if (desiredMap[baseNormalized] === undefined) {
-        debug(`${position.base} не найден в желаемом портфеле, добавляем со значением 0.`);
+        debug(`${position.base} not found in desired portfolio, adding with value 0.`);
         desiredMap[baseNormalized] = 0;
       }
     }
@@ -232,12 +232,12 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
     const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
     const desiredPercentNumber = Number(desiredPercent);
-    debug(' Ищем base (ticker) в wallet');
+    debug(' Looking for base (ticker) in wallet');
     const positionIndex = _.findIndex(wallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
 
     if (positionIndex === -1) {
-      debug('В портфеле нету тикера из DesireWallet. Создаем.');
+      debug('Ticker from DesireWallet not found in portfolio. Creating.');
 
       const findedInstumentByTicker = _.find((global as any).INSTRUMENTS, (i: any) => tickersEqual(i.ticker, desiredTicker));
       debug(findedInstumentByTicker);
@@ -249,13 +249,13 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
       debug(lotSize);
 
       if (!findedInstumentByTicker || !figi || !lotSize) {
-        debug(`Инструмент для тикера ${desiredTicker} не найден в INSTRUMENTS. Пропускаем добавление.`);
+        debug(`Instrument for ticker ${desiredTicker} not found in INSTRUMENTS. Skipping addition.`);
         continue;
       }
 
       const lastPrice = await getLastPrice(figi); // sleep is inside
       if (!lastPrice) {
-        debug(`Не удалось получить lastPrice для ${desiredTicker}/${figi}. Пропускаем добавление.`);
+        debug(`Could not get lastPrice for ${desiredTicker}/${figi}. Skipping addition.`);
         continue;
       }
 
@@ -275,7 +275,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     }
   }
 
-  debug('Рассчитываем totalPrice');
+  debug('Calculating totalPrice');
   const walletWithTotalPrice = _.map(wallet, (position: Position): Position => {
     debug('walletWithtotalPrice: map start: position', position);
 
@@ -306,19 +306,19 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   const sortedWallet = _.orderBy(walletWithNumbers, ['lotPriceNumber'], ['desc']);
   debug('sortedWallet', sortedWallet);
 
-  debug('Суммируем все позиции в портефле');
+  debug('Summing up all positions in portfolio');
   const walletSumNumber = _.sumBy(sortedWallet, 'totalPriceNumber');
   debug(sortedWallet);
   debug('walletSumNumber', walletSumNumber);
 
   // Calculate optimal position sizes considering multiplier
   const optimalSizes = calculateOptimalSizes(sortedWallet, desiredMap);
-  debug('Оптимальные размеры позиций:', optimalSizes);
+  debug('Optimal position sizes:', optimalSizes);
 
   for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
     const desiredTicker = normalizeTicker(desiredTickerRaw) || desiredTickerRaw;
     const desiredPercentNumber = Number(desiredPercent);
-    debug(' Ищем base (ticker) в wallet');
+    debug(' Looking for base (ticker) in wallet');
     const positionIndex = _.findIndex(sortedWallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
 
@@ -342,14 +342,14 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     // }
 
     if (positionIndex === -1) {
-      debug(`Тикер ${desiredTicker} отсутствует в wallet после подготовки. Пропускаем расчет по нему.`);
+      debug(`Ticker ${desiredTicker} is missing from wallet after preparation. Skipping calculation for it.`);
       continue;
     }
 
     const position: Position = sortedWallet[positionIndex];
     debug('position', position);
 
-    debug('Рассчитываем сколько в рублях будет ожидаемая доля с учетом множителя');
+    debug('Calculating how many rubles the desired share will be with multiplier');
     debug('walletSumNumber', walletSumNumber);
     debug('desiredPercent', desiredPercentNumber);
     
@@ -357,21 +357,21 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     const optimalSize = optimalSizes[desiredTicker];
     const desiredAmountNumber = optimalSize ? optimalSize.totalSize : (walletSumNumber / 100 * desiredPercentNumber);
     
-    debug('desiredAmountNumber (с учетом множителя)', desiredAmountNumber);
+    debug('desiredAmountNumber (considering multiplier)', desiredAmountNumber);
     position.desiredAmountNumber = desiredAmountNumber;
 
-    debug('Высчитываем сколько лотов можно купить до желаемого таргета');
+    debug('Calculating how many lots can be bought before desired target');
     if (position.lotPriceNumber) {
       const canBuyBeforeTargetLots = Math.trunc(desiredAmountNumber / position.lotPriceNumber);
       debug('canBuyBeforeTargetLots', canBuyBeforeTargetLots);
       position.canBuyBeforeTargetLots = canBuyBeforeTargetLots;
 
-      debug('Высчитываем стоимость позиции, которую можно купить до желаемого таргета');
+      debug('Calculating cost of position that can be bought before desired target');
       const canBuyBeforeTargetNumber = canBuyBeforeTargetLots * position.lotPriceNumber;
       debug('canBuyBeforeTargetNumber', canBuyBeforeTargetNumber);
       position.canBuyBeforeTargetNumber = canBuyBeforeTargetNumber;
 
-      debug('Высчитываем разницу между желаемым значением и значением до таргета. Нераспеределенный остаток.');
+      debug('Calculating difference between desired value and value before target. Unallocated remainder.');
       const beforeDiffNumber = Math.abs(desiredAmountNumber - canBuyBeforeTargetNumber);
       debug('beforeDiffNumber', beforeDiffNumber);
       position.beforeDiffNumber = beforeDiffNumber;
@@ -379,23 +379,23 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
       debug('Summing up remainders'); // TODO: need to determine currency and write remainder in that currency
       walletInfo.remains += beforeDiffNumber; // Only in rubles for now
 
-      debug('Сколько нужно купить (может быть отрицательным, тогда нужно продать)');
+      debug('How much to buy (can be negative, then need to sell)');
       if (position.totalPriceNumber) {
         const toBuyNumber = canBuyBeforeTargetNumber - position.totalPriceNumber;
         debug('toBuyNumber', toBuyNumber);
         position.toBuyNumber = toBuyNumber;
       }
 
-      debug('Сколько нужно купить лотов (может быть отрицательным, тогда нужно продать)');
+      debug('How many lots to buy (can be negative, then need to sell)');
       if (position.amount && position.lotSize) {
         const toBuyLots = canBuyBeforeTargetLots - (position.amount / position.lotSize);
         debug('toBuyLots', toBuyLots);
         position.toBuyLots = toBuyLots;
 
-        // Гарантируем минимум 1 лот для каждой позиции с положительной целевой долей
+        // Guarantee minimum 1 lot for each position with positive target share
         const currentLots = position.amount / position.lotSize;
         if (desiredPercentNumber > 0 && currentLots < 1 && position.toBuyLots < 1) {
-          debug('Минимум 1 лот по стратегии: увеличиваем toBuyLots до 1', position.base);
+          debug('Minimum 1 lot by strategy: increasing toBuyLots to 1', position.base);
           position.toBuyLots = 1;
           if (position.lotPriceNumber && position.totalPriceNumber) {
             const recalculatedToBuyNumber = position.toBuyLots * position.lotPriceNumber - position.totalPriceNumber;
@@ -408,9 +408,9 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   debug('sortedWallet', sortedWallet);
 
-  // Порядок исполнения:
-  // 1) Сначала продажи (получаем рубли)
-  // 2) Затем покупки, отсортированные по стоимости лота по убыванию (дорогие сначала)
+  // Execution order:
+  // 1) First sales (get rubles)
+  // 2) Then purchases, sorted by lot cost in descending order (expensive first)
   const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
   const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
   const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
@@ -420,7 +420,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   debug('walletInfo', walletInfo);
 
-  debug('Для всех позиций создаем необходимые ордера');
+  debug('Creating necessary orders for all positions');
   await generateOrders(ordersPlanned);
   
   // Подсчёт итоговых процентных долей бумаг после выставления ордеров (по плану ордеров)

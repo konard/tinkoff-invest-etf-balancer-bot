@@ -80,35 +80,35 @@ export const generateOrder = async (position: Position) => {
   debugProvider('position', position);
 
   if (position.base === 'RUB') {
-    debugProvider('Если позиция это рубль, то ничего не делаем');
+    debugProvider('If position is RUB, do nothing');
     return false;
   }
 
-  debugProvider('Позиция не валюта');
+  debugProvider('Position is not currency');
 
   debugProvider('position.toBuyLots', position.toBuyLots);
 
   if (!position.toBuyLots || !isFinite(position.toBuyLots)) {
-    debugProvider('toBuyLots is NaN/Infinity/undefined. Пропускаем позицию.');
+    debugProvider('toBuyLots is NaN/Infinity/undefined. Skipping position.');
     return 0;
   }
 
   if ((-1 < position.toBuyLots) && (position.toBuyLots < 1)) {
-    debugProvider('Выставление ордера меньше 1 лота. Не имеет смысла выполнять.');
+    debugProvider('Order less than 1 lot. Not worth executing.');
     return 0;
   }
 
-  debugProvider('Позиция больше или равно 1 лоту');
+  debugProvider('Position is greater than or equal to 1 lot');
 
   const direction = position.toBuyLots >= 1 ? OrderDirection.ORDER_DIRECTION_BUY : OrderDirection.ORDER_DIRECTION_SELL;
   debugProvider('direction', direction);
 
   // for (const i of _.range(position.toBuyLots)) {
-  //   // Идея создавать однолотовые ордера, для того, чтобы они всегда исполнялись полностью, а не частично.
-  //   // Могут быть сложности с:
-  //   // - кол-вом разрешенных запросов к api, тогда придется реализовывать очередь.
-  //   // - минимальный ордер может быть больше одного лота
-  //   debugProvider(`Создаем однолотовый ордер #${i} of ${_.range(position.toBuyLots).length}`);
+  //   // Idea to create single-lot orders to ensure they always execute completely, not partially.
+  //   // May have complications with:
+  //   // - number of allowed API requests, then need to implement queue.
+  //   // - minimum order may be more than one lot
+  //   debugProvider(`Creating single-lot order #${i} of ${_.range(position.toBuyLots).length}`);
   //   const order = {
   //     accountId: ACCOUNT_ID,
   //     figi: position.figi,
@@ -118,51 +118,51 @@ export const generateOrder = async (position: Position) => {
   //     orderType: OrderType.ORDER_TYPE_MARKET,
   //     orderId: uniqid(),
   //   };
-  //   debugProvider('Отправляем ордер', order);
+  //   debugProvider('Sending order', order);
 
   //   try {
   //     const setOrder = await orders.postOrder(order);
-  //     debugProvider('Успешно поставили ордер', setOrder);
+  //     debugProvider('Successfully placed order', setOrder);
   //   } catch (err) {
-  //     debugProvider('Ошибка при выставлении ордера');
+  //     debugProvider('Error placing order');
   //     debugProvider(err);
   //     console.trace(err);
   //   }
   //   await sleep(1000);
   // }
 
-  // Или можно создавать обычные ордера
+  // Or we can create regular orders
   debugProvider('position', position);
 
-  debugProvider('Создаем рыночный ордер');
+  debugProvider('Creating market order');
   const quantityLots = Math.floor(Math.abs(position.toBuyLots || 0));
 
   if (quantityLots < 1) {
-    debugProvider('Количество лотов после округления < 1. Пропускаем ордер.');
+    debugProvider('Number of lots after rounding < 1. Skipping order.');
     return 0;
   }
 
   if (!position.figi) {
-    debugProvider('У позиции отсутствует figi. Пропускаем ордер.');
+    debugProvider('Position missing figi. Skipping order.');
     return 0;
   }
 
   const order = {
     accountId: ACCOUNT_ID,
     figi: position.figi,
-    quantity: quantityLots, // Кол-во лотов должно быть целым
+    quantity: quantityLots, // Number of lots must be integer
     // price: { units: 40, nano: 0 },
     direction,
     orderType: OrderType.ORDER_TYPE_MARKET,
     orderId: uniqid(),
   };
-  debugProvider('Отправляем рыночный ордер', order);
+  debugProvider('Sending market order', order);
 
   try {
     const setOrder = await orders.postOrder(order);
-    debugProvider('Успешно поставили ордер', setOrder);
+    debugProvider('Successfully placed order', setOrder);
   } catch (err) {
-    debugProvider('Ошибка при выставлении ордера');
+    debugProvider('Error placing order');
     debugProvider(err);
     // console.trace(err);
   }
@@ -176,53 +176,53 @@ export const getAccountId = async (type: any) => {
     ? Number(type.split(':')[1])
     : (typeof type === 'string' && /^\d+$/.test(type) ? Number(type) : null);
 
-  // Если пришла конкретная строка id, возвращаем как есть
+  // If specific string id was passed, return as is
   if (indexMatch === null && type !== 'ISS' && type !== 'BROKER') {
-    debugProvider('Передан ACCOUNT_ID (как строка id)', type);
+    debugProvider('Passed ACCOUNT_ID (as string id)', type);
     return type;
   }
 
-  debugProvider('Получаем список аккаунтов');
+  debugProvider('Getting accounts list');
   let accountsResponse: any;
   try {
     accountsResponse = await users.getAccounts({});
   } catch (err) {
-    debugProvider('Ошибка получения списка аккаунтов');
+    debugProvider('Error getting accounts list');
     debugProvider(err);
   }
   debugProvider('accountsResponse', accountsResponse);
 
-  // Поддержка разных форматов ответа: { accounts: [...] } или сразу массив
+  // Support different response formats: { accounts: [...] } or direct array
   const accounts: any[] = Array.isArray(accountsResponse)
     ? accountsResponse
     : (accountsResponse?.accounts || []);
 
-  // Выбор по индексу
+  // Selection by index
   if (indexMatch !== null) {
     const byIndex = accounts[indexMatch];
     const byIndexId = byIndex?.id || byIndex?.accountId || byIndex?.account_id;
-    debugProvider('Выбран аккаунт по индексу', byIndex);
+    debugProvider('Selected account by index', byIndex);
     if (!byIndexId) {
-      throw new Error(`Не удалось определить ACCOUNT_ID по индексу ${indexMatch}.`);
+      throw new Error(`Could not determine ACCOUNT_ID by index ${indexMatch}.`);
     }
     return byIndexId;
   }
 
-  // Выбор по типу
+  // Selection by type
   if (type === 'ISS' || type === 'BROKER') {
-    // 1 — брокерский, 2 — ИИС (по enum API v2)
+    // 1 — brokerage, 2 — IIS (by API v2 enum)
     const desiredType = type === 'ISS' ? 2 : 1;
     const account = _.find(accounts, { type: desiredType });
-    debugProvider('Найден аккаунт по типу', account);
+    debugProvider('Found account by type', account);
     const accountId = account?.id || account?.accountId || account?.account_id;
     if (!accountId) {
-      throw new Error('Не удалось определить ACCOUNT_ID по типу. Проверьте доступ токена к нужному счету.');
+      throw new Error('Could not determine ACCOUNT_ID by type. Check token access to the required account.');
     }
     return accountId;
   }
 
-  // Фоллбек: вернуть как есть
-  debugProvider('Передан ACCOUNT_ID (как строка id фоллбек)', type);
+  // Fallback: return as is
+  debugProvider('Passed ACCOUNT_ID (as string id fallback)', type);
   return type;
 };
 
@@ -231,26 +231,26 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
     let count = 1;
 
     const tick = async () => {
-      // Перед началом итерации проверяем, открыта ли биржа (MOEX)
+      // Before starting iteration, check if exchange is open (MOEX)
       try {
         const isOpen = await isExchangeOpenNow('MOEX');
         if (!isOpen) {
-          debugProvider('Биржа закрыта (MOEX). Пропускаем балансировку и ждём следующей итерации.');
+          debugProvider('Exchange closed (MOEX). Skipping balancing and waiting for next iteration.');
           if (options?.runOnce) {
-            debugProvider('runOnce=true и биржа закрыта: завершаем без выполнения балансировки');
+            debugProvider('runOnce=true and exchange closed: finishing without balancing');
             resolve();
             return;
           }
-          return; // просто ждём следующий tick по интервалу
+          return; // just wait for next tick by interval
         }
       } catch (e) {
-        debugProvider('Не удалось проверить расписание торгов. Продолжаем по умолчанию.', e);
+        debugProvider('Could not check trading schedule. Continuing by default.', e);
       }
 
       let portfolio: any;
       let portfolioPositions: any;
       try {
-        debugProvider('Получение портфолио');
+        debugProvider('Getting portfolio');
         portfolio = await operations.getPortfolio({
           accountId: ACCOUNT_ID,
         });
@@ -259,27 +259,27 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         portfolioPositions = portfolio.positions;
         debugProvider('portfolioPositions', portfolioPositions);
       } catch (err) {
-        console.warn('Ошибка при получении портфолио');
+        console.warn('Error getting portfolio');
         debugProvider(err);
         console.trace(err);
       }
 
       let positions: any;
       try {
-        debugProvider('Получение позиций');
+        debugProvider('Getting positions');
         positions = await operations.getPositions({
           accountId: ACCOUNT_ID,
         });
         debugProvider('positions', positions);
       } catch (err) {
-        console.warn('Ошибка при получении позиций');
+        console.warn('Error getting positions');
         debugProvider(err);
         console.trace(err);
       }
 
       const coreWallet: Wallet = [];
 
-      debugProvider('Добавляем валюты в Wallet');
+      debugProvider('Adding currencies to Wallet');
       for (const currency of positions.money) {
         const corePosition = {
           pair: `${currency.currency.toUpperCase()}/${currency.currency.toUpperCase()}`,
@@ -304,7 +304,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
 
       (global as any).POSITIONS = portfolioPositions;
 
-      debugProvider('Добавляем позиции в Wallet');
+      debugProvider('Adding positions to Wallet');
       for (const position of portfolioPositions) {
         debugProvider('position', position);
 
@@ -342,7 +342,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
 
       debugProvider(coreWallet);
 
-      // Перед расчетом желаемых весов можно собрать свежие метрики для нужных тикеров
+      // Before calculating desired weights, we can collect fresh metrics for needed tickers
       try {
         const tickers = Object.keys(accountConfig.desired_wallet);
         await collectOnceForSymbols(tickers);
@@ -352,44 +352,44 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       }
 
       const desiredForRun = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
-      
-      // Сохраняем текущие доли портфеля ДО балансировки
-      // Важно: вызываем после buildDesiredWalletByMode, но до balancer
+
+      // Save current portfolio shares BEFORE balancing
+      // Important: called after buildDesiredWalletByMode, but before balancer
       const beforeShares = calculatePortfolioShares(coreWallet);
-      
+
       const { finalPercents } = await balancer(coreWallet, desiredForRun);
-      
-      // Получаем обновленные доли ПОСЛЕ балансировки
+
+      // Get updated shares AFTER balancing
       const afterShares = calculatePortfolioShares(coreWallet);
-      
-      // Детальный вывод результата балансировки
+
+      // Detailed balancing result output
       console.log('BALANCING RESULT:');
       console.log('Format: TICKER: diff: before% -> after% (target%)');
       console.log('Where: before% = current share, after% = actual share after balancing, (target%) = target from balancer, diff = change in percentage points\n');
-      
-      // Сортируем тикеры по убыванию доли после балансировки (after)
+
+      // Sort tickers by descending share after balancing (after)
       const sortedTickers = Object.keys(finalPercents).sort((a, b) => {
         const afterA = afterShares[a] || 0;
         const afterB = afterShares[b] || 0;
-        return afterB - afterA; // Убывание: от большего к меньшему
+        return afterB - afterA; // Descending: from larger to smaller
       });
-      
+
       for (const ticker of sortedTickers) {
         if (ticker && ticker !== 'RUB') {
           const beforePercent = beforeShares[ticker] || 0;
           const afterPercent = afterShares[ticker] || 0;
           const targetPercent = finalPercents[ticker] || 0;
-          
-          // Вычисляем изменение в процентных пунктах
+
+          // Calculate change in percentage points
           const diff = afterPercent - beforePercent;
           const diffSign = diff > 0 ? '+' : '';
           const diffText = diff === 0 ? '0%' : `${diffSign}${diff.toFixed(2)}%`;
-          
+
           console.log(`${ticker}: ${diffText}: ${beforePercent.toFixed(2)}% -> ${afterPercent.toFixed(2)}% (${targetPercent.toFixed(2)}%)`);
         }
       }
-      
-      // Добавляем баланс рублей (может быть отрицательным при маржинальной торговле)
+
+      // Add RUB balance (can be negative with margin trading)
       const rubPosition = coreWallet.find(p => p.base === 'RUB' && p.quote === 'RUB');
       if (rubPosition) {
         const rubBalance = rubPosition.totalPriceNumber || 0;
@@ -401,7 +401,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       count++;
 
       if (options?.runOnce) {
-        debugProvider('runOnce=true: завершаем после первого тика');
+        debugProvider('runOnce=true: finishing after first tick');
         resolve();
         return;
       }
@@ -466,14 +466,14 @@ export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<bool
 
     return false;
   } catch (err) {
-    // В случае ошибок не блокируем работу бота
-    debugProvider('Ошибка при запросе расписания торгов', err);
+    // In case of errors, don't block bot operation
+    debugProvider('Error requesting trading schedule', err);
     return true;
   }
 };
 
 export const getLastPrice = async (figi: any) => {
-  debugProvider('Получаем последнюю цену');
+  debugProvider('Getting last price');
   let lastPriceResult;
   try {
     lastPriceResult = await marketData.getLastPrices({
@@ -492,7 +492,7 @@ export const getLastPrice = async (figi: any) => {
 
 export const getInstruments = async () => {
 
-  debugProvider('Получаем список акций');
+  debugProvider('Getting shares list');
   let sharesResult;
   try {
     sharesResult = await instruments.shares({
@@ -506,7 +506,7 @@ export const getInstruments = async () => {
   (global as any).INSTRUMENTS = _.union(shares, (global as any).INSTRUMENTS);
   await sleep(accountConfig.sleep_between_orders);
 
-  debugProvider('Получаем список фондов');
+  debugProvider('Getting ETFs list');
   let etfsResult;
   try {
     etfsResult = await instruments.etfs({
@@ -520,7 +520,7 @@ export const getInstruments = async () => {
   (global as any).INSTRUMENTS = _.union(etfs, (global as any).INSTRUMENTS);
   await sleep(accountConfig.sleep_between_orders);
 
-  debugProvider('Получаем список облигаций');
+  debugProvider('Getting bonds list');
   let bondsResult;
   try {
     bondsResult = await instruments.bonds({
@@ -534,7 +534,7 @@ export const getInstruments = async () => {
   (global as any).INSTRUMENTS = _.union(bonds, (global as any).INSTRUMENTS);
   await sleep(accountConfig.sleep_between_orders);
 
-  debugProvider('Получаем список валют');
+  debugProvider('Getting currencies list');
   let currenciesResult;
   try {
     currenciesResult = await instruments.currencies({
@@ -548,7 +548,7 @@ export const getInstruments = async () => {
   (global as any).INSTRUMENTS = _.union(currencies, (global as any).INSTRUMENTS);
   await sleep(accountConfig.sleep_between_orders);
 
-  debugProvider('Получаем список фьючерсов');
+  debugProvider('Getting futures list');
   let futuresResult;
   try {
     futuresResult = await instruments.futures({
