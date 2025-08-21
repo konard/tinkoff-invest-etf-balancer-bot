@@ -1,18 +1,34 @@
 import 'dotenv/config';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { DESIRED_WALLET } from '../config';
+import { configLoader } from '../configLoader';
 import { normalizeTicker } from '../utils';
-import { buildAumMapSmart, getFxRateToRub, AumEntry, getEtfMarketCapRUB } from './etfCap';
+import { getFxRateToRub, AumEntry, getEtfMarketCapRUB } from './etfCap';
+import { buildAumMapSmart } from './etfCap';
 import rp from 'request-promise';
 
 type Nullable<T> = T | null | undefined;
 
 const LOG_PREFIX = '[pollEtfMetrics]';
 
+// Функция для получения конфигурации аккаунта
+const getAccountConfig = () => {
+  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
+  const account = configLoader.getAccountById(accountId);
+
+  if (!account) {
+    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  }
+
+  return account;
+};
+
 function getTickersFromArgs(): string[] {
   const args = process.argv.slice(2);
-  if (!args.length || args[0].startsWith('--')) return Object.keys(DESIRED_WALLET);
+  if (!args.length || args[0].startsWith('--')) {
+    const accountConfig = getAccountConfig();
+    return Object.keys(accountConfig.desired_wallet);
+  }
   return args[0]
     .split(',')
     .map((s) => s.trim())
@@ -205,6 +221,17 @@ async function writeMetrics(symbol: string, data: any): Promise<void> {
   // eslint-disable-next-line no-console
   console.log(`${LOG_PREFIX} saved ${outPath}`);
 }
+
+export const toRubFromAum = async (aumEntry: AumEntry | undefined): Promise<number> => {
+  if (!aumEntry || !aumEntry.amount || aumEntry.amount <= 0) return 0;
+
+  if (aumEntry.currency === 'RUB') return aumEntry.amount;
+
+  const fxRate = await getFxRateToRub(aumEntry.currency);
+  if (fxRate <= 0) return 0;
+
+  return aumEntry.amount * fxRate;
+};
 
 export async function collectOnceForSymbols(symbols: string[]): Promise<void> {
   const normalized = symbols.map((t) => normalizeTicker(t) || t);

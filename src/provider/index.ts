@@ -7,7 +7,7 @@ import uniqid from 'uniqid';
 import debug from 'debug';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/sdk';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
-import { DESIRED_WALLET, BALANCE_INTERVAL, SLEEP_BETWEEN_ORDERS, DESIRED_MODE } from '../config';
+import { configLoader } from '../configLoader';
 import { Wallet, Position } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { balancer } from '../balancer';
@@ -21,7 +21,22 @@ import { normalizeTicker } from '../utils';
 
 const debugProvider = debug('bot').extend('provider');
 
+// Функция для получения конфигурации аккаунта
+const getAccountConfig = () => {
+  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
+  const account = configLoader.getAccountById(accountId);
+
+  if (!account) {
+    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  }
+
+  return account;
+};
+
 const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
+
+// Получаем конфигурацию аккаунта на уровне модуля
+const accountConfig = getAccountConfig();
 
 /**
  * Рассчитывает доли каждого инструмента в портфеле
@@ -73,8 +88,8 @@ export const generateOrder = async (position: Position) => {
 
   debugProvider('position.toBuyLots', position.toBuyLots);
 
-  if (!isFinite(position.toBuyLots)) {
-    debugProvider('toBuyLots is NaN/Infinity. Пропускаем позицию.');
+  if (!position.toBuyLots || !isFinite(position.toBuyLots)) {
+    debugProvider('toBuyLots is NaN/Infinity/undefined. Пропускаем позицию.');
     return 0;
   }
 
@@ -120,7 +135,7 @@ export const generateOrder = async (position: Position) => {
   debugProvider('position', position);
 
   debugProvider('Создаем рыночный ордер');
-  const quantityLots = Math.floor(Math.abs(position.toBuyLots));
+  const quantityLots = Math.floor(Math.abs(position.toBuyLots || 0));
 
   if (quantityLots < 1) {
     debugProvider('Количество лотов после округления < 1. Пропускаем ордер.');
@@ -151,11 +166,11 @@ export const generateOrder = async (position: Position) => {
     debugProvider(err);
     // console.trace(err);
   }
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
 
 };
 
-export const getAccountId = async (type) => {
+export const getAccountId = async (type: any) => {
   // Поддержка индекса: '3' или 'INDEX:3'
   const indexMatch = typeof type === 'string' && type.startsWith('INDEX:')
     ? Number(type.split(':')[1])
@@ -315,9 +330,9 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           figi: position.figi,
           amount: amount,
           lotSize: instrument.lot,
-          price: priceWhenAddToWallet,
+          price: priceWhenAddToWallet || { units: 0, nano: 0 },
           priceNumber: priceNumber,
-          lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet)),
+          lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet || { units: 0, nano: 0 })),
           totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
           totalPriceNumber: totalPriceNumber,
         };
@@ -329,14 +344,14 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
 
       // Перед расчетом желаемых весов можно собрать свежие метрики для нужных тикеров
       try {
-        const tickers = Object.keys(DESIRED_WALLET);
+        const tickers = Object.keys(accountConfig.desired_wallet);
         await collectOnceForSymbols(tickers);
       } catch (e) {
         // eslint-disable-next-line no-console
         console.log('[provider] collectOnceForSymbols failed (will proceed with live APIs/fallbacks):', e);
       }
 
-      const desiredForRun = await buildDesiredWalletByMode(DESIRED_MODE, DESIRED_WALLET);
+      const desiredForRun = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
       
       // Сохраняем текущие доли портфеля ДО балансировки
       // Важно: вызываем после buildDesiredWalletByMode, но до balancer
@@ -395,7 +410,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
     // Немедленный первый запуск для отладки, затем по интервалу
     tick();
     if (!options?.runOnce) {
-      setInterval(tick, BALANCE_INTERVAL);
+      setInterval(tick, accountConfig.balance_interval);
     }
   });
 };
@@ -457,7 +472,7 @@ export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<bool
   }
 };
 
-export const getLastPrice = async (figi) => {
+export const getLastPrice = async (figi: any) => {
   debugProvider('Получаем последнюю цену');
   let lastPriceResult;
   try {
@@ -471,7 +486,7 @@ export const getLastPrice = async (figi) => {
 
   const lastPrice = lastPriceResult?.lastPrices?.[0]?.price;
   debugProvider('lastPrice', lastPrice);
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
   return lastPrice;
 };
 
@@ -489,7 +504,7 @@ export const getInstruments = async () => {
   const shares = sharesResult?.instruments;
   debugProvider('shares count', shares?.length);
   (global as any).INSTRUMENTS = _.union(shares, (global as any).INSTRUMENTS);
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
 
   debugProvider('Получаем список фондов');
   let etfsResult;
@@ -503,7 +518,7 @@ export const getInstruments = async () => {
   const etfs = etfsResult?.instruments;
   debugProvider('etfs count', etfs?.length);
   (global as any).INSTRUMENTS = _.union(etfs, (global as any).INSTRUMENTS);
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
 
   debugProvider('Получаем список облигаций');
   let bondsResult;
@@ -517,7 +532,7 @@ export const getInstruments = async () => {
   const bonds = bondsResult?.instruments;
   debugProvider('bonds count', bonds?.length);
   (global as any).INSTRUMENTS = _.union(bonds, (global as any).INSTRUMENTS);
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
 
   debugProvider('Получаем список валют');
   let currenciesResult;
@@ -531,7 +546,7 @@ export const getInstruments = async () => {
   const currencies = currenciesResult?.instruments;
   debugProvider('currencies count', currencies?.length);
   (global as any).INSTRUMENTS = _.union(currencies, (global as any).INSTRUMENTS);
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
 
   debugProvider('Получаем список фьючерсов');
   let futuresResult;
@@ -545,7 +560,7 @@ export const getInstruments = async () => {
   const futures = futuresResult?.instruments;
   debugProvider('futures count', futures?.length);
   (global as any).INSTRUMENTS = _.union(futures, (global as any).INSTRUMENTS);
-  await sleep(SLEEP_BETWEEN_ORDERS);
+  await sleep(accountConfig.sleep_between_orders);
 
   debugProvider('=========================');
 };
@@ -556,8 +571,11 @@ export const getLastPrices = async () => {
   }))?.lastPrices;
   debugProvider('lastPrices', JSON.stringify(lastPrices, null, 2));
   const lastPricesFormatted = _.map(lastPrices, (item) => {
-    item.price = convertTinkoffNumberToNumber(item.price);
-    debugProvider('fffff', convertTinkoffNumberToNumber(item.price));
+    if (item.price) {
+      const priceNumber = convertTinkoffNumberToNumber(item.price);
+      (item as any).price = priceNumber;
+      debugProvider('fffff', priceNumber);
+    }
     return item;
   });
   debugProvider('lastPricesFormatted', JSON.stringify(lastPricesFormatted, null, 2));

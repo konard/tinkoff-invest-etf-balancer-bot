@@ -6,7 +6,7 @@ import _ from 'lodash';
 import uniqid from 'uniqid';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
-import { SLEEP_BETWEEN_ORDERS, MARGIN_MULTIPLIER, FREE_MARGIN_THRESHOLD, MARGIN_BALANCING_STRATEGY, MARGIN_TRADING_ENABLED } from '../config';
+import { configLoader } from '../configLoader';
 import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
@@ -16,11 +16,26 @@ const debug = require('debug')('bot').extend('balancer');
 
 // const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
 
+// Функция для получения конфигурации аккаунта
+const getAccountConfig = () => {
+  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
+  const account = configLoader.getAccountById(accountId);
+
+  if (!account) {
+    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  }
+
+  return account;
+};
+
+// Получаем конфигурацию аккаунта
+const accountConfig = getAccountConfig();
+
 // Initialize margin calculator
 const marginConfig: MarginConfig = {
-  multiplier: MARGIN_MULTIPLIER,
-  freeThreshold: FREE_MARGIN_THRESHOLD,
-  ...(MARGIN_TRADING_ENABLED && { strategy: MARGIN_BALANCING_STRATEGY })
+  multiplier: accountConfig.margin_trading.multiplier,
+  freeThreshold: accountConfig.margin_trading.free_threshold,
+  ...(accountConfig.margin_trading.enabled && { strategy: accountConfig.margin_trading.balancing_strategy })
 };
 
 const marginCalculator = new MarginCalculator(marginConfig);
@@ -30,16 +45,16 @@ const marginCalculator = new MarginCalculator(marginConfig);
  */
 export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
   // If margin trading is disabled, return empty array
-  if (!MARGIN_TRADING_ENABLED) {
+  if (!accountConfig.margin_trading.enabled) {
     return [];
   }
-  
+
   const marginPositions: MarginPosition[] = [];
-  
+
   for (const position of wallet) {
     if (position.totalPriceNumber && position.totalPriceNumber > 0) {
       // Determine margin part of position
-      const baseValue = position.totalPriceNumber / MARGIN_MULTIPLIER;
+      const baseValue = position.totalPriceNumber / accountConfig.margin_trading.multiplier;
       const marginValue = position.totalPriceNumber - baseValue;
       
       if (marginValue > 0) {
@@ -47,7 +62,7 @@ export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
           ...position,
           isMargin: true,
           marginValue,
-          leverage: MARGIN_MULTIPLIER,
+          leverage: accountConfig.margin_trading.multiplier,
           marginCall: false
         };
         marginPositions.push(marginPosition);
@@ -68,7 +83,7 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
   marginPositions: MarginPosition[];
 } => {
   // If margin trading is disabled, return result without margin
-  if (!MARGIN_TRADING_ENABLED) {
+  if (!accountConfig.margin_trading.enabled) {
     return {
       shouldRemoveMargin: false,
       reason: 'Margin trading disabled',
@@ -89,8 +104,8 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
   }
   
   const strategy = marginCalculator.applyMarginStrategy(
-    marginPositions, 
-    MARGIN_TRADING_ENABLED ? MARGIN_BALANCING_STRATEGY : 'keep', 
+    marginPositions,
+    accountConfig.margin_trading.enabled ? accountConfig.margin_trading.balancing_strategy : 'keep',
     currentTime
   );
   
@@ -105,10 +120,10 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
  */
 export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWallet) => {
   // If margin trading is disabled, return sizes without margin
-  if (!MARGIN_TRADING_ENABLED) {
+  if (!accountConfig.margin_trading.enabled) {
     const totalPortfolioValue = wallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
     const result: Record<string, { baseSize: number; marginSize: number; totalSize: number }> = {};
-    
+
     for (const [ticker, percentage] of Object.entries(desiredWallet)) {
       const targetValue = (totalPortfolioValue * percentage) / 100;
       result[ticker] = {
@@ -117,7 +132,7 @@ export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWall
         totalSize: targetValue
       };
     }
-    
+
     return result;
   }
   

@@ -5,7 +5,8 @@ import { DesiredWallet, DesiredMode } from '../types.d';
 import { normalizeTicker } from '../utils';
 import { getEtfMarketCapRUB } from '../tools/etfCap';
 import { getShareMarketCapRUB } from '../tools/shareCap';
-import { buildAumMapSmart, toRubFromAum } from '../tools/pollEtfMetrics';
+import { buildAumMapSmart } from '../tools/etfCap';
+import { toRubFromAum } from '../tools/pollEtfMetrics';
 
 const debug = require('debug')('bot').extend('desiredBuilder');
 

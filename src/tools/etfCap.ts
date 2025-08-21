@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { createSdk } from 'tinkoff-sdk-grpc-js';
 import _ from 'lodash';
-import { DESIRED_WALLET } from '../config';
+import { configLoader } from '../configLoader';
 import { convertTinkoffNumberToNumber, normalizeTicker, tickersEqual } from '../utils';
 
 // Используем request-promise из зависимостей проекта
@@ -17,9 +17,24 @@ const toNumber = (q: Quotation): number => {
   return convertTinkoffNumberToNumber(q as any);
 };
 
+// Функция для получения конфигурации аккаунта
+const getAccountConfig = () => {
+  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
+  const account = configLoader.getAccountById(accountId);
+
+  if (!account) {
+    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  }
+
+  return account;
+};
+
 const getTickersFromArgs = (): string[] => {
   const args = process.argv.slice(2);
-  if (!args.length) return Object.keys(DESIRED_WALLET);
+  if (!args.length) {
+    const accountConfig = getAccountConfig();
+    return Object.keys(accountConfig.desired_wallet);
+  }
   const joined = args.join(',');
   return joined
     .split(',')
