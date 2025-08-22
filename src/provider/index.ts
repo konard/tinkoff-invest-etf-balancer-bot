@@ -438,31 +438,54 @@ export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<bool
     const to = new Date(now);
     to.setDate(to.getDate() + 1); // Get schedule until tomorrow
 
+    debugProvider(`Checking trading schedule for ${exchange}. Current time: ${now.toISOString()}`);
+    debugProvider(`Request params: from=${from.toISOString()}, to=${to.toISOString()}`);
+
     const schedules: any = await instruments.tradingSchedules({
       exchange,
       from,
       to,
     });
 
+    debugProvider('Trading schedules response:', JSON.stringify(schedules, null, 2));
+
     const exchanges = schedules?.exchanges || schedules?.exchangesList || [];
     const first = exchanges[0];
     const days = first?.days || first?.daysList || [];
 
+    debugProvider(`Found ${days.length} trading days in schedule`);
+
     // Ищем интервал(ы) сегодняшнего дня и проверяем попадание now
     for (const day of days) {
+      debugProvider('Processing day:', JSON.stringify(day, null, 2));
+
       // В некоторых обёртках может быть date как строка/Date — но для надёжности сверяем по границам
-      if (day?.isTradingDay === false) continue;
+      if (day?.isTradingDay === false) {
+        debugProvider('Day is not a trading day, skipping');
+        continue;
+      }
+
       const start = toDate(day?.startTime || day?.start_time);
       const end = toDate(day?.endTime || day?.end_time);
       const eveningStart = toDate(day?.eveningStartTime || day?.evening_start_time);
       const eveningEnd = toDate(day?.eveningEndTime || day?.evening_end_time);
 
+      debugProvider(`Session times: start=${start?.toISOString()}, end=${end?.toISOString()}`);
+      debugProvider(`Evening session: start=${eveningStart?.toISOString()}, end=${eveningEnd?.toISOString()}`);
+
       // Основная сессия
-      if (start && end && now >= start && now <= end) return true;
+      if (start && end && now >= start && now <= end) {
+        debugProvider('Current time is within main trading session');
+        return true;
+      }
       // Вечерняя сессия (если есть)
-      if (eveningStart && eveningEnd && now >= eveningStart && now <= eveningEnd) return true;
+      if (eveningStart && eveningEnd && now >= eveningStart && now <= eveningEnd) {
+        debugProvider('Current time is within evening trading session');
+        return true;
+      }
     }
 
+    debugProvider('Current time is outside all trading sessions');
     return false;
   } catch (err) {
     // In case of errors, don't block bot operation
