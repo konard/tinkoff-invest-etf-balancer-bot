@@ -434,10 +434,9 @@ const toDate = (t: any): Date | null => {
 export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<boolean> => {
   try {
     const now = new Date();
-    const from = new Date(now);
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(from);
-    to.setDate(to.getDate() + 1);
+    const from = new Date(now); // Use current time as 'from' parameter
+    const to = new Date(now);
+    to.setDate(to.getDate() + 1); // Get schedule until tomorrow
 
     const schedules: any = await instruments.tradingSchedules({
       exchange,
