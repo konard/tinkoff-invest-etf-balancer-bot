@@ -24,6 +24,31 @@ export class MarginCalculator {
   }
 
   /**
+   * Validates margin positions against maximum margin size limit
+   */
+  validateMarginLimits(marginPositions: MarginPosition[]): {
+    isValid: boolean;
+    totalMarginUsed: number;
+    maxMarginAllowed: number;
+    exceededAmount?: number;
+  } {
+    const totalMarginUsed = marginPositions.reduce((sum, position) => {
+      return sum + (position.marginValue || 0);
+    }, 0);
+
+    const maxMarginAllowed = this.config.maxMarginSize || 5000; // Default to 5000 if not configured
+    const isValid = totalMarginUsed <= maxMarginAllowed;
+    const exceededAmount = isValid ? undefined : totalMarginUsed - maxMarginAllowed;
+
+    return {
+      isValid,
+      totalMarginUsed,
+      maxMarginAllowed,
+      exceededAmount
+    };
+  }
+
+  /**
    * Checks margin trading limits
    */
   checkMarginLimits(portfolio: Position[], marginPositions: MarginPosition[]): {
@@ -197,12 +222,13 @@ export class MarginCalculator {
         };
 
       case 'keep_if_small':
-        const shouldRemove = totalMarginValue > this.config.freeThreshold;
+        const maxMarginAllowed = this.config.maxMarginSize || 5000;
+        const shouldRemove = totalMarginValue > maxMarginAllowed;
         return {
           shouldRemoveMargin: shouldRemove,
           reason: shouldRemove 
-            ? `Strategy: remove margin (sum ${totalMarginValue.toFixed(2)} rub > ${this.config.freeThreshold} rub, time to close: ${timeToClose} min)`
-            : `Strategy: keep margin (sum ${totalMarginValue.toFixed(2)} rub <= ${this.config.freeThreshold} rub, time to close: ${timeToClose} min)`,
+            ? `Strategy: remove margin (sum ${totalMarginValue.toFixed(2)} rub > max ${maxMarginAllowed} rub, time to close: ${timeToClose} min)`
+            : `Strategy: keep margin (sum ${totalMarginValue.toFixed(2)} rub <= max ${maxMarginAllowed} rub, time to close: ${timeToClose} min)`,
           transferCost: shouldRemove ? transferInfo.totalCost : 0,
           timeInfo: { timeToClose, timeToNextBalance, isLastBalance }
         };

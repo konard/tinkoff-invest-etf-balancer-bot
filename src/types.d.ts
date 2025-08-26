@@ -46,16 +46,18 @@ export type MarginBalancingStrategy = 'remove' | 'keep' | 'keep_if_small';
 export interface MarginConfig {
   multiplier: number; // Portfolio multiplier (1-4)
   freeThreshold: number; // Free transfer threshold in rubles
+  maxMarginSize?: number; // Maximum margin size in rubles
   strategy?: MarginBalancingStrategy; // Balancing strategy (optional)
 }
 
 // New configuration for multiple accounts
-export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
+export type DesiredMode = 'manual' | 'default' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
 
 export interface AccountMarginConfig {
   enabled: boolean;
   multiplier: number;
   free_threshold: number;
+  max_margin_size: number; // Maximum margin size in RUB
   balancing_strategy: MarginBalancingStrategy;
 }
 
@@ -73,6 +75,47 @@ export interface AccountConfig {
 
 export interface ProjectConfig {
   accounts: AccountConfig[];
+}
+
+// Enhanced result data models
+export interface PositionMetrics {
+  ticker: string;
+  aum?: {
+    value: number; // AUM value in RUB
+    percentage: number; // Percentage of total AUM
+  };
+  marketCap?: {
+    value: number; // Market cap value in RUB  
+    percentage: number; // Percentage of total market cap
+  };
+  decorrelation?: {
+    value: number; // Decorrelation percentage
+    interpretation: 'undervalued' | 'overvalued' | 'neutral';
+  };
+}
+
+export interface EnhancedBalancerResult {
+  finalPercents: Record<string, number>;
+  modeUsed: DesiredMode;
+  positionMetrics: PositionMetrics[];
+  totalPortfolioValue: number;
+  marginInfo?: {
+    totalMarginUsed: number;
+    marginPositions: MarginPosition[];
+    withinLimits: boolean;
+  };
+}
+
+// Balancing data error for strict mode validation
+export class BalancingDataError extends Error {
+  constructor(
+    public mode: DesiredMode,
+    public missingData: string[],
+    public affectedTickers: string[]
+  ) {
+    super(`Balancing halted: ${mode} mode requires ${missingData.join(', ')} data for tickers: ${affectedTickers.join(', ')}`);
+    this.name = 'BalancingDataError';
+  }
 }
 
 export interface Ohlcv {

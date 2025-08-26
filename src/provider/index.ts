@@ -8,7 +8,7 @@ import debug from 'debug';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/sdk';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 import { configLoader } from '../configLoader';
-import { Wallet, Position } from '../types.d';
+import { Wallet, Position, BalancingDataError } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { balancer } from '../balancer';
 import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
@@ -351,19 +351,74 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         console.log('[provider] collectOnceForSymbols failed (will proceed with live APIs/fallbacks):', e);
       }
 
-      const desiredForRun = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
+      let desiredForRun;
+      let modeUsed;
+      let positionMetrics = [];
+
+      try {
+        const desiredResult = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
+        desiredForRun = desiredResult.wallet;
+        modeUsed = desiredResult.modeApplied;
+        positionMetrics = desiredResult.metrics;
+        
+        console.log(`\n📊 Successfully applied mode: ${modeUsed}`);
+        if (positionMetrics.length > 0) {
+          console.log('\n📈 Position Metrics:');
+          positionMetrics.forEach(metric => {
+            console.log(`  ${metric.ticker}:`);
+            if (metric.aum) {
+              console.log(`    AUM: ${metric.aum.value.toFixed(0)} RUB (${metric.aum.percentage.toFixed(1)}% of total)`);
+            }
+            if (metric.marketCap) {
+              console.log(`    Market Cap: ${metric.marketCap.value.toFixed(0)} RUB (${metric.marketCap.percentage.toFixed(1)}% of total)`);
+            }
+            if (metric.decorrelation) {
+              console.log(`    Decorrelation: ${metric.decorrelation.value.toFixed(1)}% (${metric.decorrelation.interpretation})`);
+            }
+          });
+        }
+      } catch (error) {
+        if (error instanceof BalancingDataError) {
+          console.error(`\n❌ Balancing halted: Cannot proceed with mode '${error.mode}'`);
+          console.error(`   Missing data: ${error.missingData.join(', ')}`);
+          console.error(`   Affected tickers: ${error.affectedTickers.join(', ')}`);
+          console.error(`   Details: ${error.message}`);
+          console.error('\n🔧 To fix this issue:');
+          console.error('   1. Run bun run poll:metrics to collect fresh ETF metrics');
+          console.error('   2. Check that etf_metrics/*.json files exist for all tickers');
+          console.error('   3. Verify your internet connection for live API calls');
+          console.error(`   4. Consider changing desired_mode in CONFIG.json to 'manual' or 'default'`);
+          console.error('\n⏭️  Skipping current balancing cycle, will retry at next interval\n');
+          return; // Skip this balancing cycle
+        } else {
+          // Re-throw unexpected errors
+          throw error;
+        }
+      }
 
       // Save current portfolio shares BEFORE balancing
       // Important: called after buildDesiredWalletByMode, but before balancer
       const beforeShares = calculatePortfolioShares(coreWallet);
 
-      const { finalPercents } = await balancer(coreWallet, desiredForRun);
+      const enhancedResult = await balancer(coreWallet, desiredForRun, positionMetrics, modeUsed);
+      const { finalPercents, marginInfo } = enhancedResult;
+
+      // Log margin information if available
+      if (marginInfo) {
+        console.log(`\n📊 Margin Information:`);
+        console.log(`  Total margin used: ${marginInfo.totalMarginUsed.toFixed(2)} RUB`);
+        console.log(`  Within limits: ${marginInfo.withinLimits ? '✅ Yes' : '❌ No'}`);
+        if (marginInfo.marginPositions.length > 0) {
+          console.log(`  Margin positions: ${marginInfo.marginPositions.length}`);
+        }
+      }
 
       // Get updated shares AFTER balancing
       const afterShares = calculatePortfolioShares(coreWallet);
 
       // Detailed balancing result output
-      console.log('BALANCING RESULT:');
+      console.log('\n🎯 BALANCING RESULT:');
+      console.log(`Mode used: ${modeUsed || accountConfig.desired_mode}`);
       console.log('Format: TICKER: diff: before% -> after% (target%)');
       console.log('Where: before% = current share, after% = actual share after balancing, (target%) = target from balancer, diff = change in percentage points\n');
 
@@ -386,6 +441,20 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           const diffText = diff === 0 ? '0%' : `${diffSign}${diff.toFixed(2)}%`;
 
           console.log(`${ticker}: ${diffText}: ${beforePercent.toFixed(2)}% -> ${afterPercent.toFixed(2)}% (${targetPercent.toFixed(2)}%)`);
+          
+          // Add enhanced metrics if available
+          const positionMetric = positionMetrics.find(m => m.ticker === ticker || m.ticker === (normalizeTicker(ticker) || ticker));
+          if (positionMetric) {
+            if (positionMetric.aum) {
+              console.log(`  AUM: ${(positionMetric.aum.value / 1e9).toFixed(1)}B RUB (${positionMetric.aum.percentage.toFixed(1)}% of portfolio AUM)`);
+            }
+            if (positionMetric.marketCap) {
+              console.log(`  Market Cap: ${(positionMetric.marketCap.value / 1e9).toFixed(1)}B RUB (${positionMetric.marketCap.percentage.toFixed(1)}% of portfolio cap)`);
+            }
+            if (positionMetric.decorrelation) {
+              console.log(`  Decorrelation: ${positionMetric.decorrelation.value > 0 ? '+' : ''}${positionMetric.decorrelation.value.toFixed(1)}% (${positionMetric.decorrelation.interpretation})`);
+            }
+          }
         }
       }
 

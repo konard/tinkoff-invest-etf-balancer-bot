@@ -26,6 +26,7 @@
         "enabled": false,
         "multiplier": 4,
         "free_threshold": 5000,
+        "max_margin_size": 5000,
         "balancing_strategy": "keep_if_small"
       }
     }

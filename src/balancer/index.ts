@@ -7,7 +7,7 @@ import uniqid from 'uniqid';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
 import { configLoader } from '../configLoader';
-import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
+import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig, EnhancedBalancerResult, PositionMetrics } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
@@ -35,6 +35,7 @@ const accountConfig = getAccountConfig();
 const marginConfig: MarginConfig = {
   multiplier: accountConfig.margin_trading.multiplier,
   freeThreshold: accountConfig.margin_trading.free_threshold,
+  maxMarginSize: accountConfig.margin_trading.max_margin_size,
   ...(accountConfig.margin_trading.enabled && { strategy: accountConfig.margin_trading.balancing_strategy })
 };
 
@@ -188,7 +189,12 @@ export const addNumbersToWallet = (wallet: Wallet): Wallet => {
   return wallet;
 };
 
-export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet): Promise<{ finalPercents: Record<string, number> }> => {
+export const balancer = async (
+  positions: Wallet, 
+  desiredWallet: DesiredWallet,
+  positionMetrics: PositionMetrics[] = [],
+  modeUsed: string = 'manual'
+): Promise<EnhancedBalancerResult> => {
 
   const walletInfo = {
     remains: 0,
@@ -452,5 +458,25 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
     }
   }
   
-  return { finalPercents };
+  // Calculate total portfolio value
+  const totalPortfolioValue = wallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
+  
+  // Get current margin positions and validate limits
+  const currentMarginPositions = identifyMarginPositions(wallet);
+  const marginLimits = marginCalculator.validateMarginLimits(currentMarginPositions);
+  
+  // Build enhanced result
+  const enhancedResult: EnhancedBalancerResult = {
+    finalPercents,
+    modeUsed: modeUsed as any,
+    positionMetrics,
+    totalPortfolioValue,
+    marginInfo: accountConfig.margin_trading.enabled ? {
+      totalMarginUsed: marginLimits.totalMarginUsed,
+      marginPositions: currentMarginPositions,
+      withinLimits: marginLimits.isValid
+    } : undefined
+  };
+  
+  return enhancedResult;
 };
