@@ -22,6 +22,10 @@
       "desired_mode": "manual",
       "balance_interval": 3600000,
       "sleep_between_orders": 3000,
+      "exchange_closure_behavior": {
+        "mode": "dry_run",
+        "update_iteration_result": true
+      },
       "margin_trading": {
         "enabled": false,
         "multiplier": 4,

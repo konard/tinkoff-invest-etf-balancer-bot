@@ -231,17 +231,42 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
     let count = 1;
 
     const tick = async () => {
-      // Before starting iteration, check if exchange is open (MOEX)
+      // Before starting iteration, check if exchange is open (MOEX) and handle according to configuration
+      let isExchangeOpen = true;
+      let exchangeClosureBehavior = accountConfig.exchange_closure_behavior;
+      
       try {
-        const isOpen = await isExchangeOpenNow('MOEX');
-        if (!isOpen) {
-          debugProvider('Exchange closed (MOEX). Skipping balancing and waiting for next iteration.');
-          if (options?.runOnce) {
-            debugProvider('runOnce=true and exchange closed: finishing without balancing');
-            resolve();
-            return;
+        isExchangeOpen = await isExchangeOpenNow('MOEX');
+        if (!isExchangeOpen) {
+          debugProvider(`Exchange closed (MOEX). Behavior mode: ${exchangeClosureBehavior.mode}`);
+          
+          switch (exchangeClosureBehavior.mode) {
+            case 'skip_iteration':
+              debugProvider('Skipping balancing and waiting for next iteration.');
+              if (options?.runOnce) {
+                debugProvider('runOnce=true and exchange closed: finishing without balancing');
+                resolve();
+                return;
+              }
+              return; // just wait for next tick by interval
+              
+            case 'force_orders':
+              debugProvider('Performing balancing and attempting to place orders despite exchange closure.');
+              break;
+              
+            case 'dry_run':
+              debugProvider('Performing balancing calculations without placing orders (dry-run mode).');
+              break;
+              
+            default:
+              debugProvider(`Unknown exchange closure mode: ${exchangeClosureBehavior.mode}. Defaulting to skip_iteration.`);
+              if (options?.runOnce) {
+                debugProvider('runOnce=true and exchange closed: finishing without balancing');
+                resolve();
+                return;
+              }
+              return;
           }
-          return; // just wait for next tick by interval
         }
       } catch (e) {
         debugProvider('Could not check trading schedule. Continuing by default.', e);
@@ -400,8 +425,21 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       // Important: called after buildDesiredWalletByMode, but before balancer
       const beforeShares = calculatePortfolioShares(coreWallet);
 
-      const enhancedResult = await balancer(coreWallet, desiredForRun, positionMetrics, modeUsed);
+      // Determine if we should run in dry-run mode
+      const shouldRunDryRun = !isExchangeOpen && exchangeClosureBehavior.mode === 'dry_run';
+      
+      const enhancedResult = await balancer(coreWallet, desiredForRun, positionMetrics, modeUsed, shouldRunDryRun);
       const { finalPercents, marginInfo } = enhancedResult;
+
+      // Add exchange closure status to logging
+      if (!isExchangeOpen) {
+        console.log(`\n⚠️  EXCHANGE CLOSED - Mode: ${exchangeClosureBehavior.mode.toUpperCase()}`);
+        if (shouldRunDryRun) {
+          console.log('📋 DRY-RUN: Calculations performed, no orders placed');
+        } else if (exchangeClosureBehavior.mode === 'force_orders') {
+          console.log('⚡ FORCE ORDERS: Attempting to place orders despite exchange closure');
+        }
+      }
 
       // Log margin information if available
       if (marginInfo) {
@@ -466,7 +504,17 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         const rubAbs = Math.abs(rubBalance);
         console.log(`RUR: ${rubSign}${rubAbs.toFixed(2)} RUB`);
       }
-      debugProvider(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
+      
+      // Handle iteration result updates based on exchange closure behavior
+      const shouldUpdateIterationResult = isExchangeOpen || exchangeClosureBehavior.update_iteration_result;
+      
+      if (shouldUpdateIterationResult) {
+        debugProvider(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
+        // Additional iteration result logging/metrics can be added here
+      } else {
+        debugProvider(`ITERATION #${count} FINISHED (no result update). TIME: ${new Date()}`);
+      }
+      
       count++;
 
       if (options?.runOnce) {

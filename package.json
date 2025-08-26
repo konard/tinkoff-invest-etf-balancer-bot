@@ -26,6 +26,7 @@
     "update:shares": "bun run ./src/tools/updateSharesCount.ts TRUR",
     "poll:metrics": "bun run ./src/tools/pollEtfMetrics.ts TGLD,TRAY,TRUR,TRND,TLCB,TOFZ,TBRU,TMON,TMOS,TITR,TDIV --once",
     "poll:metrics:all": "bun run ./src/tools/pollEtfMetrics.ts TGLD,TSPV,TBRU,TUSD,TEUR,TEMS,TSPX,TEUS,TBUY,TBEU,TRUR,TPAS,TBIO,TCBR,TECH,TSST,TGRN,TSOX,TRAI,TIPO,TFNX,TMOS,TLCB,TOFZ,TMON,TITR,TDIV --once",
+    "debug:balancer": "bun run ./src/tools/debugBalancer.ts",
     "test": "bun test --timeout 10000",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",

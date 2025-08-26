@@ -193,7 +193,8 @@ export const balancer = async (
   positions: Wallet, 
   desiredWallet: DesiredWallet,
   positionMetrics: PositionMetrics[] = [],
-  modeUsed: string = 'manual'
+  modeUsed: string = 'manual',
+  dryRun: boolean = false
 ): Promise<EnhancedBalancerResult> => {
 
   const walletInfo = {
@@ -408,6 +409,18 @@ export const balancer = async (
             position.toBuyNumber = recalculatedToBuyNumber;
           }
         }
+      } else {
+        // Handle case where amount is 0 (new position)
+        if (desiredPercentNumber > 0) {
+          debug('New position with positive target: setting toBuyLots to minimum 1', position.base);
+          position.toBuyLots = Math.max(1, canBuyBeforeTargetLots);
+          if (position.lotPriceNumber) {
+            position.toBuyNumber = position.toBuyLots * position.lotPriceNumber;
+          }
+        } else {
+          position.toBuyLots = 0;
+          position.toBuyNumber = 0;
+        }
       }
     }
   }
@@ -426,8 +439,19 @@ export const balancer = async (
 
   debug('walletInfo', walletInfo);
 
-  debug('Creating necessary orders for all positions');
-  await generateOrders(ordersPlanned);
+  if (!dryRun) {
+    debug('Creating necessary orders for all positions');
+    await generateOrders(ordersPlanned);
+  } else {
+    debug('Dry-run mode: Skipping order generation. Orders that would be placed:', ordersPlanned.length);
+    for (const order of ordersPlanned) {
+      if (order.base && order.toBuyLots) {
+        const action = order.toBuyLots > 0 ? 'BUY' : 'SELL';
+        const lots = Math.abs(order.toBuyLots);
+        debug(`Dry-run: ${action} ${lots} lots of ${order.base}`);
+      }
+    }
+  }
   
   // Подсчёт итоговых процентных долей бумаг после выставления ордеров (по плану ордеров)
   // Исключаем валюты (base === quote)
@@ -435,14 +459,15 @@ export const balancer = async (
   for (const p of simulated) {
     if (p.base && p.quote && p.base === p.quote) continue;
     const lotSize = Number(p.lotSize) || 1;
-    if (p.amount) {
-      const currentLots = p.amount / lotSize;
-      const plannedLots = Math.sign(p.toBuyLots || 0) * Math.floor(Math.abs(p.toBuyLots || 0));
-      const finalLots = currentLots + plannedLots;
-      const finalAmount = finalLots * lotSize;
-      const priceNum = Number(p.priceNumber) || (p.price ? convertTinkoffNumberToNumber(p.price) : 0);
-      (p as any).__finalValue = Math.max(0, priceNum * finalAmount);
-    }
+    // Handle both existing positions and newly created positions
+    const currentAmount = p.amount || 0;
+    const currentLots = currentAmount / lotSize;
+    const plannedLots = Math.sign(p.toBuyLots || 0) * Math.floor(Math.abs(p.toBuyLots || 0));
+    const finalLots = currentLots + plannedLots;
+    const finalAmount = finalLots * lotSize;
+    const priceNum = Number(p.priceNumber) || (p.price ? convertTinkoffNumberToNumber(p.price) : 0);
+    (p as any).__finalValue = Math.max(0, priceNum * finalAmount);
+    debug(`Final calculation for ${p.base}: currentLots=${currentLots}, plannedLots=${plannedLots}, finalLots=${finalLots}, finalValue=${(p as any).__finalValue}`);
   }
   const onlySecurities = simulated.filter((p) => !(p.base && p.quote && p.base === p.quote));
   const totalFinal = _.sumBy(onlySecurities, (p: any) => Number(p.__finalValue) || 0);

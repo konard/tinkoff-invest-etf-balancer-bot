@@ -61,6 +61,25 @@ export interface AccountMarginConfig {
   balancing_strategy: MarginBalancingStrategy;
 }
 
+// Exchange closure behavior configuration
+export type ExchangeClosureMode = 'skip_iteration' | 'force_orders' | 'dry_run';
+
+export interface ExchangeClosureBehavior {
+  /**
+   * Behavior when exchange is closed:
+   * - skip_iteration: Skip balancing completely (current behavior)
+   * - force_orders: Perform balancing and attempt to place orders
+   * - dry_run: Perform balancing calculations without placing orders
+   */
+  mode: ExchangeClosureMode;
+  
+  /**
+   * Whether to update iteration results when exchange is closed
+   * Affects logging and metrics collection
+   */
+  update_iteration_result: boolean;
+}
+
 export interface AccountConfig {
   id: string;
   name: string;
@@ -71,6 +90,7 @@ export interface AccountConfig {
   balance_interval: number;
   sleep_between_orders: number;
   margin_trading: AccountMarginConfig;
+  exchange_closure_behavior: ExchangeClosureBehavior;
 }
 
 export interface ProjectConfig {
