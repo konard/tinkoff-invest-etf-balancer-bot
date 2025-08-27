@@ -1,183 +1,59 @@
-import { describe, it, expect } from "bun:test";
-import { balancer } from "../../balancer";
-import { Wallet, Position } from "../../types.d";
-import { normalizeDesire } from '../../balancer';
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { 
+  balancer, 
+  normalizeDesire, 
+  identifyMarginPositions, 
+  applyMarginStrategy, 
+  calculateOptimalSizes,
+  addNumbersToPosition,
+  addNumbersToWallet
+} from "../../balancer";
+import { Wallet, Position, DesiredWallet, MarginPosition, EnhancedBalancerResult } from "../../types.d";
 
-describe("Balancer", () => {
-  describe("Portfolio Balancing", () => {
-    it("should balance portfolio with equal weights", () => {
-      const currentWallet: Wallet = [
-        {
-          base: "TRUR",
-          figi: "figi1",
-          amount: 1000,
-          lotSize: 10,
-          price: { units: 100, nano: 0 },
-          priceNumber: 100,
-          lotPrice: { units: 100, nano: 0 },
-          lotPriceNumber: 100,
-          totalPrice: { units: 1000, nano: 0 },
-          totalPriceNumber: 1000,
-          toBuyLots: 0,
-        },
-        {
-          base: "TMOS",
-          figi: "figi2",
-          amount: 2000,
-          lotSize: 10,
-          price: { units: 200, nano: 0 },
-          priceNumber: 200,
-          lotPrice: { units: 200, nano: 0 },
-          lotPriceNumber: 200,
-          totalPrice: { units: 2000, nano: 0 },
-          totalPriceNumber: 2000,
-          toBuyLots: 0,
-        },
-        {
-          base: "RUB",
-          figi: "figi3",
-          amount: 1000,
-          lotSize: 1,
-          price: { units: 1, nano: 0 },
-          priceNumber: 1,
-          lotPrice: { units: 1, nano: 0 },
-          lotPriceNumber: 1,
-          totalPrice: { units: 1000, nano: 0 },
-          totalPriceNumber: 1000,
-          toBuyLots: 0,
-        },
-      ];
+// Import test utilities and fixtures
+import { 
+  TestEnvironment, 
+  FinancialAssertions, 
+  TestDataFactory, 
+  PerformanceTestUtils,
+  testSuite
+} from '../test-utils';
+import { 
+  mockBalancedWallet, 
+  mockEmptyWallet, 
+  mockSingleAssetWallet, 
+  mockMarginWallet,
+  mockDesiredWallets,
+  balancingScenarios,
+  createMockPosition
+} from '../__fixtures__/wallets';
+import { mockAccountConfigs } from '../__fixtures__/configurations';
+import { mockTinkoffSDKControls } from '../__mocks__/tinkoff-sdk';
+import { mockControls } from '../__mocks__/external-deps';
 
-      const desiredWallet = {
-        TRUR: 25,
-        TMOS: 50,
-        RUB: 25,
-      };
+// Mock global INSTRUMENTS for testing
+(global as any).INSTRUMENTS = [
+  {
+    ticker: 'TRUR',
+    figi: 'BBG004S68614',
+    lot: 10,
+    name: 'Tinkoff Russian ETF'
+  },
+  {
+    ticker: 'TMOS',
+    figi: 'BBG004S68B31',
+    lot: 1,
+    name: 'Tinkoff Moscow ETF'
+  },
+  {
+    ticker: 'TGLD',
+    figi: 'BBG004S687G5',
+    lot: 1,
+    name: 'Tinkoff Gold ETF'
+  }
+];
 
-      // Mock the balancer function
-      // This is a placeholder test - actual implementation would need to be mocked
-      expect(currentWallet).toHaveLength(3);
-      expect(desiredWallet.TRUR).toBe(25);
-      expect(desiredWallet.TMOS).toBe(50);
-      expect(desiredWallet.RUB).toBe(25);
-    });
-
-    it("should handle empty portfolio", () => {
-      const currentWallet: Wallet = [];
-      const desiredWallet = {};
-
-      expect(currentWallet).toHaveLength(0);
-      expect(Object.keys(desiredWallet)).toHaveLength(0);
-    });
-
-    it("should handle single asset portfolio", () => {
-      const currentWallet: Wallet = [
-        {
-          base: "TRUR",
-          figi: "figi1",
-          amount: 1000,
-          lotSize: 10,
-          price: { units: 100, nano: 0 },
-          priceNumber: 100,
-          lotPrice: { units: 100, nano: 0 },
-          lotPriceNumber: 100,
-          totalPrice: { units: 1000, nano: 0 },
-          totalPriceNumber: 1000,
-          toBuyLots: 0,
-        },
-      ];
-
-      const desiredWallet = { TRUR: 100 };
-
-      expect(currentWallet).toHaveLength(1);
-      expect(desiredWallet.TRUR).toBe(100);
-    });
-  });
-
-  describe("Position Calculations", () => {
-    it("should calculate correct lot quantities", () => {
-      const position: Position = {
-        base: "TRUR",
-        figi: "figi1",
-        amount: 1000,
-        lotSize: 10,
-        price: { units: 100, nano: 0 },
-        priceNumber: 100,
-        lotPrice: { units: 100, nano: 0 },
-        lotPriceNumber: 100,
-        totalPrice: { units: 1000, nano: 0 },
-        totalPriceNumber: 1000,
-        toBuyLots: 5,
-      };
-
-      expect(position.toBuyLots).toBe(5);
-      expect(position.lotSize).toBe(10);
-      expect(position.amount).toBe(1000);
-    });
-
-    it("should handle fractional lots", () => {
-      const position: Position = {
-        base: "TRUR",
-        figi: "figi1",
-        amount: 1000,
-        lotSize: 10,
-        price: { units: 100, nano: 0 },
-        priceNumber: 100,
-        lotPrice: { units: 100, nano: 0 },
-        lotPriceNumber: 100,
-        totalPrice: { units: 1000, nano: 0 },
-        totalPriceNumber: 1000,
-        toBuyLots: 0.5,
-      };
-
-      expect(position.toBuyLots).toBe(0.5);
-      expect(position.lotSize).toBe(10);
-    });
-  });
-
-  describe("Edge Cases", () => {
-    it("should handle zero amounts", () => {
-      const position: Position = {
-        base: "TRUR",
-        figi: "figi1",
-        amount: 0,
-        lotSize: 0,
-        price: { units: 0, nano: 0 },
-        priceNumber: 0,
-        lotPrice: { units: 0, nano: 0 },
-        lotPriceNumber: 0,
-        totalPrice: { units: 0, nano: 0 },
-        totalPriceNumber: 0,
-        toBuyLots: 0,
-      };
-
-      expect(position.amount).toBe(0);
-      expect(position.lotSize).toBe(0);
-      expect(position.toBuyLots).toBe(0);
-    });
-
-    it("should handle very large amounts", () => {
-      const largeAmount = 1000000000; // 1 billion
-      const position: Position = {
-        base: "TRUR",
-        figi: "figi1",
-        amount: largeAmount,
-        lotSize: 1000,
-        price: { units: largeAmount / 1000, nano: 0 },
-        priceNumber: largeAmount / 1000,
-        lotPrice: { units: largeAmount / 1000, nano: 0 },
-        lotPriceNumber: largeAmount / 1000,
-        totalPrice: { units: largeAmount, nano: 0 },
-        totalPriceNumber: largeAmount,
-        toBuyLots: 1000,
-      };
-
-      expect(position.amount).toBe(largeAmount);
-      expect(position.lotSize).toBe(1000);
-      expect(position.toBuyLots).toBe(1000);
-    });
-  });
-
+testSuite('Balancer Core Functions', () => {
   describe('normalizeDesire', () => {
     it('should normalize desired wallet percentages to sum to 100%', () => {
       const desiredWallet = {
@@ -198,6 +74,269 @@ describe("Balancer", () => {
         expect(percentage).toBeCloseTo(25, 2);
       });
     });
+
+    it('should handle unnormalized percentages correctly', () => {
+      const unnormalizedWallet = {
+        TRUR: 30,
+        TMOS: 20,
+        TGLD: 15,
+        // Sum = 65, should be normalized to 100
+      };
+
+      const result = normalizeDesire(unnormalizedWallet);
+      
+      // Verify normalization
+      FinancialAssertions.expectNormalizedDesiredWallet(result);
+      
+      // Verify proportions are maintained
+      expect(result.TRUR).toBeCloseTo(46.15, 1); // 30/65 * 100
+      expect(result.TMOS).toBeCloseTo(30.77, 1); // 20/65 * 100
+      expect(result.TGLD).toBeCloseTo(23.08, 1); // 15/65 * 100
+    });
+
+    it('should handle single asset wallet', () => {
+      const singleAsset = { TRUR: 50 };
+      const result = normalizeDesire(singleAsset);
+      
+      expect(result.TRUR).toBe(100);
+      FinancialAssertions.expectNormalizedDesiredWallet(result);
+    });
+
+    it('should handle zero values by excluding them', () => {
+      const withZeros = {
+        TRUR: 50,
+        TMOS: 0,
+        TGLD: 30
+      };
+      
+      const result = normalizeDesire(withZeros);
+      
+      // Should normalize only non-zero values
+      expect(result.TRUR).toBeCloseTo(62.5, 1); // 50/80 * 100
+      expect(result.TMOS).toBe(0);
+      expect(result.TGLD).toBeCloseTo(37.5, 1); // 30/80 * 100
+    });
+  });
+  describe('addNumbersToPosition', () => {
+    it('should convert TinkoffNumber to number correctly', () => {
+      const position = createMockPosition({
+        price: { units: 100, nano: 500000000 }, // 100.5
+        lotPrice: { units: 1000, nano: 0 }, // 1000
+        totalPrice: { units: 50000, nano: 250000000 }, // 50000.25
+      });
+      
+      const result = addNumbersToPosition(position);
+      
+      expect(result.priceNumber).toBeCloseTo(100.5, 2);
+      expect(result.lotPriceNumber).toBe(1000);
+      expect(result.totalPriceNumber).toBeCloseTo(50000.25, 2);
+    });
+    
+    it('should handle missing price fields gracefully', () => {
+      const position = createMockPosition({
+        price: undefined,
+        lotPrice: undefined,
+        totalPrice: undefined,
+      });
+      
+      const result = addNumbersToPosition(position);
+      
+      expect(result.priceNumber).toBeUndefined();
+      expect(result.lotPriceNumber).toBeUndefined();
+      expect(result.totalPriceNumber).toBeUndefined();
+    });
+  });
+  
+  describe('addNumbersToWallet', () => {
+    it('should process all positions in wallet', () => {
+      const wallet = [
+        createMockPosition({ base: 'TRUR', price: { units: 100, nano: 0 } }),
+        createMockPosition({ base: 'TMOS', price: { units: 200, nano: 500000000 } }),
+      ];
+      
+      const result = addNumbersToWallet(wallet);
+      
+      expect(result).toHaveLength(2);
+      expect(result[0].priceNumber).toBe(100);
+      expect(result[1].priceNumber).toBeCloseTo(200.5, 2);
+    });
+  });
+  describe('Margin Trading Functions', () => {
+    beforeEach(() => {
+      // Mock margin trading configuration
+      process.env.ACCOUNT_ID = 'test-margin-account';
+    });
+    
+    describe('identifyMarginPositions', () => {
+      it('should identify margin positions when margin trading is enabled', () => {
+        // This would require mocking the account configuration
+        // For now, test the basic structure
+        const wallet = mockBalancedWallet;
+        const marginPositions = identifyMarginPositions(wallet);
+        
+        expect(Array.isArray(marginPositions)).toBe(true);
+      });
+      
+      it('should return empty array when margin trading is disabled', () => {
+        const wallet = mockBalancedWallet;
+        const marginPositions = identifyMarginPositions(wallet);
+        
+        // Should return empty array when margin trading is disabled in config
+        expect(marginPositions).toHaveLength(0);
+      });
+    });
+    
+    describe('applyMarginStrategy', () => {
+      it('should apply margin strategy correctly', () => {
+        const wallet = mockBalancedWallet;
+        const strategy = applyMarginStrategy(wallet);
+        
+        expect(strategy).toHaveProperty('shouldRemoveMargin');
+        expect(strategy).toHaveProperty('reason');
+        expect(strategy).toHaveProperty('transferCost');
+        expect(strategy).toHaveProperty('marginPositions');
+        expect(Array.isArray(strategy.marginPositions)).toBe(true);
+      });
+    });
+    
+    describe('calculateOptimalSizes', () => {
+      it('should calculate optimal position sizes', () => {
+        const wallet = mockBalancedWallet;
+        const desired = mockDesiredWallets.balanced;
+        
+        const sizes = calculateOptimalSizes(wallet, desired);
+        
+        expect(typeof sizes).toBe('object');
+        
+        // Verify structure of returned sizes
+        Object.values(sizes).forEach(size => {
+          expect(size).toHaveProperty('baseSize');
+          expect(size).toHaveProperty('marginSize');
+          expect(size).toHaveProperty('totalSize');
+          expect(typeof size.baseSize).toBe('number');
+          expect(typeof size.marginSize).toBe('number');
+          expect(typeof size.totalSize).toBe('number');
+        });
+      });
+    });
+  });
+  describe('Main Balancer Function', () => {
+    beforeEach(() => {
+      // Setup mocks for balancer tests
+      mockTinkoffSDKControls.setSuccess();
+      mockControls.fs.setSuccess();
+      
+      // Mock getLastPrice function
+      mockTinkoffSDKControls.setResponse('getLastPrices', {
+        lastPrices: [
+          { figi: 'BBG004S68614', price: { units: 100, nano: 0 } },
+          { figi: 'BBG004S68B31', price: { units: 200, nano: 0 } },
+          { figi: 'BBG004S687G5', price: { units: 500, nano: 0 } },
+        ]
+      });
+    });
+    
+    it('should return enhanced balancer result structure', async () => {
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      // Verify enhanced result structure
+      FinancialAssertions.expectValidBalancerResult(result);
+      expect(result.modeUsed).toBe('manual');
+    });
+    
+    it('should handle dry-run mode correctly', async () => {
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      // In dry-run mode, should calculate without executing orders
+      expect(result).toBeDefined();
+      expect(result.finalPercents).toBeDefined();
+      
+      // Verify no actual orders were made (would require SDK mock verification)
+      expect(mockTinkoffSDKControls.getCallCount('postOrder')).toBe(0);
+    });
+    
+    it('should handle empty portfolio', async () => {
+      const wallet = mockEmptyWallet;
+      const desired = {};
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      expect(result.totalPortfolioValue).toBe(0);
+      expect(Object.keys(result.finalPercents)).toHaveLength(0);
+    });
+    
+    it('should handle single asset portfolio', async () => {
+      const wallet = mockSingleAssetWallet;
+      const desired = mockDesiredWallets.single;
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      expect(result.finalPercents.TRUR).toBeCloseTo(100, 1);
+    });
+    
+    it('should calculate final percentages correctly', async () => {
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      // Verify final percentages are reasonable
+      const totalPercent = Object.values(result.finalPercents).reduce((sum, pct) => sum + pct, 0);
+      expect(totalPercent).toBeCloseTo(100, 1);
+    });
+  });
+  
+  describe('Performance Tests', () => {
+    it('should complete balancing within reasonable time', async () => {
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      const result = await PerformanceTestUtils.expectExecutionTime(
+        () => balancer(wallet, desired, [], 'manual', true),
+        5000 // 5 seconds max
+      );
+      
+      expect(result).toBeDefined();
+    });
+  });
+  
+  describe('Error Handling', () => {
+    it('should handle API errors gracefully', async () => {
+      mockTinkoffSDKControls.setFailure('networkTimeout');
+      
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      // Should handle network errors when fetching prices
+      try {
+        await balancer(wallet, desired, [], 'manual', true);
+      } catch (error) {
+        expect(error).toBeDefined();
+        expect(error.message).toContain('DEADLINE_EXCEEDED');
+      }
+    });
+    
+    it('should handle missing instruments gracefully', async () => {
+      // Clear global instruments
+      (global as any).INSTRUMENTS = [];
+      
+      const wallet = mockBalancedWallet;
+      const desired = { UNKNOWN_TICKER: 100 };
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      // Should complete without errors, just skip unknown instruments
+      expect(result).toBeDefined();
+    });
+  });
 
     it('should handle different percentage values correctly', () => {
       const desiredWallet = {
@@ -234,6 +373,198 @@ describe("Balancer", () => {
       const result = normalizeDesire(desiredWallet);
 
       expect(result).toEqual({});
+    });
+  });
+});
+
+// Additional test suites for comprehensive coverage
+testSuite('Balancer Integration Tests', () => {
+  describe('Complex Balancing Scenarios', () => {
+    it('should handle need-to-buy scenario', async () => {
+      const { current, desired } = balancingScenarios.needToBuy;
+      
+      const result = await balancer(current, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      expect(result.totalPortfolioValue).toBeGreaterThan(0);
+    });
+    
+    it('should handle need-to-sell scenario', async () => {
+      const { current, desired } = balancingScenarios.needToSell;
+      
+      const result = await balancer(current, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      // Should convert to 100% RUB
+      expect(result.finalPercents.RUB).toBeCloseTo(100, 5);
+    });
+    
+    it('should handle rebalancing scenario', async () => {
+      const { current, desired } = balancingScenarios.needRebalance;
+      
+      const result = await balancer(current, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      FinancialAssertions.expectValidBalancerResult(result);
+    });
+    
+    it('should handle already balanced scenario', async () => {
+      const { current, desired } = balancingScenarios.alreadyBalanced;
+      
+      const result = await balancer(current, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      // Should require minimal changes
+      FinancialAssertions.expectPortfolioBalance(current, desired, 5.0);
+    });
+  });
+  
+  describe('Different Balancing Modes', () => {
+    it('should handle manual mode', async () => {
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      expect(result.modeUsed).toBe('manual');
+      FinancialAssertions.expectValidBalancerResult(result);
+    });
+    
+    it('should handle marketcap mode', async () => {
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      const metrics = [
+        {
+          ticker: 'TRUR',
+          marketCap: { value: 50000000000, percentage: 40 }
+        },
+        {
+          ticker: 'TMOS',
+          marketCap: { value: 30000000000, percentage: 30 }
+        }
+      ];
+      
+      const result = await balancer(wallet, desired, metrics, 'marketcap', true);
+      
+      expect(result.modeUsed).toBe('marketcap');
+      expect(result.positionMetrics).toEqual(metrics);
+    });
+  });
+  
+  describe('Margin Trading Integration', () => {
+    beforeEach(() => {
+      // Mock margin-enabled account configuration
+      process.env.ACCOUNT_ID = 'margin-test-account';
+    });
+    
+    it('should handle margin positions in balancing', async () => {
+      const wallet = mockMarginWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      const result = await balancer(wallet, desired, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      
+      // Should include margin info if margin trading is enabled
+      if (result.marginInfo) {
+        expect(result.marginInfo.totalMarginUsed).toBeGreaterThanOrEqual(0);
+        expect(typeof result.marginInfo.withinLimits).toBe('boolean');
+        expect(Array.isArray(result.marginInfo.marginPositions)).toBe(true);
+      }
+    });
+  });
+});
+
+testSuite('Balancer Edge Cases and Error Scenarios', () => {
+  describe('Data Validation', () => {
+    it('should handle invalid position data', async () => {
+      const invalidWallet = [
+        createMockPosition({
+          base: undefined,
+          figi: undefined,
+          amount: NaN,
+          priceNumber: -1,
+        })
+      ];
+      
+      const result = await balancer(invalidWallet, mockDesiredWallets.balanced, [], 'manual', true);
+      
+      // Should handle gracefully without crashing
+      expect(result).toBeDefined();
+    });
+    
+    it('should handle extreme values', async () => {
+      const extremeWallet = [
+        createMockPosition({
+          base: 'EXTREME',
+          amount: Number.MAX_SAFE_INTEGER,
+          priceNumber: Number.MAX_SAFE_INTEGER,
+          totalPriceNumber: Number.MAX_SAFE_INTEGER,
+        })
+      ];
+      
+      const result = await balancer(extremeWallet, { EXTREME: 100 }, [], 'manual', true);
+      
+      expect(result).toBeDefined();
+      expect(isFinite(result.totalPortfolioValue)).toBe(true);
+    });
+  });
+  
+  describe('Network and API Error Handling', () => {
+    it('should handle rate limiting', async () => {
+      mockTinkoffSDKControls.simulateRateLimit();
+      
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      try {
+        await balancer(wallet, desired, [], 'manual', true);
+      } catch (error) {
+        expect(error.message).toContain('RESOURCE_EXHAUSTED');
+      }
+    });
+    
+    it('should handle unauthorized access', async () => {
+      mockTinkoffSDKControls.simulateUnauthorized();
+      
+      const wallet = mockBalancedWallet;
+      const desired = mockDesiredWallets.balanced;
+      
+      try {
+        await balancer(wallet, desired, [], 'manual', true);
+      } catch (error) {
+        expect(error.message).toContain('UNAUTHENTICATED');
+      }
+    });
+  });
+  
+  describe('Mathematical Edge Cases', () => {
+    it('should handle division by zero scenarios', () => {
+      const zeroDesired = { TRUR: 0, TMOS: 0, TGLD: 0 };
+      
+      // Should handle zero sum in normalization
+      expect(() => normalizeDesire(zeroDesired)).not.toThrow();
+    });
+    
+    it('should handle negative percentages', () => {
+      const negativeDesired = { TRUR: -50, TMOS: 150 };
+      
+      const result = normalizeDesire(negativeDesired);
+      
+      // Should handle negative values appropriately
+      expect(typeof result).toBe('object');
+    });
+    
+    it('should handle very small percentages', () => {
+      const smallDesired = { 
+        TRUR: 0.001, 
+        TMOS: 0.002, 
+        TGLD: 99.997 
+      };
+      
+      const result = normalizeDesire(smallDesired);
+      
+      FinancialAssertions.expectNormalizedDesiredWallet(result);
     });
   });
 });
