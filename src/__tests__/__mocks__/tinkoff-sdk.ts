@@ -23,10 +23,25 @@ let mockState = {
 const trackCall = (methodName: string, args: any[]) => {
   mockState.callCounts[methodName] = (mockState.callCounts[methodName] || 0) + 1;
   mockState.lastCallArgs[methodName] = args;
+  
+  // Also track in call history for enhanced testing
+  if (!mockTinkoffSDKControls.callHistory) {
+    mockTinkoffSDKControls.callHistory = {};
+  }
+  if (!mockTinkoffSDKControls.callHistory[methodName]) {
+    mockTinkoffSDKControls.callHistory[methodName] = [];
+  }
+  mockTinkoffSDKControls.callHistory[methodName].push(args[0] || args);
 };
 
 // Helper to get response or throw error
 const getResponse = (methodName: string, defaultResponse: any) => {
+  // Check for method-specific failures first
+  if (mockTinkoffSDKControls.methodFailures && mockTinkoffSDKControls.methodFailures[methodName]) {
+    throw mockTinkoffSDKControls.methodFailures[methodName];
+  }
+  
+  // Check for global failure
   if (mockState.shouldFail) {
     const error = errorScenarios[mockState.errorType as keyof typeof errorScenarios];
     throw new Error(`${error.code}: ${error.message}`);
@@ -215,6 +230,25 @@ export const mockTinkoffSDK = {
       trackCall('etfBy', [request]);
       return getResponse('etfBy', mockApiResponses.instrumentsSuccess[0]);
     }),
+    
+    getTradingSchedules: mockFn(async (request: any) => {
+      trackCall('getTradingSchedules', [request]);
+      return getResponse('getTradingSchedules', {
+        exchanges: [
+          {
+            exchange: 'MOEX',
+            days: [
+              {
+                date: '2024-01-01',
+                isTradingDay: true,
+                startTime: '2024-01-01T10:00:00Z',
+                endTime: '2024-01-01T18:45:00Z'
+              }
+            ]
+          }
+        ]
+      });
+    }),
   },
 
   // Sandbox API (for testing)
@@ -238,6 +272,10 @@ export const mockTinkoffSDK = {
 
 // Mock control functions for tests
 export const mockTinkoffSDKControls = {
+  // Call history tracking
+  callHistory: {} as Record<string, any[]>,
+  methodFailures: {} as Record<string, any>,
+  
   // Reset all mock state
   reset: () => {
     mockState = {
@@ -247,6 +285,9 @@ export const mockTinkoffSDKControls = {
       callCounts: {},
       lastCallArgs: {},
     };
+    
+    mockTinkoffSDKControls.callHistory = {};
+    mockTinkoffSDKControls.methodFailures = {};
     
     // Reset all mock functions
     Object.values(mockTinkoffSDK).forEach(api => {
@@ -258,10 +299,36 @@ export const mockTinkoffSDKControls = {
     });
   },
   
-  // Configure mock to fail with specific error
-  setFailure: (errorType: keyof typeof errorScenarios = 'networkTimeout') => {
-    mockState.shouldFail = true;
-    mockState.errorType = errorType;
+  // Enhanced call tracking
+  getCallHistory(method: string): any[] {
+    return this.callHistory[method] || [];
+  },
+  
+  clearCallHistory() {
+    this.callHistory = {};
+  },
+  
+  // Enhanced failure handling
+  setFailure: (method: string | 'all' = 'all', errorType: string = 'networkTimeout') => {
+    if (method === 'all') {
+      mockState.shouldFail = true;
+      mockState.errorType = errorType as keyof typeof errorScenarios;
+    } else {
+      this.methodFailures[method] = this.createError(errorType);
+    }
+  },
+  
+  createError(type: string) {
+    switch (type) {
+      case 'unauthorized':
+        return { code: 16, message: 'UNAUTHENTICATED: Token is invalid' };
+      case 'rate_limit':
+        return { code: 8, message: 'RESOURCE_EXHAUSTED: Rate limit exceeded' };
+      case 'network_error':
+        return { code: 14, message: 'UNAVAILABLE: Network error' };
+      default:
+        return { code: 13, message: 'INTERNAL: Unknown error' };
+    }
   },
   
   // Configure custom response for specific method

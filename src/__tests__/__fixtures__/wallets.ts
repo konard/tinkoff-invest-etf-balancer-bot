@@ -288,6 +288,17 @@ export const mockMarketData = {
   }
 };
 
+export const createMockWallet = (positions: Partial<Position>[] = []): Wallet => {
+  if (positions.length === 0) {
+    return [
+      createMockPosition({ base: 'TRUR', totalPriceNumber: 50000 }),
+      createMockPosition({ base: 'TMOS', totalPriceNumber: 30000 }),
+      createMockPosition({ base: 'RUB', quote: 'RUB', totalPriceNumber: 20000 })
+    ];
+  }
+  return positions.map(pos => createMockPosition(pos));
+};
+
 // Error scenarios for testing error handling
 export const errorScenarios = {
   invalidFigi: createMockPosition({
