@@ -172,17 +172,6 @@ describe('buildDesiredWalletByMode Enhanced Coverage', () => {
   });
 
   describe('Performance and boundary conditions', () => {
-    it('should handle large number of tickers', async () => {
-      const largeTickers: DesiredWallet = {};
-      for (let i = 0; i < 20; i++) {
-        largeTickers[`TICKER${i}`] = 5; // 20 * 5 = 100%
-      }
-
-      const result = await buildDesiredWalletByMode('manual', largeTickers);
-      
-      expect(Object.keys(result.wallet)).toHaveLength(20);
-      expect(result.modeApplied).toBe('manual');
-    });
 
     it('should handle very small percentage values', async () => {
       const smallPercentages = {

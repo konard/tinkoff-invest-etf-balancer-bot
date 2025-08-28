@@ -1,4 +1,24 @@
+// Mock modules first, before any other imports
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
+import { mock } from "bun:test";
+
+// Mock the provider functions used in balancer.ts
+const mockGetLastPrice = mock(async () => ({ units: 100, nano: 0 }));
+const mockGenerateOrders = mock(async () => undefined);
+const mockGetAccountId = mock(async () => 'test-account-id');
+const mockGetInstruments = mock(async () => undefined);
+const mockGetPositionsCycle = mock(async () => undefined);
+const mockIsExchangeOpenNow = mock(async () => true);
+
+mock.module('../../provider', () => ({
+  getLastPrice: mockGetLastPrice,
+  generateOrders: mockGenerateOrders,
+  getAccountId: mockGetAccountId,
+  getInstruments: mockGetInstruments,
+  getPositionsCycle: mockGetPositionsCycle,
+  isExchangeOpenNow: mockIsExchangeOpenNow,
+}));
+
 import { 
   balancer, 
   normalizeDesire, 
@@ -30,6 +50,7 @@ import {
 import { mockAccountConfigs } from '../__fixtures__/configurations';
 import { mockTinkoffSDKControls } from '../__mocks__/tinkoff-sdk';
 import { mockControls } from '../__mocks__/external-deps';
+import { mockProviderControls } from '../__mocks__/provider';
 
 // Mock global INSTRUMENTS for testing
 (global as any).INSTRUMENTS = [
@@ -54,6 +75,34 @@ import { mockControls } from '../__mocks__/external-deps';
 ];
 
 testSuite('Balancer Core Functions', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    mockTinkoffSDKControls.reset();
+    mockControls.fs.reset();
+    mockProviderControls.reset();
+    
+    // Reset provider function mocks
+    mockGetLastPrice.mockClear();
+    mockGenerateOrders.mockClear();
+    mockGetAccountId.mockClear();
+    mockGetInstruments.mockClear();
+    mockGetPositionsCycle.mockClear();
+    mockIsExchangeOpenNow.mockClear();
+    
+    // Set mocks to success state by default
+    mockTinkoffSDKControls.setSuccess();
+    mockControls.fs.setSuccess();
+    mockProviderControls.setSuccess();
+    
+    // Set provider function mocks to return default values
+    mockGetLastPrice.mockResolvedValue({ units: 100, nano: 0 });
+    mockGenerateOrders.mockResolvedValue(undefined);
+    mockGetAccountId.mockResolvedValue('test-account-id');
+    mockGetInstruments.mockResolvedValue(undefined);
+    mockGetPositionsCycle.mockResolvedValue(undefined);
+    mockIsExchangeOpenNow.mockResolvedValue(true);
+  });
+  
   describe('normalizeDesire', () => {
     it('should normalize desired wallet percentages to sum to 100%', () => {
       const desiredWallet = {
@@ -158,6 +207,34 @@ testSuite('Balancer Core Functions', () => {
 
 // Additional test suites for comprehensive coverage
 testSuite('Balancer Integration Tests', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    mockTinkoffSDKControls.reset();
+    mockControls.fs.reset();
+    mockProviderControls.reset();
+    
+    // Reset provider function mocks
+    mockGetLastPrice.mockClear();
+    mockGenerateOrders.mockClear();
+    mockGetAccountId.mockClear();
+    mockGetInstruments.mockClear();
+    mockGetPositionsCycle.mockClear();
+    mockIsExchangeOpenNow.mockClear();
+    
+    // Set mocks to success state by default
+    mockTinkoffSDKControls.setSuccess();
+    mockControls.fs.setSuccess();
+    mockProviderControls.setSuccess();
+    
+    // Set provider function mocks to return default values
+    mockGetLastPrice.mockResolvedValue({ units: 100, nano: 0 });
+    mockGenerateOrders.mockResolvedValue(undefined);
+    mockGetAccountId.mockResolvedValue('test-account-id');
+    mockGetInstruments.mockResolvedValue(undefined);
+    mockGetPositionsCycle.mockResolvedValue(undefined);
+    mockIsExchangeOpenNow.mockResolvedValue(true);
+  });
+  
   describe('Complex Balancing Scenarios', () => {
     it('should handle need-to-buy scenario', async () => {
       const { current, desired } = balancingScenarios.needToBuy;
@@ -188,17 +265,77 @@ testSuite('Balancer Integration Tests', () => {
     });
     
     it('should handle already balanced scenario', async () => {
-      const { current, desired } = balancingScenarios.alreadyBalanced;
+      // Create a properly balanced portfolio that matches the desired allocation
+      const balancedPortfolio = [
+        createMockPosition({
+          base: "TRUR",
+          amount: 1000,
+          priceNumber: 100,
+          totalPriceNumber: 87500, // 25% of 350,000
+        }),
+        createMockPosition({
+          base: "TMOS",
+          amount: 500,
+          priceNumber: 200,
+          totalPriceNumber: 87500, // 25% of 350,000
+        }),
+        createMockPosition({
+          base: "TGLD",
+          amount: 200,
+          priceNumber: 500,
+          totalPriceNumber: 87500, // 25% of 350,000
+        }),
+        createMockPosition({
+          base: "RUB",
+          amount: 87500,
+          priceNumber: 1,
+          totalPriceNumber: 87500, // 25% of 350,000
+        }),
+      ];
       
-      const result = await balancer(current, desired, [], 'manual', true);
+      const result = await balancer(balancedPortfolio, mockDesiredWallets.balanced, [], 'manual', true);
       
       expect(result).toBeDefined();
-      // Should require minimal changes
-      FinancialAssertions.expectPortfolioBalance(current, desired, 5.0);
+      // Should require minimal changes since portfolio is already balanced
+      FinancialAssertions.expectValidBalancerResult(result);
+      
+      // Verify that the final percentages are close to desired with minimal tolerance
+      Object.entries(mockDesiredWallets.balanced).forEach(([ticker, expectedPercent]) => {
+        expect(result.finalPercents[ticker]).toBeCloseTo(expectedPercent, 1.0);
+      });
     });
+
   });
   
   describe('Different Balancing Modes', () => {
+    beforeEach(() => {
+      // Reset all mocks before each test
+      mockTinkoffSDKControls.reset();
+      mockControls.fs.reset();
+      mockProviderControls.reset();
+      
+      // Reset provider function mocks
+      mockGetLastPrice.mockClear();
+      mockGenerateOrders.mockClear();
+      mockGetAccountId.mockClear();
+      mockGetInstruments.mockClear();
+      mockGetPositionsCycle.mockClear();
+      mockIsExchangeOpenNow.mockClear();
+      
+      // Set mocks to success state by default
+      mockTinkoffSDKControls.setSuccess();
+      mockControls.fs.setSuccess();
+      mockProviderControls.setSuccess();
+      
+      // Set provider function mocks to return default values
+      mockGetLastPrice.mockResolvedValue({ units: 100, nano: 0 });
+      mockGenerateOrders.mockResolvedValue(undefined);
+      mockGetAccountId.mockResolvedValue('test-account-id');
+      mockGetInstruments.mockResolvedValue(undefined);
+      mockGetPositionsCycle.mockResolvedValue(undefined);
+      mockIsExchangeOpenNow.mockResolvedValue(true);
+    });
+    
     it('should handle manual mode', async () => {
       const wallet = mockBalancedWallet;
       const desired = mockDesiredWallets.balanced;
@@ -232,6 +369,32 @@ testSuite('Balancer Integration Tests', () => {
   
   describe('Margin Trading Integration', () => {
     beforeEach(() => {
+      // Reset all mocks before each test
+      mockTinkoffSDKControls.reset();
+      mockControls.fs.reset();
+      mockProviderControls.reset();
+      
+      // Reset provider function mocks
+      mockGetLastPrice.mockClear();
+      mockGenerateOrders.mockClear();
+      mockGetAccountId.mockClear();
+      mockGetInstruments.mockClear();
+      mockGetPositionsCycle.mockClear();
+      mockIsExchangeOpenNow.mockClear();
+      
+      // Set mocks to success state by default
+      mockTinkoffSDKControls.setSuccess();
+      mockControls.fs.setSuccess();
+      mockProviderControls.setSuccess();
+      
+      // Set provider function mocks to return default values
+      mockGetLastPrice.mockResolvedValue({ units: 100, nano: 0 });
+      mockGenerateOrders.mockResolvedValue(undefined);
+      mockGetAccountId.mockResolvedValue('test-account-id');
+      mockGetInstruments.mockResolvedValue(undefined);
+      mockGetPositionsCycle.mockResolvedValue(undefined);
+      mockIsExchangeOpenNow.mockResolvedValue(true);
+      
       // Mock margin-enabled account configuration
       process.env.ACCOUNT_ID = 'margin-test-account';
     });
@@ -255,6 +418,34 @@ testSuite('Balancer Integration Tests', () => {
 });
 
 testSuite('Balancer Edge Cases and Error Scenarios', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    mockTinkoffSDKControls.reset();
+    mockControls.fs.reset();
+    mockProviderControls.reset();
+    
+    // Reset provider function mocks
+    mockGetLastPrice.mockClear();
+    mockGenerateOrders.mockClear();
+    mockGetAccountId.mockClear();
+    mockGetInstruments.mockClear();
+    mockGetPositionsCycle.mockClear();
+    mockIsExchangeOpenNow.mockClear();
+    
+    // Set mocks to success state by default
+    mockTinkoffSDKControls.setSuccess();
+    mockControls.fs.setSuccess();
+    mockProviderControls.setSuccess();
+    
+    // Set provider function mocks to return default values
+    mockGetLastPrice.mockResolvedValue({ units: 100, nano: 0 });
+    mockGenerateOrders.mockResolvedValue(undefined);
+    mockGetAccountId.mockResolvedValue('test-account-id');
+    mockGetInstruments.mockResolvedValue(undefined);
+    mockGetPositionsCycle.mockResolvedValue(undefined);
+    mockIsExchangeOpenNow.mockResolvedValue(true);
+  });
+  
   describe('Data Validation', () => {
     it('should handle invalid position data', async () => {
       const invalidWallet = [
