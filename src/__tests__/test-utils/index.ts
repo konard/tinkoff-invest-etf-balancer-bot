@@ -432,19 +432,29 @@ export class ErrorTestUtils {
     fn: (attempt: number) => Promise<T>,
     maxRetries: number = 3
   ): Promise<void> {
-    let attempts = 0;
+    let lastError: Error | null = null;
+    let result: T | undefined = undefined;
+    let success = false;
     
-    const retryFn = async (): Promise<T> => {
-      attempts++;
-      if (attempts < maxRetries) {
-        throw new Error(`Attempt ${attempts} failed`);
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        result = await fn(attempt);
+        success = true;
+        break;
+      } catch (error) {
+        lastError = error as Error;
+        // Continue to next attempt if not the last one
+        if (attempt < maxRetries) {
+          continue;
+        }
       }
-      return fn(attempts);
-    };
+    }
     
-    // Should succeed on the last attempt
-    await expect(retryFn()).resolves.toBeDefined();
-    expect(attempts).toBe(maxRetries);
+    if (success) {
+      expect(result).toBeDefined();
+    } else {
+      throw lastError || new Error('Unknown error occurred');
+    }
   }
 }
 

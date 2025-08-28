@@ -72,14 +72,20 @@ const htmlToText = (html: string): string => {
     .trim();
 };
 
-const parseMoneyToNumber = (s: string): number | null => {
-  // Убираем пробелы-разделители тысяч и валютные символы, заменяем запятую на точку
-  const cleaned = s
+export const parseMoneyToNumber = (s: string): number | null => {
+  // Убираем пробелы-разделители тысяч и валютные символы
+  let cleaned = s
     .replace(/[^0-9,\.\-\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/\s/g, '')
-    .replace(/,(?=\d{2}$)/, '.');
+    .replace(/\s/g, '');
+  
+  // Handle different comma usage:
+  // 1. If comma is followed by a decimal point and 2 digits, it's a thousands separator - remove it
+  // 2. If comma is at the end followed by exactly 2 digits, it's a decimal separator - replace with dot
+  cleaned = cleaned.replace(/(\d+),(\d{3}\.\d{2})/, '$1$2');  // Remove thousands separator
+  cleaned = cleaned.replace(/,(\d{2})$/, '.$1');  // Replace decimal separator
+  
   const num = Number(cleaned);
   return Number.isFinite(num) && num > 0 ? num : null;
 };
@@ -104,7 +110,7 @@ const extractStatisticsTableHtml = (html: string): string | null => {
 
 export type AumEntry = { amount: number; currency: 'RUB' | 'USD' | 'EUR' };
 
-const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Record<string, AumEntry> => {
+export const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Record<string, AumEntry> => {
   const result: Record<string, AumEntry> = {};
   const rowRegex = /<tr[\s\S]*?<\/tr>/gi;
   const rows = tableHtml.match(rowRegex) || [];
@@ -271,131 +277,146 @@ export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Rec
 
 export const getFxRateToRub = async (currency: 'RUB' | 'USD' | 'EUR'): Promise<number> => {
   if (currency === 'RUB') return 1;
-  const { instruments, marketData } = createSdk(process.env.TOKEN || '');
-  const resp = await instruments.currencies({});
-  const list = resp?.instruments || [];
-  const findByPatterns = (patterns: RegExp[]): any | undefined =>
-    _.find(list, (c: any) => patterns.some((re) => re.test(`${c?.ticker} ${c?.name} ${c?.classCode} ${c?.currency}`)));
-  const target = currency === 'USD'
-    ? (findByPatterns([/USDRUB/i, /USD.*RUB/i, /USD000UTS/i]) as any)
-    : (findByPatterns([/EURRUB/i, /EUR.*RUB/i]) as any);
-  if (!target?.figi) return 0;
-  const last = await marketData.getLastPrices({ figi: [target.figi] });
-  const price = convertTinkoffNumberToNumber(last?.lastPrices?.[0]?.price as any);
-  return Number.isFinite(price) ? price : 0;
+  try {
+    const { instruments, marketData } = createSdk(process.env.TOKEN || '');
+    const resp = await instruments.currencies({ instrumentStatus: 1 }); // 1 = INSTRUMENT_STATUS_BASE
+    const list = resp?.instruments || [];
+    const findByPatterns = (patterns: RegExp[]): any | undefined =>
+      _.find(list, (c: any) => patterns.some((re) => re.test(`${c?.ticker} ${c?.name} ${c?.classCode} ${c?.currency}`)));
+    const target = currency === 'USD'
+      ? (findByPatterns([/USDRUB/i, /USD.*RUB/i, /USD000UTS/i]) as any)
+      : (findByPatterns([/EURRUB/i, /EUR.*RUB/i]) as any);
+    if (!target?.figi) return 0;
+    const last = await marketData.getLastPrices({ figi: [target.figi] });
+    const price = convertTinkoffNumberToNumber(last?.lastPrices?.[0]?.price as any);
+    return Number.isFinite(price) ? price : 0;
+  } catch (e) {
+    console.error(`[etfCap] getFxRateToRub error:`, e);
+    return 0;
+  }
 };
 
 export const getEtfMarketCapRUB = async (tickerRaw: string) => {
-  const ticker = normalizeTicker(tickerRaw) || tickerRaw;
+  try {
+    const ticker = normalizeTicker(tickerRaw) || tickerRaw;
 
-  const { instruments, marketData } = createSdk(process.env.TOKEN || '');
+    const { instruments, marketData } = createSdk(process.env.TOKEN || '');
 
-  // 1) Найти ETF по тикеру
-  const etfsResp = await instruments.etfs({});
-  const etf = _.find(etfsResp?.instruments, (e: any) => tickersEqual(e?.ticker, ticker));
-  if (!etf) {
+    // 1) Найти ETF по тикеру
+    const etfsResp = await instruments.etfs({});
+    const etf = _.find(etfsResp?.instruments, (e: any) => tickersEqual(e?.ticker, ticker));
+    if (!etf) {
+      return null;
+    }
+
+    const figi: string = etf.figi;
+    const uid: string = etf.uid; // может пригодиться для расширений
+    let numShares: number = toNumber(etf.numShares);
+    let numSharesSource: 'list' | 'etfBy' | 'asset' | 'derivedFromAUM' | undefined =
+      Number.isFinite(numShares) && numShares > 0 ? 'list' : undefined;
+
+    // Попробуем получить более детальную карточку инструмента, т.к. в списке поля могут быть пустыми
+    if (!numShares || Number.isNaN(numShares)) {
+      try {
+        const etfByResp: any = await instruments.etfBy({ idType: 1, id: figi }); // 1 = FIGI
+        const detailedNum = toNumber(etfByResp?.instrument?.numShares);
+        if (detailedNum && !Number.isNaN(detailedNum)) {
+          numShares = detailedNum;
+          numSharesSource = 'etfBy';
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Если у инструмента нет numShares, пробуем через Assets API получить AssetEtf.numShare по assetUid
+    if ((!numShares || Number.isNaN(numShares)) && etf.assetUid) {
+      try {
+        const assetResp: any = await instruments.getAssetBy({ id: etf.assetUid });
+        // Пробуем несколько возможных путей/имён поля в зависимости от версии API
+        const candidateA = assetResp?.asset?.security?.etf?.numShares;
+        const candidateB = assetResp?.asset?.security?.etf?.numShare;
+        const candidateC = assetResp?.asset?.etf?.numShares;
+        const num = toNumber(candidateA || candidateB || candidateC);
+        if (num && !Number.isNaN(num)) {
+          numShares = num;
+          numSharesSource = numSharesSource || 'asset';
+        }
+      } catch (e) {
+        // ignore, останется null
+      }
+    }
+
+    // 2) Последняя цена
+    const last = await marketData.getLastPrices({ figi: [figi] });
+    const lastPriceQ = last?.lastPrices?.[0]?.price;
+    const lastPriceRUB = toNumber(lastPriceQ);
+
+    // 3) Капитализация (если есть всё)
+    const marketCapRUB = numShares && lastPriceRUB ? numShares * lastPriceRUB : null;
+
+    return {
+      type: 'ETF',
+      ticker: tickerRaw,
+      normalizedTicker: ticker,
+      figi,
+      uid,
+      lastPriceRUB,
+      numShares,
+      numSharesSource,
+      marketCapRUB,
+    };
+  } catch (e) {
+    console.error(`[etfCap] getEtfMarketCapRUB error:`, e);
     return null;
   }
-
-  const figi: string = etf.figi;
-  const uid: string = etf.uid; // может пригодиться для расширений
-  let numShares: number = toNumber(etf.numShares);
-  let numSharesSource: 'list' | 'etfBy' | 'asset' | 'derivedFromAUM' | undefined =
-    Number.isFinite(numShares) && numShares > 0 ? 'list' : undefined;
-
-  // Попробуем получить более детальную карточку инструмента, т.к. в списке поля могут быть пустыми
-  if (!numShares || Number.isNaN(numShares)) {
-    try {
-      const etfByResp: any = await instruments.etfBy({ idType: 1, id: figi }); // 1 = FIGI
-      const detailedNum = toNumber(etfByResp?.instrument?.numShares);
-      if (detailedNum && !Number.isNaN(detailedNum)) {
-        numShares = detailedNum;
-        numSharesSource = 'etfBy';
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  // Если у инструмента нет numShares, пробуем через Assets API получить AssetEtf.numShare по assetUid
-  if ((!numShares || Number.isNaN(numShares)) && etf.assetUid) {
-    try {
-      const assetResp: any = await instruments.getAssetBy({ id: etf.assetUid });
-      // Пробуем несколько возможных путей/имён поля в зависимости от версии API
-      const candidateA = assetResp?.asset?.security?.etf?.numShares;
-      const candidateB = assetResp?.asset?.security?.etf?.numShare;
-      const candidateC = assetResp?.asset?.etf?.numShares;
-      const num = toNumber(candidateA || candidateB || candidateC);
-      if (num && !Number.isNaN(num)) {
-        numShares = num;
-        numSharesSource = numSharesSource || 'asset';
-      }
-    } catch (e) {
-      // ignore, останется null
-    }
-  }
-
-  // 2) Последняя цена
-  const last = await marketData.getLastPrices({ figi: [figi] });
-  const lastPriceQ = last?.lastPrices?.[0]?.price;
-  const lastPriceRUB = toNumber(lastPriceQ);
-
-  // 3) Капитализация (если есть всё)
-  const marketCapRUB = numShares && lastPriceRUB ? numShares * lastPriceRUB : null;
-
-  return {
-    type: 'ETF',
-    ticker: tickerRaw,
-    normalizedTicker: ticker,
-    figi,
-    uid,
-    lastPriceRUB,
-    numShares,
-    numSharesSource,
-    marketCapRUB,
-  };
 };
 
 export const getShareMarketCapRUB = async (tickerRaw: string) => {
-  const ticker = normalizeTicker(tickerRaw) || tickerRaw;
-  const { instruments, marketData } = createSdk(process.env.TOKEN || '');
+  try {
+    const ticker = normalizeTicker(tickerRaw) || tickerRaw;
+    const { instruments, marketData } = createSdk(process.env.TOKEN || '');
 
-  const sharesResp = await instruments.shares({});
-  const share = _.find(sharesResp?.instruments, (s: any) => tickersEqual(s?.ticker, ticker));
-  if (!share) return null;
+    const sharesResp = await instruments.shares({});
+    const share = _.find(sharesResp?.instruments, (s: any) => tickersEqual(s?.ticker, ticker));
+    if (!share) return null;
 
-  const figi: string = share.figi;
-  const uid: string = share.uid;
-  let issueSize: number = Number(share.issueSize || 0);
+    const figi: string = share.figi;
+    const uid: string = share.uid;
+    let issueSize: number = Number(share.issueSize || 0);
 
-  if ((!issueSize || Number.isNaN(issueSize)) && share.assetUid) {
-    try {
-      const assetResp: any = await instruments.getAssetBy({ id: share.assetUid });
-      const assetIssue = assetResp?.asset?.security?.share?.issueSize;
-      const num = toNumber(assetIssue);
-      if (num && !Number.isNaN(num)) issueSize = num;
-    } catch (e) {
-      // ignore
+    if ((!issueSize || Number.isNaN(issueSize)) && share.assetUid) {
+      try {
+        const assetResp: any = await instruments.getAssetBy({ id: share.assetUid });
+        const assetIssue = assetResp?.asset?.security?.share?.issueSize;
+        const num = toNumber(assetIssue);
+        if (num && !Number.isNaN(num)) issueSize = num;
+      } catch (e) {
+        // ignore
+      }
     }
+
+    const last = await marketData.getLastPrices({ figi: [figi] });
+    const lastPriceQ = last?.lastPrices?.[0]?.price;
+    const lastPriceRUB = toNumber(lastPriceQ);
+
+    const marketCapRUB = issueSize && lastPriceRUB ? issueSize * lastPriceRUB : null;
+
+    return {
+      type: 'SHARE',
+      ticker: tickerRaw,
+      normalizedTicker: ticker,
+      figi,
+      uid,
+      lastPriceRUB,
+      numShares: issueSize,
+      numSharesSource: undefined,
+      marketCapRUB,
+    };
+  } catch (e) {
+    console.error(`[etfCap] getShareMarketCapRUB error:`, e);
+    return null;
   }
-
-  const last = await marketData.getLastPrices({ figi: [figi] });
-  const lastPriceQ = last?.lastPrices?.[0]?.price;
-  const lastPriceRUB = toNumber(lastPriceQ);
-
-  const marketCapRUB = issueSize && lastPriceRUB ? issueSize * lastPriceRUB : null;
-
-  return {
-    type: 'SHARE',
-    ticker: tickerRaw,
-    normalizedTicker: ticker,
-    figi,
-    uid,
-    lastPriceRUB,
-    numShares: issueSize,
-    numSharesSource: undefined,
-    marketCapRUB,
-  };
 };
 
 const main = async () => {

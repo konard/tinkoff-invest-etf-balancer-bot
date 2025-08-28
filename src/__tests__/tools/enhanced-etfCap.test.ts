@@ -176,7 +176,7 @@ describe('EtfCap Tool Enhanced Coverage', () => {
       `);
 
       const result = getTickersFromArgs();
-      expect(result).toEqual(['TRUR,TMOS', 'TGLD']);
+      expect(result).toEqual(['TRUR', 'TMOS', 'TGLD']);
     });
 
     it('should get tickers from desired wallet when no args', () => {
@@ -269,19 +269,8 @@ describe('EtfCap Tool Enhanced Coverage', () => {
     });
 
     it('should parse money strings to numbers', () => {
-      const parseMoneyToNumber = eval(`
-        const parseMoneyToNumber = (s) => {
-          const cleaned = s
-            .replace(/[^0-9,\\.\\-\\s]/g, ' ')
-            .replace(/\\s+/g, ' ')
-            .trim()
-            .replace(/\\s/g, '')
-            .replace(/,(?=\\d{2}$)/, '.');
-          const num = Number(cleaned);
-          return Number.isFinite(num) && num > 0 ? num : null;
-        };
-        parseMoneyToNumber
-      `);
+      // Use the actual implementation from the file
+      const { parseMoneyToNumber } = etfCapModule;
 
       expect(parseMoneyToNumber('1 234 567,89 руб')).toBe(1234567.89);
       expect(parseMoneyToNumber('$1,234.56')).toBe(1234.56);
@@ -380,71 +369,8 @@ describe('EtfCap Tool Enhanced Coverage', () => {
 
   describe('AUM table parsing', () => {
     it('should parse AUM table with known tickers', () => {
-      const parseAumTable = eval(`
-        const parseAumTable = (tableHtml, interestedTickers) => {
-          const result = {};
-          const rowRegex = /<tr[\\s\\S]*?<\\/tr>/gi;
-          const rows = tableHtml.match(rowRegex) || [];
-          
-          let lastDayIdx = -1;
-          if (rows.length) {
-            const header = rows[0];
-            if (header) {
-              const headers = (header.match(/<t[hd][\\s\\S]*?<\\/t[hd]>/gi) || [])
-                .map((h) => h.replace(/<[^>]+>/g, ' ').toLowerCase());
-              lastDayIdx = headers.findIndex((h) => h.includes('сча за последний день'));
-            }
-          }
-          
-          for (const rowHtml of rows) {
-            const rowText = rowHtml.replace(/<[^>]+>/g, ' ');
-            if (!rowText) continue;
-            
-            const tokens = rowText.split(/\\s+/);
-            let foundTicker = null;
-            
-            for (const token of tokens) {
-              if (/^[A-Z]{3,6}$/.test(token)) {
-                const normalized = token.toUpperCase();
-                if (interestedTickers.has(normalized)) {
-                  foundTicker = normalized;
-                  break;
-                }
-              }
-            }
-            
-            if (!foundTicker) continue;
-            
-            const cells = (rowHtml.match(/<t[hd][\\s\\S]*?<\\/t[hd]>/gi) || []);
-            let cellHtml = '';
-            if (lastDayIdx >= 0 && cells[lastDayIdx]) {
-              cellHtml = cells[lastDayIdx];
-            } else {
-              cellHtml = rowHtml;
-            }
-            
-            const cellText = cellHtml.replace(/<[^>]+>/g, ' ');
-            const currency = /\\$/i.test(cellText) ? 'USD' : /€/.test(cellText) ? 'EUR' : 'RUB';
-            
-            const numberLikeMatches = cellText.match(/[0-9][0-9\\s.,]*[0-9]/g) || [];
-            const parsed = numberLikeMatches.map(s => {
-              const cleaned = s.replace(/[^0-9,\\.\\-\\s]/g, ' ').replace(/\\s+/g, ' ').trim().replace(/\\s/g, '').replace(/,(?=\\d{2}$)/, '.');
-              const num = Number(cleaned);
-              return Number.isFinite(num) && num > 0 ? num : null;
-            }).filter(n => typeof n === 'number');
-            
-            if (!parsed.length) continue;
-            
-            const aum = Math.max(...parsed);
-            if (Number.isFinite(aum)) {
-              result[foundTicker] = { amount: aum, currency };
-            }
-          }
-          
-          return result;
-        };
-        parseAumTable
-      `);
+      // Use the actual implementation from the file
+      const { parseAumTable } = etfCapModule;
 
       const tableHtml = `
         <table>

@@ -79,12 +79,16 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     (configLoader as any).config = null;
     
     // Setup file system mocks
-    originalReadFileSync = require('fs').readFileSync;
-    require('fs').readFileSync = mockReadFileSync;
+    const fs = require('fs');
+    originalReadFileSync = fs.readFileSync;
+    fs.readFileSync = mockReadFileSync;
     clearMockError();
     clearMockFiles();
     
-    // Mock valid CONFIG.json
+    // Set NODE_ENV to test
+    process.env.NODE_ENV = 'test';
+    
+    // Mock valid CONFIG.test.json
     const mockConfig: ProjectConfig = {
       accounts: [
         mockAccountConfigs.basic,
@@ -93,7 +97,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
       ]
     };
     
-    const configPath = '/test/workspace/CONFIG.json';
+    const configPath = '/test/workspace/CONFIG.test.json';
     setMockFile(configPath, JSON.stringify(mockConfig, null, 2));
     
     // Mock current working directory
@@ -107,7 +111,8 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
       process.cwd = originalCwd;
     }
     if (originalReadFileSync) {
-      require('fs').readFileSync = originalReadFileSync;
+      const fs = require('fs');
+      fs.readFileSync = originalReadFileSync;
     }
     
     // Clean up mocks and environment
@@ -116,6 +121,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     delete process.env.TEST_TOKEN;
     delete process.env.ENV_TOKEN;
     delete process.env.NONEXISTENT_TOKEN;
+    delete process.env.NODE_ENV;
   });
 
   describe('Configuration Loading', () => {
@@ -285,7 +291,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   describe('Configuration Validation', () => {
     it('should validate configuration with missing accounts array', () => {
       const invalidConfig = {};
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration must contain accounts array');
@@ -293,7 +299,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     
     it('should validate configuration with non-array accounts', () => {
       const invalidConfig = { accounts: 'not an array' };
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration must contain accounts array');
@@ -310,7 +316,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
           }
         ]
       };
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('must contain field');
@@ -328,7 +334,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
           }
         ]
       };
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('must contain non-empty desired_wallet');
@@ -351,7 +357,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
       const originalConsole = console.warn;
       console.warn = consoleSpy;
       
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithBadWeights));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(configWithBadWeights));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).not.toThrow();
@@ -403,7 +409,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithInvalidBehavior));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(configWithInvalidBehavior));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('exchange_closure_behavior.mode must be one of');
@@ -426,7 +432,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithInvalidBehavior));
+      setMockFile('/test/workspace/CONFIG.test.json', JSON.stringify(configWithInvalidBehavior));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('update_iteration_result must be a boolean');
@@ -435,15 +441,16 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
 
   describe('Error Scenarios and Edge Cases', () => {
     it('should handle unknown error types', () => {
-      const originalReadFileSync = require('fs').readFileSync;
-      require('fs').readFileSync = () => {
+      const fs = require('fs');
+      const originalReadFileSync = fs.readFileSync;
+      fs.readFileSync = () => {
         throw 'String error'; // Non-Error object
       };
       
       (configLoader as any).config = null;
       expect(() => configLoader.loadConfig()).toThrow('Unknown error');
       
-      require('fs').readFileSync = originalReadFileSync;
+      fs.readFileSync = originalReadFileSync;
     });
     
     it('should handle complex multi-account scenarios', () => {

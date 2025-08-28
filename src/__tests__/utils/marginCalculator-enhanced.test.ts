@@ -665,7 +665,7 @@ testSuite('Margin Calculator Tests', () => {
       const calculator = new MarginCalculator(edgeCaseConfig);
       
       const availableMargin = calculator.calculateAvailableMargin(mockPortfolio);
-      expect(availableMargin).toBe(10000); // 100000 * 0.1
+      expect(availableMargin).toBeCloseTo(10000, 5); // 100000 * 0.1, allowing for floating point precision
 
       const validation = calculator.validateMarginLimits(mockMarginPositions);
       expect(validation.isValid).toBe(false); // Will exceed low max margin size
