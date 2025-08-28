@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { configLoader } from "../../configLoader";
 import { ProjectConfig, AccountConfig } from "../../types.d";
+import { promises as fs } from 'fs';
 
 // Import test utilities and fixtures
 import { 
@@ -11,7 +12,6 @@ import {
   testSuite
 } from '../test-utils';
 import { mockAccountConfigs } from '../__fixtures__/configurations';
-import { mockControls } from '../__mocks__/external-deps';
 
 // Mock function implementation for Bun.js compatibility
 function mockFn() {
@@ -29,15 +29,60 @@ function mockFn() {
   return fn;
 }
 
+// Mock file system state
+let mockFileSystem = new Map<string, string>();
+let shouldThrowError = false;
+let errorToThrow: any = null;
+
+// Mock fs module
+const originalReadFileSync = require('fs').readFileSync;
+const mockReadFileSync = (filePath: string, encoding?: any) => {
+  if (shouldThrowError && errorToThrow) {
+    throw errorToThrow;
+  }
+  
+  if (mockFileSystem.has(filePath)) {
+    return mockFileSystem.get(filePath);
+  }
+  
+  // Default to original behavior for non-mocked files
+  const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
+  (error as any).code = 'ENOENT';
+  throw error;
+};
+
+// Helper functions for test setup
+const setMockFile = (path: string, content: string) => {
+  mockFileSystem.set(path, content);
+};
+
+const setMockError = (error: any) => {
+  shouldThrowError = true;
+  errorToThrow = error;
+};
+
+const clearMockError = () => {
+  shouldThrowError = false;
+  errorToThrow = null;
+};
+
+const clearMockFiles = () => {
+  mockFileSystem.clear();
+};
+
 testSuite('ConfigLoader Module Comprehensive Tests', () => {
   let originalCwd: () => string;
+  let originalReadFileSync: any;
   
   beforeEach(() => {
     // Clear any existing config cache
     (configLoader as any).config = null;
     
     // Setup file system mocks
-    mockControls.fs.setSuccess();
+    originalReadFileSync = require('fs').readFileSync;
+    require('fs').readFileSync = mockReadFileSync;
+    clearMockError();
+    clearMockFiles();
     
     // Mock valid CONFIG.json
     const mockConfig: ProjectConfig = {
@@ -48,7 +93,8 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
       ]
     };
     
-    mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(mockConfig, null, 2));
+    const configPath = '/test/workspace/CONFIG.json';
+    setMockFile(configPath, JSON.stringify(mockConfig, null, 2));
     
     // Mock current working directory
     originalCwd = process.cwd;
@@ -56,12 +102,17 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   });
   
   afterEach(() => {
-    // Restore original cwd
+    // Restore original functions
     if (originalCwd) {
       process.cwd = originalCwd;
     }
+    if (originalReadFileSync) {
+      require('fs').readFileSync = originalReadFileSync;
+    }
     
-    // Clean up environment variables
+    // Clean up mocks and environment
+    clearMockFiles();
+    clearMockError();
     delete process.env.TEST_TOKEN;
     delete process.env.ENV_TOKEN;
     delete process.env.NONEXISTENT_TOKEN;
@@ -84,19 +135,23 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     });
     
     it('should handle file not found error', () => {
-      mockControls.fs.setFailure('ENOENT');
+      const error = new Error('ENOENT: no such file or directory');
+      (error as any).code = 'ENOENT';
+      setMockError(error);
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration loading error');
     });
     
     it('should handle invalid JSON', () => {
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', 'invalid json {');
+      setMockFile('/test/workspace/CONFIG.json', 'invalid json {');
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration loading error');
     });
     
     it('should handle permission denied error', () => {
-      mockControls.fs.setFailure('EACCES');
+      const error = new Error('EACCES: permission denied');
+      (error as any).code = 'EACCES';
+      setMockError(error);
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration loading error');
     });
@@ -204,7 +259,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(configWithMalformedToken));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithMalformedToken));
       (configLoader as any).config = null;
       
       const token = configLoader.getAccountToken('malformed');
@@ -230,7 +285,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   describe('Configuration Validation', () => {
     it('should validate configuration with missing accounts array', () => {
       const invalidConfig = {};
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration must contain accounts array');
@@ -238,7 +293,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     
     it('should validate configuration with non-array accounts', () => {
       const invalidConfig = { accounts: 'not an array' };
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('Configuration must contain accounts array');
@@ -255,7 +310,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
           }
         ]
       };
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('must contain field');
@@ -273,7 +328,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
           }
         ]
       };
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(invalidConfig));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('must contain non-empty desired_wallet');
@@ -296,7 +351,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
       const originalConsole = console.warn;
       console.warn = consoleSpy;
       
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(configWithBadWeights));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithBadWeights));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).not.toThrow();
@@ -320,7 +375,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(configWithoutBehavior));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithoutBehavior));
       (configLoader as any).config = null;
       
       const config = configLoader.loadConfig();
@@ -348,7 +403,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(configWithInvalidBehavior));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithInvalidBehavior));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('exchange_closure_behavior.mode must be one of');
@@ -371,7 +426,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(configWithInvalidBehavior));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(configWithInvalidBehavior));
       (configLoader as any).config = null;
       
       expect(() => configLoader.loadConfig()).toThrow('update_iteration_result must be a boolean');
@@ -411,7 +466,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
         ]
       };
       
-      mockControls.fs.setFile('/test/workspace/CONFIG.json', JSON.stringify(complexConfig));
+      setMockFile('/test/workspace/CONFIG.json', JSON.stringify(complexConfig));
       process.env.ENV_TOKEN = 't.env_value';
       (configLoader as any).config = null;
       
