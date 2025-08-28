@@ -1,0 +1,39 @@
+{
+    "accounts": [
+      {
+        "id": "0",
+        "name": "Основной брокерский счет",
+        "t_invest_token": "${T_INVEST_TOKEN}",
+        "account_id": "0",
+        "desired_wallet": {
+          "TRAY": 8.33,
+          "TGLD": 8.33,
+          "TRUR": 8.33,
+          "TRND": 8.33,
+          "TBRU": 8.33,
+          "TDIV": 8.33,
+          "TITR": 8.33,
+          "TLCB": 8.33,
+          "TMON": 8.33,
+          "TMOS": 8.33,
+          "TOFZ": 8.33,
+          "TPAY": 8.33
+        },
+        "exchange_closure_behavior": {
+          "mode": "dry_run",
+          "update_iteration_result": true
+        },
+        "desired_mode": "aum",
+        "balance_interval": 7200000,
+        "sleep_between_orders": 5000,
+        "margin_trading": {
+          "enabled": true,
+          "multiplier": 4,
+          "free_threshold": 5000,
+          "max_margin_size": 5000,
+          "balancing_strategy": "keep_if_small"
+        }
+      }
+    ]
+  }
+  

@@ -5,14 +5,23 @@ import { ProjectConfig, AccountConfig, ExchangeClosureBehavior } from './types.d
 class ConfigLoader {
   private static instance: ConfigLoader;
   private config: ProjectConfig | null = null;
+  private configPath: string;
 
-  private constructor() {}
+  private constructor(configPath?: string) {
+    // Поддержка разных конфигов: тестовый или основной
+    this.configPath = configPath || 
+      (process.env.NODE_ENV === 'test' ? 'CONFIG.test.json' : 'CONFIG.json');
+  }
 
-  public static getInstance(): ConfigLoader {
+  public static getInstance(configPath?: string): ConfigLoader {
     if (!ConfigLoader.instance) {
-      ConfigLoader.instance = new ConfigLoader();
+      ConfigLoader.instance = new ConfigLoader(configPath);
     }
     return ConfigLoader.instance;
+  }
+
+  public static resetInstance(): void {
+    ConfigLoader.instance = null as any;
   }
 
   public loadConfig(): ProjectConfig {
@@ -21,7 +30,7 @@ class ConfigLoader {
     }
 
     try {
-      const configPath = join(process.cwd(), 'CONFIG.json');
+      const configPath = join(process.cwd(), this.configPath);
       const configData = readFileSync(configPath, 'utf8');
       this.config = JSON.parse(configData);
       
@@ -145,5 +154,7 @@ class ConfigLoader {
 
 }
 
-// Export singleton for convenience
+// Export singleton for convenience with test support
 export const configLoader = ConfigLoader.getInstance();
+export const getTestConfigLoader = () => ConfigLoader.getInstance('CONFIG.test.json');
+export { ConfigLoader };

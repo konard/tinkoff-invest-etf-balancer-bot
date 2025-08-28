@@ -6,10 +6,39 @@ process.env.NODE_ENV = 'test';
 
 // Mock environment variables for testing
 process.env.TOKEN = 'test-token';
-process.env.ACCOUNT_ID = 'test-account';
+process.env.ACCOUNT_ID = '0'; // Match the account ID in CONFIG.test.json
+process.env.T_INVEST_TOKEN = 'test-tinkoff-token';
+
+// Global setup function for resetting singletons in tests
+(global as any).resetConfigLoader = () => {
+  try {
+    const { ConfigLoader } = require('./configLoader');
+    if (ConfigLoader && typeof ConfigLoader.resetInstance === 'function') {
+      ConfigLoader.resetInstance();
+    }
+  } catch (error) {
+    // Ignore import errors during test setup
+  }
+};
+
+// Call reset function if available
+if (typeof (global as any).resetConfigLoader === 'function') {
+  (global as any).resetConfigLoader();
+}
 
 // Global test utilities
 (global as any).testUtils = {
+  // Reset ConfigLoader singleton for test isolation
+  resetConfigLoader: () => {
+    try {
+      const { ConfigLoader } = require('./configLoader');
+      if (ConfigLoader && typeof ConfigLoader.resetInstance === 'function') {
+        ConfigLoader.resetInstance();
+      }
+    } catch (error) {
+      // Ignore import errors
+    }
+  },
   // Helper to create mock Tinkoff numbers
   createTinkoffNumber: (value: number) => {
     const [units, nano] = value.toFixed(9).split('.').map(item => Number(item));

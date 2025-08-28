@@ -3,7 +3,7 @@
     {
       "id": "account_1",
       "name": "Основной брокерский счет",
-      "t_invest_token": "${T_INVEST_TOKEN_1}",
+      "t_invest_token": "${T_INVEST_TOKEN}",
       "account_id": "BROKER",
       "desired_wallet": {
         "TRAY": 8.33,
