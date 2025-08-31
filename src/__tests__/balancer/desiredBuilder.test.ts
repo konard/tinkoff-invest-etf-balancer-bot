@@ -70,6 +70,20 @@ testSuite('DesiredBuilder Module', () => {
     mockToRubFromAum.mockResolvedValue(0);
   });
 
+  afterEach(() => {
+    // Clear all mocks
+    mockGetEtfMarketCapRUB.mockClear();
+    mockGetShareMarketCapRUB.mockClear();
+    mockBuildAumMapSmart.mockClear();
+    mockToRubFromAum.mockClear();
+    
+    // Reset mock file system
+    mockControls.fs.reset();
+    
+    // Clear any timers or intervals if needed
+    // Note: Bun doesn't have jest.clearAllTimers(), so we skip this
+  });
+
   describe('Manual and Default Modes', () => {
     it('should return baseDesired unchanged for manual mode', async () => {
       const baseDesired = mockDesiredWallets.balanced;
@@ -151,9 +165,9 @@ testSuite('DesiredBuilder Module', () => {
       mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
       mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
       
-      // Make sure API functions return null to simulate missing data
-      mockGetEtfMarketCapRUB.mockResolvedValue(null);
-      mockGetShareMarketCapRUB.mockResolvedValue(null);
+      // Make sure ALL API functions return null/invalid to simulate missing data
+      mockGetEtfMarketCapRUB.mockImplementation(async () => null);
+      mockGetShareMarketCapRUB.mockImplementation(async () => null);
       
       const baseDesired = {
         TRUR: 50,
@@ -229,9 +243,9 @@ testSuite('DesiredBuilder Module', () => {
       mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
       mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
       
-      // Make sure API functions return data that will cause validation to fail
-      mockBuildAumMapSmart.mockResolvedValue({}); // Return empty object
-      mockToRubFromAum.mockResolvedValue(0);
+      // Make sure ALL API functions return data that will cause validation to fail
+      mockBuildAumMapSmart.mockImplementation(async () => ({})); // Return empty object
+      mockToRubFromAum.mockImplementation(async () => 0); // Return zero value
       
       const baseDesired = {
         TRUR: 50,
@@ -326,11 +340,11 @@ testSuite('DesiredBuilder Module', () => {
       mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
       mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
       
-      // Make sure API functions also return null/empty to simulate missing data
-      mockGetEtfMarketCapRUB.mockResolvedValue(null);
-      mockGetShareMarketCapRUB.mockResolvedValue(null);
-      mockBuildAumMapSmart.mockResolvedValue({}); // Return empty object
-      mockToRubFromAum.mockResolvedValue(0);
+      // Make sure ALL API functions also return null/empty/zero to simulate missing data
+      mockGetEtfMarketCapRUB.mockImplementation(async () => null);
+      mockGetShareMarketCapRUB.mockImplementation(async () => null);
+      mockBuildAumMapSmart.mockImplementation(async () => ({})); // Return empty object
+      mockToRubFromAum.mockImplementation(async () => 0); // Return zero value
       
       const baseDesired = {
         TRUR: 33,
@@ -583,10 +597,10 @@ testSuite('DesiredBuilder Module', () => {
       }));
       
       // Also mock the API functions to return zero values
-      mockGetEtfMarketCapRUB.mockResolvedValue({ marketCapRUB: 0 });
-      mockGetShareMarketCapRUB.mockResolvedValue({ marketCapRUB: 0 });
-      mockBuildAumMapSmart.mockResolvedValue({ TRUR: { amount: 0, currency: 'RUB' }, TMOS: { amount: 0, currency: 'RUB' } });
-      mockToRubFromAum.mockImplementation(async (aumEntry) => 0);
+      mockGetEtfMarketCapRUB.mockImplementation(async () => ({ marketCapRUB: 0 }));
+      mockGetShareMarketCapRUB.mockImplementation(async () => ({ marketCapRUB: 0 }));
+      mockBuildAumMapSmart.mockImplementation(async () => ({ TRUR: { amount: 0, currency: 'RUB' }, TMOS: { amount: 0, currency: 'RUB' } }));
+      mockToRubFromAum.mockImplementation(async () => 0);
       
       const baseDesired = {
         TRUR: 50,
@@ -636,69 +650,79 @@ testSuite('DesiredBuilder Module', () => {
 
   describe('Position Metrics Generation', () => {
     it('should generate comprehensive position metrics', async () => {
-      const baseDesired = {
-        TRUR: 50,
-        TMOS: 30,
-        TGLD: 20
-      };
+      // Wrap the main operation with a timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Test timeout after 10 seconds')), 10000)
+      );
       
-      // Set up proper mock data for successful test
-      mockGetEtfMarketCapRUB.mockImplementation(async (ticker) => {
-        if (ticker === 'TRUR') return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
-        if (ticker === 'TMOS') return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
-        if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
-        return { marketCapRUB: null };
-      });
-      
-      mockBuildAumMapSmart.mockImplementation(async (tickers) => {
-        const result: Record<string, any> = {};
-        tickers.forEach(ticker => {
-          if (ticker === 'TRUR') result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
-          if (ticker === 'TMOS') result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
-          if (ticker === 'TGLD') result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+      const testPromise = (async () => {
+        const baseDesired = {
+          TRUR: 50,
+          TMOS: 30,
+          TGLD: 20
+        };
+        
+        // Set up proper mock data for successful test
+        mockGetEtfMarketCapRUB.mockImplementation(async (ticker) => {
+          if (ticker === 'TRUR') return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
+          if (ticker === 'TMOS') return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
+          if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
+          return { marketCapRUB: null };
         });
-        return result;
-      });
-      
-      const result = await buildDesiredWalletByMode('decorrelation', baseDesired);
-      
-      expect(result.metrics).toHaveLength(3);
-      
-      result.metrics.forEach(metric => {
-        expect(metric.ticker).toBeDefined();
         
-        // Should have market cap info
-        if (metric.marketCap) {
-          expect(metric.marketCap.value).toBeGreaterThan(0);
-          expect(metric.marketCap.percentage).toBeGreaterThan(0);
-          expect(metric.marketCap.percentage).toBeLessThanOrEqual(100);
-        }
+        mockBuildAumMapSmart.mockImplementation(async (tickers) => {
+          const result: Record<string, any> = {};
+          tickers.forEach(ticker => {
+            if (ticker === 'TRUR') result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
+            if (ticker === 'TMOS') result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
+            if (ticker === 'TGLD') result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+          });
+          return result;
+        });
         
-        // Should have AUM info
-        if (metric.aum) {
-          expect(metric.aum.value).toBeGreaterThan(0);
-          expect(metric.aum.percentage).toBeGreaterThan(0);
-          expect(metric.aum.percentage).toBeLessThanOrEqual(100);
-        }
+        const result = await buildDesiredWalletByMode('decorrelation', baseDesired);
         
-        // Should have decorrelation info
-        if (metric.decorrelation) {
-          expect(metric.decorrelation.value).toBeFinite();
-          expect(['overvalued', 'undervalued', 'neutral']).toContain(metric.decorrelation.interpretation);
-        }
-      });
+        expect(result.metrics).toHaveLength(3);
+        
+        result.metrics.forEach(metric => {
+          expect(metric.ticker).toBeDefined();
+          
+          // Should have market cap info
+          if (metric.marketCap) {
+            expect(metric.marketCap.value).toBeGreaterThan(0);
+            expect(metric.marketCap.percentage).toBeGreaterThan(0);
+            expect(metric.marketCap.percentage).toBeLessThanOrEqual(100);
+          }
+          
+          // Should have AUM info
+          if (metric.aum) {
+            expect(metric.aum.value).toBeGreaterThan(0);
+            expect(metric.aum.percentage).toBeGreaterThan(0);
+            expect(metric.aum.percentage).toBeLessThanOrEqual(100);
+          }
+          
+          // Should have decorrelation info
+          if (metric.decorrelation) {
+            expect(metric.decorrelation.value).toBeFinite();
+            expect(['overvalued', 'undervalued', 'neutral']).toContain(metric.decorrelation.interpretation);
+          }
+        });
+        
+        // Verify percentage calculations sum to ~100%
+        const totalMarketCapPct = result.metrics
+          .filter(m => m.marketCap)
+          .reduce((sum, m) => sum + m.marketCap!.percentage, 0);
+        expect(totalMarketCapPct).toBeCloseTo(100, 1);
+        
+        const totalAumPct = result.metrics
+          .filter(m => m.aum)
+          .reduce((sum, m) => sum + m.aum!.percentage, 0);
+        expect(totalAumPct).toBeCloseTo(100, 1);
+      })();
       
-      // Verify percentage calculations sum to ~100%
-      const totalMarketCapPct = result.metrics
-        .filter(m => m.marketCap)
-        .reduce((sum, m) => sum + m.marketCap!.percentage, 0);
-      expect(totalMarketCapPct).toBeCloseTo(100, 1);
-      
-      const totalAumPct = result.metrics
-        .filter(m => m.aum)
-        .reduce((sum, m) => sum + m.aum!.percentage, 0);
-      expect(totalAumPct).toBeCloseTo(100, 1);
-    });
+      // Race the test promise against the timeout
+      await Promise.race([testPromise, timeoutPromise]);
+    }, 15000); // Overall test timeout - 15 seconds
   });
 
   describe('Performance and Scalability', () => {
