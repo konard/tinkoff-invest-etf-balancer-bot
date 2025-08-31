@@ -100,12 +100,23 @@ testSuite('DesiredBuilder Module', () => {
         TGLD: 20
       };
       
+      // Make JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
+      
       // Set up proper mock data for successful test
       mockGetEtfMarketCapRUB.mockImplementation(async (ticker) => {
-        if (ticker === 'TRUR') return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
-        if (ticker === 'TMOS') return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
-        if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
-        return null;
+        switch(ticker) {
+          case 'TRUR': 
+            return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
+          case 'TMOS': 
+            return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
+          case 'TGLD': 
+            return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
+          default:
+            return null;
+        }
       });
       
       const result = await buildDesiredWalletByMode('marketcap', baseDesired);
@@ -122,23 +133,25 @@ testSuite('DesiredBuilder Module', () => {
       });
       
       // Verify weights are proportional to market cap
-      // TRUR has highest market cap, should have highest weight
+      // TRUR has highest market cap (50B), should have highest weight
       const trurWeight = result.wallet.TRUR;
       const tmosWeight = result.wallet.TMOS;
       const tgldWeight = result.wallet.TGLD;
       
+      // Check relative relationships instead of exact values
       expect(trurWeight).toBeGreaterThan(tmosWeight);
       expect(tmosWeight).toBeGreaterThan(tgldWeight);
+      expect(trurWeight).toBeGreaterThan(40); // Should be significantly higher than 40%
+      expect(tgldWeight).toBeLessThan(30); // Should be significantly lower than 30%
     });
     
     it('should handle missing market cap data by throwing error', async () => {
-      // Remove the market cap data entirely to simulate missing data
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({
-        aum: mockAumData.TGLD.aum
-        // marketCap missing
-      }));
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
       
-      // Make sure API functions also return null
+      // Make sure API functions return null to simulate missing data
       mockGetEtfMarketCapRUB.mockResolvedValue(null);
       mockGetShareMarketCapRUB.mockResolvedValue(null);
       
@@ -161,13 +174,26 @@ testSuite('DesiredBuilder Module', () => {
         TGLD: 20
       };
       
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
+      
       // Set up proper mock data for successful test
       mockBuildAumMapSmart.mockImplementation(async (tickers) => {
         const result: Record<string, any> = {};
         tickers.forEach(ticker => {
-          if (ticker === 'TRUR') result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
-          if (ticker === 'TMOS') result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
-          if (ticker === 'TGLD') result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+          switch(ticker) {
+            case 'TRUR':
+              result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
+              break;
+            case 'TMOS':
+              result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
+              break;
+            case 'TGLD':
+              result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+              break;
+          }
         });
         return result;
       });
@@ -188,20 +214,23 @@ testSuite('DesiredBuilder Module', () => {
       // Verify weights are proportional to AUM
       const trurWeight = result.wallet.TRUR;
       const tmosWeight = result.wallet.TMOS;
+      const tgldWeight = result.wallet.TGLD;
       
-      // TRUR has highest AUM based on mock data
+      // Check relative relationships instead of exact values
       expect(trurWeight).toBeGreaterThan(tmosWeight);
+      expect(tmosWeight).toBeGreaterThan(tgldWeight);
+      expect(trurWeight).toBeGreaterThan(40); // Should be significantly higher than 40%
+      expect(tgldWeight).toBeLessThan(30); // Should be significantly lower than 30%
     });
     
     it('should handle missing AUM data by throwing error', async () => {
-      // Remove the AUM data entirely to simulate missing data
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({
-        marketCap: mockMarketCapData.TMOS.marketCap
-        // aum missing
-      }));
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
       
-      // Make sure API functions also return null/empty
-      mockBuildAumMapSmart.mockResolvedValue({});
+      // Make sure API functions return data that will cause validation to fail
+      mockBuildAumMapSmart.mockResolvedValue({}); // Return empty object
       mockToRubFromAum.mockResolvedValue(0);
       
       const baseDesired = {
@@ -292,13 +321,15 @@ testSuite('DesiredBuilder Module', () => {
     });
     
     it('should throw error when ticker has neither market cap nor AUM', async () => {
-      // Empty metric file
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
       mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
       
-      // Make sure API functions also return null/empty
+      // Make sure API functions also return null/empty to simulate missing data
       mockGetEtfMarketCapRUB.mockResolvedValue(null);
       mockGetShareMarketCapRUB.mockResolvedValue(null);
-      mockBuildAumMapSmart.mockResolvedValue({});
+      mockBuildAumMapSmart.mockResolvedValue({}); // Return empty object
       mockToRubFromAum.mockResolvedValue(0);
       
       const baseDesired = {
@@ -320,20 +351,39 @@ testSuite('DesiredBuilder Module', () => {
         TGLD: 20
       };
       
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
+      
       // Set up proper mock data for successful test
       mockGetEtfMarketCapRUB.mockImplementation(async (ticker) => {
-        if (ticker === 'TRUR') return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
-        if (ticker === 'TMOS') return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
-        if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
-        return null;
+        switch(ticker) {
+          case 'TRUR': 
+            return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
+          case 'TMOS': 
+            return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
+          case 'TGLD': 
+            return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
+          default:
+            return null;
+        }
       });
       
       mockBuildAumMapSmart.mockImplementation(async (tickers) => {
         const result: Record<string, any> = {};
         tickers.forEach(ticker => {
-          if (ticker === 'TRUR') result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
-          if (ticker === 'TMOS') result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
-          if (ticker === 'TGLD') result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+          switch(ticker) {
+            case 'TRUR':
+              result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
+              break;
+            case 'TMOS':
+              result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
+              break;
+            case 'TGLD':
+              result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+              break;
+          }
         });
         return result;
       });
@@ -367,26 +417,42 @@ testSuite('DesiredBuilder Module', () => {
     });
     
     it('should require both market cap and AUM for decorrelation', async () => {
-      // Missing AUM for one ticker
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
+      
+      // Missing AUM for one ticker - set up partial data
       mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({
         marketCap: mockMarketCapData.TGLD.marketCap
         // aum missing
       }));
       
-      // Make sure API functions also return null/empty for missing data
+      // Make sure API functions return partial data
       mockGetEtfMarketCapRUB.mockImplementation(async (ticker) => {
-        if (ticker === 'TRUR') return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
-        if (ticker === 'TMOS') return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
-        if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
-        return null;
+        switch(ticker) {
+          case 'TRUR': 
+            return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
+          case 'TMOS': 
+            return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
+          case 'TGLD': 
+            return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
+          default:
+            return null;
+        }
       });
       
       mockBuildAumMapSmart.mockImplementation(async (tickers) => {
         const result: Record<string, any> = {};
         tickers.forEach(ticker => {
-          if (ticker === 'TRUR') result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
-          if (ticker === 'TMOS') result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
-          // TGLD missing AUM data
+          switch(ticker) {
+            case 'TRUR':
+              result[ticker] = { amount: mockAumData.TRUR.aum, currency: 'RUB' };
+              break;
+            case 'TMOS':
+              result[ticker] = { amount: mockAumData.TMOS.aum, currency: 'RUB' };
+            // TGLD missing AUM data - don't add it to result
+          }
         });
         return result;
       });
@@ -402,6 +468,11 @@ testSuite('DesiredBuilder Module', () => {
     });
     
     it('should handle decorrelation calculation edge cases', async () => {
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({}));
+      
       // Set up extreme decorrelation values
       mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({
         marketCap: 100000000000, // Very high market cap
@@ -415,18 +486,30 @@ testSuite('DesiredBuilder Module', () => {
       
       // Set up proper mock data for successful test
       mockGetEtfMarketCapRUB.mockImplementation(async (ticker) => {
-        if (ticker === 'TRUR') return { marketCapRUB: 100000000000 };
-        if (ticker === 'TMOS') return { marketCapRUB: 1000000000 };
-        if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
-        return null;
+        switch(ticker) {
+          case 'TRUR': 
+            return { marketCapRUB: 100000000000 };
+          case 'TMOS': 
+            return { marketCapRUB: 1000000000 };
+          case 'TGLD': 
+            return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
+          default:
+            return null;
+        }
       });
       
       mockBuildAumMapSmart.mockImplementation(async (tickers) => {
         const result: Record<string, any> = {};
         tickers.forEach(ticker => {
-          if (ticker === 'TRUR') result[ticker] = { amount: 1000000000, currency: 'RUB' };
-          if (ticker === 'TMOS') result[ticker] = { amount: 10000000000, currency: 'RUB' };
-          if (ticker === 'TGLD') result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+          switch(ticker) {
+            case 'TRUR':
+              result[ticker] = { amount: 1000000000, currency: 'RUB' };
+              break;
+            case 'TMOS':
+              result[ticker] = { amount: 10000000000, currency: 'RUB' };
+            case 'TGLD':
+              result[ticker] = { amount: mockAumData.TGLD.aum, currency: 'RUB' };
+          }
         });
         return result;
       });
@@ -484,6 +567,10 @@ testSuite('DesiredBuilder Module', () => {
     });
     
     it('should handle zero total metric scenario', async () => {
+      // Make ALL JSON files have missing data so API functions are called
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
+      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      
       // Set all metrics to zero
       mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({
         marketCap: 0,
@@ -560,7 +647,7 @@ testSuite('DesiredBuilder Module', () => {
         if (ticker === 'TRUR') return { marketCapRUB: mockMarketCapData.TRUR.marketCap };
         if (ticker === 'TMOS') return { marketCapRUB: mockMarketCapData.TMOS.marketCap };
         if (ticker === 'TGLD') return { marketCapRUB: mockMarketCapData.TGLD.marketCap };
-        return null;
+        return { marketCapRUB: null };
       });
       
       mockBuildAumMapSmart.mockImplementation(async (tickers) => {
