@@ -1,16 +1,19 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { configLoader } from "../../configLoader";
+import { configLoader, ConfigLoader } from "../../configLoader";
 
 describe('ConfigLoader with Actual Config File', () => {
   beforeEach(() => {
-    // Clear any existing config cache
-    (configLoader as any).config = null;
+    // Reset the singleton instance to ensure clean state
+    ConfigLoader.resetInstance();
     
     // Set NODE_ENV to test
     process.env.NODE_ENV = 'test';
     
     // Set environment variable that the config file expects
     process.env.T_INVEST_TOKEN = 'test-token-value';
+    
+    // Clear any existing config cache
+    (configLoader as any).config = null;
   });
   
   afterEach(() => {

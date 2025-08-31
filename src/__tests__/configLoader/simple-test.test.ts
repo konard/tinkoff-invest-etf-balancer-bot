@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { configLoader } from "../../configLoader";
+import { configLoader, ConfigLoader } from "../../configLoader";
 import { ProjectConfig } from "../../types.d";
 
 // Mock file system state
@@ -8,20 +8,32 @@ let shouldThrowError = false;
 let errorToThrow: any = null;
 
 // Mock fs module
-const originalReadFileSync = require('fs').readFileSync;
+const fs = require('fs');
+const originalReadFileSync = fs.readFileSync;
+
 const mockReadFileSync = (filePath: string, encoding?: any) => {
+  console.log('mockReadFileSync called with:', filePath);
   if (shouldThrowError && errorToThrow) {
     throw errorToThrow;
   }
   
-  if (mockFileSystem.has(filePath)) {
-    return mockFileSystem.get(filePath);
+  // Check if this is the config file we're looking for
+  if (filePath.endsWith('CONFIG.test.json')) {
+    console.log('Looking for config file in mock file system');
+    // Look in our mock file system
+    for (const [mockPath, content] of mockFileSystem.entries()) {
+      console.log('Checking mock path:', mockPath);
+      if (mockPath.endsWith('CONFIG.test.json')) {
+        console.log('Found mock config file');
+        return content;
+      }
+    }
+    console.log('Config file not found in mock file system');
   }
   
-  // Default to original behavior for non-mocked files
-  const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
-  (error as any).code = 'ENOENT';
-  throw error;
+  // For all other files, use the original function
+  console.log('Using original readFileSync for:', filePath);
+  return originalReadFileSync(filePath, encoding);
 };
 
 // Helper functions for test setup
@@ -45,17 +57,24 @@ const clearMockFiles = () => {
 
 describe('Simple ConfigLoader Test', () => {
   beforeEach(() => {
+    // Reset the singleton instance to ensure clean state
+    ConfigLoader.resetInstance();
+    
     // Clear any existing config cache
     (configLoader as any).config = null;
+    
+    // Set NODE_ENV to test
+    process.env.NODE_ENV = 'test';
+    
+    // Mock current working directory
+    const originalCwd = process.cwd;
+    process.cwd = () => '/test/workspace';
     
     // Setup file system mocks
     const fs = require('fs');
     fs.readFileSync = mockReadFileSync;
     clearMockError();
     clearMockFiles();
-    
-    // Set NODE_ENV to test
-    process.env.NODE_ENV = 'test';
     
     // Mock valid CONFIG.test.json
     const mockConfig: ProjectConfig = {
@@ -91,9 +110,8 @@ describe('Simple ConfigLoader Test', () => {
     
     const configPath = '/test/workspace/CONFIG.test.json';
     setMockFile(configPath, JSON.stringify(mockConfig, null, 2));
-    
-    // Mock current working directory
-    process.cwd = () => '/test/workspace';
+    console.log('Set mock file. Mock file system size:', mockFileSystem.size);
+    console.log('Mock file system keys:', Array.from(mockFileSystem.keys()));
   });
   
   afterEach(() => {
