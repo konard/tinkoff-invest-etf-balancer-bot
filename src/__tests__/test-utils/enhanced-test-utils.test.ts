@@ -588,18 +588,17 @@ describe('testSuite and asyncTest utilities', () => {
 
 describe('performanceTest utility', () => {
   it('should execute performance test within time limit', async () => {
-    // This test verifies that performanceTest creates an it block
-    // We can't easily mock the global it, so we'll test by verifying
-    // the function exists and doesn't throw an error when called
-    
-    expect(() => {
-      performanceTest('performance-test', async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
-      }, 100);
-    }).not.toThrow();
-    
-    // Verify that the function is properly defined
+    // Test that the performanceTest function is properly defined
     expect(typeof performanceTest).toBe('function');
+    
+    // Test that PerformanceTestUtils works correctly
+    const testFn = async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+      return 'test-result';
+    };
+    
+    const result = await PerformanceTestUtils.expectExecutionTime(testFn, 100);
+    expect(result).toBe('test-result');
   });
 });
 

@@ -1,5 +1,5 @@
 // Set NODE_ENV before importing anything
-process.env.NODE_ENV = 'development';
+process.env.NODE_ENV = 'test';
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 import { ConfigLoader } from "./src/configLoader";
@@ -85,7 +85,7 @@ describe('Debug Mock Test', () => {
   it('should load configuration from mocked file', () => {
     console.log('Test running');
     // This is the key - we need to match exactly what ConfigLoader will look for
-    const configPath = '/test/workspace/CONFIG.json';  // Direct path
+    const configPath = '/test/workspace/CONFIG.test.json';  // Direct path
     const validConfig = {
       accounts: [
         {
@@ -103,7 +103,7 @@ describe('Debug Mock Test', () => {
     console.log('Mock file system keys:', Array.from(mockFileSystem.keys()));
     
     // Create a new instance with explicit config path to avoid singleton issues
-    const configLoader = ConfigLoader.getInstance('CONFIG.json');
+    const configLoader = ConfigLoader.getInstance('CONFIG.test.json');
     console.log('ConfigLoader instance created');
     const config = configLoader.loadConfig();
     console.log('Config loaded');
