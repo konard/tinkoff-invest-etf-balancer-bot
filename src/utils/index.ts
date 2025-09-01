@@ -40,38 +40,84 @@ const TICKER_ALIASES: Record<string, string> = {
 };
 
 export const normalizeTicker = (ticker: string | undefined): string | undefined => {
-  if (!ticker) return ticker;
+  if (ticker === undefined || ticker === null) {
+    return undefined;
+  }
+  
+  if (ticker === '') {
+    return '';
+  }
+  
+  // Handle edge case where ticker is just "@"
+  if (ticker === '@') {
+    return '';
+  }
+  
+  // Trim whitespace
   let t = ticker.trim();
+  
   // Remove '@' suffix if present (example: 'TGLD@' → 'TGLD')
   if (t.endsWith('@')) t = t.slice(0, -1);
+  
   // Apply explicit aliases
   return TICKER_ALIASES[t] || t;
 };
 
 export const tickersEqual = (a: string | undefined, b: string | undefined): boolean => {
-  if (!a || !b) return false;
-  return normalizeTicker(a) === normalizeTicker(b);
+  // Handle undefined/null cases
+  if (a === undefined || b === undefined ||
+      a === null || b === null) {
+    return false;
+  }
+  
+  // Handle empty strings - they are not equal
+  if (a === '' || b === '') {
+    return false;
+  }
+  
+  const norm1 = normalizeTicker(a);
+  const norm2 = normalizeTicker(b);
+  
+  if (norm1 === undefined || norm2 === undefined) {
+    return false;
+  }
+  
+  return norm1 === norm2;
 };
 
 export const convertTinkoffNumberToNumber = (n: TinkoffNumber): number => {
   debugUtils('n', n);
-
+  
+  if (!n) return 0;
+  
+  // Handle undefined units by treating as 0
+  const units = n.units ?? 0;
+  const nano = n.nano ?? 0;
+  
+  // For negative units, positive nano should make the number more negative
   let result;
-  if (n?.units ===  undefined) {
-    result = Number(`0.${zeroPad(n?.nano, 9)}`);
+  if (units < 0) {
+    result = units - Math.abs(nano) / 1e9;
   } else {
-    result = Number(`${n.units}.${zeroPad(n?.nano, 9)}`);
+    result = units + nano / 1e9;
   }
+  
   debugUtils('convertTinkoffNumberToNumber', result);
   return result;
 };
 
 export const convertNumberToTinkoffNumber = (n: number): TinkoffNumber => {
-  const [units, nano] = n.toFixed(9).split('.').map(item => Number(item));
-  return {
-    units,
-    nano,
-  };
+  if (n >= 0) {
+    const units = Math.floor(n);
+    const nano = Math.round((n - units) * 1e9);
+    return { units, nano };
+  } else {
+    // For negative numbers: units is negative, nano is positive (fractional part)
+    const absValue = Math.abs(n);
+    const units = -Math.floor(absValue);
+    const nano = Math.round((absValue - Math.floor(absValue)) * 1e9);
+    return { units, nano };
+  }
 };
 
 export const sumValues = (obj: Record<string, any>): number => {
