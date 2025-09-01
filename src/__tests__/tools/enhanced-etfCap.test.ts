@@ -15,9 +15,35 @@ const mockConfigLoader = {
 };
 
 const mockUtils = {
-  convertTinkoffNumberToNumber: mock((tinkoffNumber: any) => tinkoffNumber.units + tinkoffNumber.nano / 1e9),
-  normalizeTicker: mock((ticker: string) => ticker.toUpperCase()),
-  tickersEqual: mock((a: string, b: string) => a.toUpperCase() === b.toUpperCase())
+  convertTinkoffNumberToNumber: mock((tinkoffNumber: any) => {
+    if (!tinkoffNumber) return 0;
+    const units = tinkoffNumber.units ?? 0;
+    const nano = tinkoffNumber.nano ?? 0;
+    if (units < 0) {
+      return units - Math.abs(nano) / 1e9;
+    } else {
+      return units + nano / 1e9;
+    }
+  }),
+  normalizeTicker: mock((ticker: string) => {
+    if (ticker === undefined || ticker === null) return undefined;
+    if (ticker === '') return '';
+    if (ticker === '@') return '';
+    let t = ticker.trim();
+    if (t.endsWith('@')) t = t.slice(0, -1);
+    const TICKER_ALIASES: Record<string, string> = { TRAY: 'TPAY' };
+    return TICKER_ALIASES[t] || t;
+  }),
+  tickersEqual: mock((a: string, b: string) => {
+    if (a === undefined || b === undefined || a === null || b === null) return false;
+    if (a === '' || b === '') return false;
+    const norm1 = a.trim().replace(/@$/, '').toUpperCase();
+    const norm2 = b.trim().replace(/@$/, '').toUpperCase();
+    const TICKER_ALIASES: Record<string, string> = { TRAY: 'TPAY' };
+    const final1 = TICKER_ALIASES[norm1] || norm1;
+    const final2 = TICKER_ALIASES[norm2] || norm2;
+    return final1 === final2;
+  })
 };
 
 const mockTinkoffSDK = {

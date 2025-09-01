@@ -94,10 +94,10 @@ export const convertTinkoffNumberToNumber = (n: TinkoffNumber): number => {
   const units = n.units ?? 0;
   const nano = n.nano ?? 0;
   
-  // For negative units, positive nano should make the number more negative
+  // For negative units, the nano represents the fractional part that should be subtracted
   let result;
   if (units < 0) {
-    result = units - Math.abs(nano) / 1e9;
+    result = units - nano / 1e9;
   } else {
     result = units + nano / 1e9;
   }

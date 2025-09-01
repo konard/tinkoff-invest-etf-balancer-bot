@@ -158,3 +158,4 @@ class ConfigLoader {
 export const configLoader = ConfigLoader.getInstance();
 export const getTestConfigLoader = () => ConfigLoader.getInstance('CONFIG.test.json');
 export { ConfigLoader };
+export default ConfigLoader;
