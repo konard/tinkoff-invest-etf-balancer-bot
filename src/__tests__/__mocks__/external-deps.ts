@@ -113,6 +113,50 @@ export const mockFs = {
     
     return ['CONFIG.json', '.env', 'package.json'];
   }),
+  
+  // Promise-based versions for fs.promises
+  promises: {
+    readFile: mockFn(async (filePath: string, encoding?: string) => {
+      trackFsCall('readFile', [filePath, encoding]);
+      
+      if (fsState.shouldFail) {
+        const error = new Error(`${fsState.errorType}: ${filePath}`);
+        (error as any).code = fsState.errorType;
+        throw error;
+      }
+      
+      if (fsState.files.has(filePath)) {
+        return fsState.files.get(filePath);
+      }
+      
+      // Default test files
+      if (filePath.includes('CONFIG.test.json')) {
+        return mockConfigFiles.valid;
+      }
+      if (filePath.includes('CONFIG.json')) {
+        return mockConfigFiles.valid_single;
+      }
+      if (filePath.includes('.env')) {
+        return 'T_INVEST_TOKEN=test_token\nACCOUNT_ID=test_account';
+      }
+      
+      const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`);
+      (error as any).code = 'ENOENT';
+      throw error;
+    }),
+    
+    writeFile: mockFn(async (filePath: string, data: string) => {
+      trackFsCall('writeFile', [filePath, data]);
+      
+      if (fsState.shouldFail) {
+        const error = new Error(`${fsState.errorType}: ${filePath}`);
+        (error as any).code = fsState.errorType;
+        throw error;
+      }
+      
+      fsState.files.set(filePath, data);
+    }),
+  },
 };
 
 // Network request mocks (for news scraping, etc.)
@@ -395,6 +439,10 @@ export const mockControls = {
     
     setFile: (path: string, content: string) => {
       fsState.files.set(path, content);
+    },
+    
+    removeFile: (path: string) => {
+      fsState.files.delete(path);
     },
     
     setFailure: (errorType: string = 'ENOENT') => {

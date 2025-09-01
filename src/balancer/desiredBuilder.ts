@@ -151,10 +151,14 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
   const readMetricFromJson = async (ticker: string): Promise<{ marketCap?: number | null; aum?: number | null } | null> => {
     try {
       const p = path.join(metricsDir, `${ticker}.json`);
+      debugMetrics(`Attempting to read JSON file: ${p}`);
       const raw = await fs.readFile(p, 'utf-8');
       const j = JSON.parse(raw);
-      return { marketCap: typeof j?.marketCap === 'number' ? j.marketCap : null, aum: typeof j?.aum === 'number' ? j.aum : null };
-    } catch {
+      const result = { marketCap: typeof j?.marketCap === 'number' ? j.marketCap : null, aum: typeof j?.aum === 'number' ? j.aum : null };
+      debugMetrics(`JSON data for ${ticker}:`, result);
+      return result;
+    } catch (error) {
+      debugMetrics(`Failed to read JSON file for ${ticker}: ${error}`);
       return null;
     }
   };
