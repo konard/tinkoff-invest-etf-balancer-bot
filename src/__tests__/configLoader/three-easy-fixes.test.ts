@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { configLoader } from "../../configLoader";
+import { configLoader, ConfigLoader } from "../../configLoader";
 import { ProjectConfig } from "../../types.d";
 
 // Mock file system state
@@ -51,147 +51,48 @@ const clearMockFiles = () => {
 
 describe('Three Easiest ConfigLoader Tests to Fix', () => {
   beforeEach(() => {
-    console.log('Current working directory:', process.cwd());  // Debug log
-    console.log('NODE_ENV:', process.env.NODE_ENV);  // Debug log
+    // Reset ConfigLoader instance to ensure clean state
+    ConfigLoader.resetInstance();
     
     // Clear any existing config cache
     (configLoader as any).config = null;
     
-    // Setup file system mocks
-    const fs = require('fs');
-    fs.readFileSync = mockReadFileSync;
-    clearMockError();
-    clearMockFiles();
-    
-    // Set NODE_ENV to test
+    // Set NODE_ENV to test so it loads CONFIG.test.json
     process.env.NODE_ENV = 'test';
     
-    // Mock valid CONFIG.test.json
-    const mockConfig: ProjectConfig = {
-      accounts: [
-        {
-          id: "test-account-1",
-          name: "Test Account 1",
-          t_invest_token: "t.test_token_123",
-          account_id: "123456789",
-          desired_wallet: {
-            TRUR: 25,
-            TMOS: 25,
-            TGLD: 25,
-            RUB: 25,
-          },
-          desired_mode: 'manual',
-          balance_interval: 3600,
-          sleep_between_orders: 1000,
-          margin_trading: {
-            enabled: false,
-            multiplier: 1,
-            free_threshold: 10000,
-            max_margin_size: 0,
-            balancing_strategy: 'remove',
-          },
-          exchange_closure_behavior: {
-            mode: 'skip_iteration',
-            update_iteration_result: false,
-          },
-        },
-        {
-          id: "test-account-2",
-          name: "Test Account 2",
-          t_invest_token: "t.test_token_456",
-          account_id: "987654321",
-          desired_wallet: {
-            TRUR: 30,
-            TMOS: 30,
-            TGLD: 20,
-            RUB: 20,
-          },
-          desired_mode: 'manual',
-          balance_interval: 3600,
-          sleep_between_orders: 1000,
-          margin_trading: {
-            enabled: false,
-            multiplier: 1,
-            free_threshold: 10000,
-            max_margin_size: 0,
-            balancing_strategy: 'remove',
-          },
-          exchange_closure_behavior: {
-            mode: 'skip_iteration',
-            update_iteration_result: false,
-          },
-        },
-        {
-          id: "test-account-3",
-          name: "Test Account 3",
-          t_invest_token: "t.test_token_789",
-          account_id: "456789123",
-          desired_wallet: {
-            TRUR: 40,
-            TMOS: 30,
-            TGLD: 20,
-            RUB: 10,
-          },
-          desired_mode: 'manual',
-          balance_interval: 3600,
-          sleep_between_orders: 1000,
-          margin_trading: {
-            enabled: false,
-            multiplier: 1,
-            free_threshold: 10000,
-            max_margin_size: 0,
-            balancing_strategy: 'remove',
-          },
-          exchange_closure_behavior: {
-            mode: 'skip_iteration',
-            update_iteration_result: false,
-          },
-        }
-      ]
-    };
-    
-    const configPath = '/test/workspace/CONFIG.test.json';
-    console.log('Setting mock file at:', configPath);  // Debug log
-    setMockFile(configPath, JSON.stringify(mockConfig, null, 2));
-    
-    // Mock current working directory
-    process.cwd = () => '/test/workspace';
-    console.log('Mocked cwd to:', process.cwd());  // Debug log
+    // Set up the environment variable that CONFIG.test.json expects
+    process.env.T_INVEST_TOKEN = 'test-token-value';
   });
   
   afterEach(() => {
-    // Restore original functions
-    const fs = require('fs');
-    fs.readFileSync = originalReadFileSync;
-    
-    // Clean up mocks and environment
-    clearMockFiles();
-    clearMockError();
+    // Clean up environment
     delete process.env.NODE_ENV;
-    delete process.env.TEST_TOKEN;
-    process.cwd = () => process.env.ORIGINAL_CWD || '/';
+    delete process.env.T_INVEST_TOKEN;
   });
 
-  // Test 1: Account Retrieval by ID Test (Easiest - Data Mismatch)
+  // Test 1: Account Retrieval by ID Test - use actual config structure
   it('should get account by ID', () => {
-    const account = configLoader.getAccountById('test-account-1');
+    // CONFIG.test.json has account with id "0"
+    const account = configLoader.getAccountById('0');
     
     expect(account).toBeDefined();
-    expect(account?.id).toBe('test-account-1');
-    expect(account?.name).toBe('Test Account 1');
+    expect(account?.id).toBe('0');
+    expect(account?.name).toBe('Основной брокерский счет');
   });
 
-  // Test 2: Token Management Test (Easiest - Direct Fix)
+  // Test 2: Token Management Test - use actual config structure
   it('should get direct token value', () => {
-    const token = configLoader.getAccountToken('test-account-1');
+    // CONFIG.test.json has account with id "0" and token from env variable
+    const token = configLoader.getAccountToken('0');
     
-    expect(token).toBe('t.test_token_123');
+    expect(token).toBe('test-token-value');
   });
 
-  // Test 3: Account ID Management Test (Easiest - Direct Fix)
+  // Test 3: Account ID Management Test - use actual config structure
   it('should get account_id by account ID', () => {
-    const accountId = configLoader.getAccountAccountId('test-account-1');
+    // CONFIG.test.json has account with id "0" and account_id "0"
+    const accountId = configLoader.getAccountAccountId('0');
     
-    expect(accountId).toBe('123456789');
+    expect(accountId).toBe('0');
   });
 });

@@ -14,7 +14,8 @@ import {
   ErrorTestUtils,
   IntegrationTestUtils,
   testSuite,
-  asyncTest
+  asyncTest,
+  performanceTest
 } from './index';
 import { 
   Wallet,

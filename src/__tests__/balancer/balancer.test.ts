@@ -203,6 +203,79 @@ testSuite('Balancer Core Functions', () => {
       expect(result).toEqual({});
     });
   });
+
+  describe('addNumbersToPosition', () => {
+    it('should add number fields to position with all price fields', () => {
+      const position: Position = {
+        figi: 'TEST_FIGI',
+        base: 'TEST',
+        quote: 'RUB',
+        pair: 'TEST/RUB',
+        amount: 10,
+        lotSize: 1,
+        price: {
+          currency: 'rub',
+          units: 100,
+          nano: 500000000
+        },
+        lotPrice: {
+          currency: 'rub',
+          units: 100,
+          nano: 500000000
+        },
+        totalPrice: {
+          currency: 'rub',
+          units: 1000,
+          nano: 0
+        }
+      };
+
+      const result = addNumbersToPosition(position);
+
+      expect(result).toHaveProperty('priceNumber');
+      expect(result).toHaveProperty('lotPriceNumber');
+      expect(result).toHaveProperty('totalPriceNumber');
+      expect(result.priceNumber).toBeCloseTo(100.5, 1);
+      expect(result.lotPriceNumber).toBeCloseTo(100.5, 1);
+      expect(result.totalPriceNumber).toBe(1000);
+    });
+  });
+
+  describe('addNumbersToWallet', () => {
+    it('should add numbers to all positions in wallet', () => {
+      const wallet: Wallet = [
+        {
+          figi: 'TEST_FIGI',
+          base: 'TEST',
+          quote: 'RUB',
+          pair: 'TEST/RUB',
+          amount: 10,
+          lotSize: 1,
+          price: {
+            currency: 'rub',
+            units: 100,
+            nano: 0
+          },
+          lotPrice: {
+            currency: 'rub',
+            units: 100,
+            nano: 0
+          },
+          totalPrice: {
+            currency: 'rub',
+            units: 1000,
+            nano: 0
+          }
+        }
+      ];
+
+      const result = addNumbersToWallet(wallet);
+
+      expect(result[0]).toHaveProperty('priceNumber', 100);
+      expect(result[0]).toHaveProperty('lotPriceNumber', 100);
+      expect(result[0]).toHaveProperty('totalPriceNumber', 1000);
+    });
+  });
 });
 
 // Additional test suites for comprehensive coverage

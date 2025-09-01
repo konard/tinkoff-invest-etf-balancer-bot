@@ -81,7 +81,7 @@ export const sumValues = (obj: Record<string, any>): number => {
     .reduce((sum: number, value: number) => sum + value, 0);
 };
 
-export const zeroPad = (num, places) => String(num).padStart(places, '0');
+export const zeroPad = (num: number | string, places: number): string => String(num).padStart(places, '0');
 
 export const listAccounts = async (usersClient: any) => {
   try {

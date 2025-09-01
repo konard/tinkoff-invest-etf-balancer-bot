@@ -62,7 +62,7 @@ describe('Application Entry Point', () => {
     
     // Mock environment variables
     process.env.TOKEN = 'test_token';
-    process.env.ACCOUNT_ID = 'test_account';
+    process.env.ACCOUNT_ID = '0';  // Use actual account ID from CONFIG.test.json
   });
   
   afterEach(() => {

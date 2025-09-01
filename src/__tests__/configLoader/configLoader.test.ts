@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { configLoader } from "../../configLoader";
+import { configLoader, ConfigLoader } from "../../configLoader";
 import { ProjectConfig, AccountConfig } from "../../types.d";
 import { promises as fs } from 'fs';
 
@@ -76,8 +76,7 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   
   beforeEach(() => {
     // Reset ConfigLoader instance to ensure clean state
-    const ConfigLoaderClass = require('../../configLoader').ConfigLoader;
-    ConfigLoaderClass.resetInstance();
+    ConfigLoader.resetInstance();
     
     // Clear any existing config cache
     (configLoader as any).config = null;
@@ -189,13 +188,14 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   });
 
   describe('Account Retrieval', () => {
-    it('should get account by ID', () => {
+    beforeEach(() => {
       // Set up environment variable that the config file expects
       process.env.T_INVEST_TOKEN = 'test-token-value';
-      
       // Clear config cache to force reload
       (configLoader as any).config = null;
-      
+    });
+
+    it('should get account by ID', () => {
       const account = configLoader.getAccountById('0');  // Changed to match actual config
       
       expect(account).toBeDefined();
@@ -204,24 +204,12 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     });
     
     it('should return undefined for non-existent account ID', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const account = configLoader.getAccountById('non-existent');
       
       expect(account).toBeUndefined();
     });
     
     it('should get account by token', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const account = configLoader.getAccountByToken('test-token-value');  // Changed to match actual config
       
       expect(account).toBeDefined();
@@ -229,24 +217,12 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     });
     
     it('should return undefined for non-existent token', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const account = configLoader.getAccountByToken('invalid-token');
       
       expect(account).toBeUndefined();
     });
     
     it('should get all accounts', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const accounts = configLoader.getAllAccounts();
       
       expect(accounts).toHaveLength(1);  // Changed to match actual config
@@ -255,25 +231,20 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   });
 
   describe('Token Management', () => {
-    it('should get direct token value', () => {
+    beforeEach(() => {
       // Set up environment variable that the config file expects
       process.env.T_INVEST_TOKEN = 'test-token-value';
-      
       // Clear config cache to force reload
       (configLoader as any).config = null;
-      
+    });
+
+    it('should get direct token value', () => {
       const token = configLoader.getAccountToken('0');  // Changed to match actual config
       
       expect(token).toBe('test-token-value');  // Changed to match actual config
     });
     
     it('should get token from environment variable', () => {
-      // Set up environment variable
-      process.env.T_INVEST_TOKEN = 'test-token-value';  // Changed to match actual config
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const token = configLoader.getAccountToken('0');  // Changed to match actual config
       
       expect(token).toBe('test-token-value');  // Changed to match actual config
@@ -282,7 +253,6 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     it('should return undefined for missing environment variable', () => {
       // Ensure environment variable doesn't exist
       delete process.env.T_INVEST_TOKEN;
-      
       // Clear config cache to force reload
       (configLoader as any).config = null;
       
@@ -292,58 +262,28 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
     });
     
     it('should return undefined for non-existent account in getAccountToken', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const token = configLoader.getAccountToken('non-existent-account');
       
       expect(token).toBeUndefined();
     });
     
     it('should get raw token value', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const rawToken = configLoader.getRawTokenValue('0');  // Changed to match actual config
       
       expect(rawToken).toBe('${T_INVEST_TOKEN}');  // Changed to match actual config
     });
     
     it('should return undefined for non-existent account in getRawTokenValue', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const rawToken = configLoader.getRawTokenValue('non-existent');
       
       expect(rawToken).toBeUndefined();
     });
     
     it('should detect if token is from environment', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       expect(configLoader.isTokenFromEnv('0')).toBe(true);  // Changed to match actual config (token is from env)
     });
     
     it('should return false for non-existent account in token checks', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       expect(configLoader.isTokenFromEnv('non-existent')).toBe(false);
     });
     
@@ -372,25 +312,20 @@ testSuite('ConfigLoader Module Comprehensive Tests', () => {
   });
 
   describe('Account ID Management', () => {
-    it('should get account_id by account ID', () => {
+    beforeEach(() => {
       // Set up environment variable that the config file expects
       process.env.T_INVEST_TOKEN = 'test-token-value';
-      
       // Clear config cache to force reload
       (configLoader as any).config = null;
-      
+    });
+
+    it('should get account_id by account ID', () => {
       const accountId = configLoader.getAccountAccountId('0');  // Changed to match actual config
       
       expect(accountId).toBe('0');  // Changed to match actual config
     });
     
     it('should return undefined for non-existent account', () => {
-      // Set up environment variable that the config file expects
-      process.env.T_INVEST_TOKEN = 'test-token-value';
-      
-      // Clear config cache to force reload
-      (configLoader as any).config = null;
-      
       const accountId = configLoader.getAccountAccountId('non-existent');
       
       expect(accountId).toBeUndefined();

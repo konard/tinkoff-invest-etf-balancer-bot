@@ -4,16 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { TestEnvironment } from '../test-utils';
+import { TestEnvironment, testSuite } from '../test-utils';
 
-describe('PollEtfMetrics Tool Enhanced Coverage', () => {
-  beforeEach(() => {
-    TestEnvironment.setup();
-  });
-
-  afterEach(() => {
-    TestEnvironment.teardown();
-  });
+// Use testSuite wrapper which handles mocking properly
+testSuite('PollEtfMetrics Tool Enhanced Coverage', () => {
 
   describe('Basic functionality tests', () => {
     it('should handle module imports without errors', async () => {

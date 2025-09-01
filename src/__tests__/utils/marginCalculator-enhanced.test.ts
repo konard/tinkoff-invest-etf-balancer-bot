@@ -1,12 +1,16 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { MarginCalculator } from "../../utils/marginCalculator";
 import { MarginConfig, Position, MarginPosition, MarginBalancingStrategy } from "../../types.d";
-import { 
-  TestEnvironment, 
-  FinancialAssertions, 
-  testSuite
-} from '../test-utils';
-import { createMockPosition } from '../__fixtures__/wallets';
+
+// Simplified test setup
+const testSuite = (name: string, fn: () => void) => describe(name, fn);
+
+// Simple mock position creator
+const createMockPosition = (overrides: any = {}) => ({
+  base: 'DEFAULT',
+  totalPriceNumber: 0,
+  ...overrides
+});
 
 testSuite('Margin Calculator Tests', () => {
   let marginCalculator: MarginCalculator;

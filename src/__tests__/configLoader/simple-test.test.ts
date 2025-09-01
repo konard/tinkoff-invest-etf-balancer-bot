@@ -63,74 +63,25 @@ describe('Simple ConfigLoader Test', () => {
     // Clear any existing config cache
     (configLoader as any).config = null;
     
-    // Set NODE_ENV to test
+    // Set NODE_ENV to test so it loads CONFIG.test.json
     process.env.NODE_ENV = 'test';
     
-    // Mock current working directory
-    const originalCwd = process.cwd;
-    process.cwd = () => '/test/workspace';
-    
-    // Setup file system mocks
-    const fs = require('fs');
-    fs.readFileSync = mockReadFileSync;
-    clearMockError();
-    clearMockFiles();
-    
-    // Mock valid CONFIG.test.json
-    const mockConfig: ProjectConfig = {
-      accounts: [
-        {
-          id: "test-account-1",
-          name: "Test Account 1",
-          t_invest_token: "t.test_token_123",
-          account_id: "123456789",
-          desired_wallet: {
-            TRUR: 25,
-            TMOS: 25,
-            TGLD: 25,
-            RUB: 25,
-          },
-          desired_mode: 'manual',
-          balance_interval: 3600,
-          sleep_between_orders: 1000,
-          margin_trading: {
-            enabled: false,
-            multiplier: 1,
-            free_threshold: 10000,
-            max_margin_size: 0,
-            balancing_strategy: 'remove',
-          },
-          exchange_closure_behavior: {
-            mode: 'skip_iteration',
-            update_iteration_result: false,
-          },
-        }
-      ]
-    };
-    
-    const configPath = '/test/workspace/CONFIG.test.json';
-    setMockFile(configPath, JSON.stringify(mockConfig, null, 2));
-    console.log('Set mock file. Mock file system size:', mockFileSystem.size);
-    console.log('Mock file system keys:', Array.from(mockFileSystem.keys()));
+    // Set up the environment variable that CONFIG.test.json expects
+    process.env.T_INVEST_TOKEN = 'test-token-value';
   });
   
   afterEach(() => {
-    // Restore original functions
-    const fs = require('fs');
-    fs.readFileSync = originalReadFileSync;
-    
-    // Clean up mocks and environment
-    clearMockFiles();
-    clearMockError();
+    // Clean up environment
     delete process.env.NODE_ENV;
-    process.cwd = () => process.env.ORIGINAL_CWD || '/';
+    delete process.env.T_INVEST_TOKEN;
   });
 
   it('should get account by ID', () => {
-    const account = configLoader.getAccountById('test-account-1');
+    // CONFIG.test.json has account with id "0"
+    const account = configLoader.getAccountById('0');
     
     expect(account).toBeDefined();
-    expect(account?.id).toBe('test-account-1');
-    expect(account?.name).toBe('Test Account 1');
+    expect(account?.id).toBe('0');
+    expect(account?.name).toBe('Основной брокерский счет');
   });
 });
