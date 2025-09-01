@@ -130,9 +130,31 @@ export const mockTinkoffSDK = {
       return getResponse('getAccounts', {
         accounts: [
           {
+            id: 'test-account-0',
+            accountId: 'test-account-0',
+            account_id: 'test-account-0',
+            type: 1, // BROKER account type
+            name: 'Test Broker Account',
+            status: 'ACCOUNT_STATUS_OPEN',
+            openedDate: new Date('2023-01-01'),
+            closedDate: null,
+          },
+          {
             id: 'test-account-1',
-            type: 'ACCOUNT_TYPE_TINKOFF',
-            name: 'Test Account 1',
+            accountId: 'test-account-1',
+            account_id: 'test-account-1',
+            type: 2, // ISS account type
+            name: 'Test IIS Account',
+            status: 'ACCOUNT_STATUS_OPEN',
+            openedDate: new Date('2023-01-01'),
+            closedDate: null,
+          },
+          {
+            id: 'test-account-2',
+            accountId: 'test-account-2',
+            account_id: 'test-account-2',
+            type: 1, // BROKER account type
+            name: 'Test Account 2',
             status: 'ACCOUNT_STATUS_OPEN',
             openedDate: new Date('2023-01-01'),
             closedDate: null,
@@ -248,6 +270,30 @@ export const mockTinkoffSDK = {
           }
         ]
       });
+    }),
+
+    tradingSchedules: mockFn(async (request: any) => {
+      trackCall('tradingSchedules', [request]);
+      return getResponse('tradingSchedules', {
+        exchanges: [
+          {
+            exchange: 'MOEX',
+            days: [
+              {
+                date: '2024-01-01',
+                isTradingDay: true,
+                startTime: '2024-01-01T10:00:00Z',
+                endTime: '2024-01-01T18:45:00Z'
+              }
+            ]
+          }
+        ]
+      });
+    }),
+
+    futures: mockFn(async () => {
+      trackCall('futures', []);
+      return getResponse('futures', { instruments: [] });
     }),
   },
 
@@ -392,6 +438,11 @@ export const mockTinkoffSDKControls = {
     mockState.shouldFail = true;
     mockState.errorType = 'unauthorized';
   },
+};
+
+// Mock createSdk function that's imported by provider
+export const createSdk = (token: string) => {
+  return mockTinkoffSDK;
 };
 
 // Default export for easy import

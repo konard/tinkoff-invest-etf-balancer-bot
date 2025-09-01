@@ -328,18 +328,27 @@ describe('Integration Tests', () => {
         return { accountId: account.id, processed: true };
       };
       
-      const startTime = Date.now();
-      const results = await Promise.all(accounts.map(processAccount));
-      const endTime = Date.now();
+      // Add timeout protection to prevent hanging
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Test timeout after 5000ms')), 5000)
+      );
       
-      expect(results).toHaveLength(3);
-      expect(results.every(r => r.processed)).toBe(true);
+      const testPromise = (async () => {
+        const startTime = Date.now();
+        const results = await Promise.all(accounts.map(processAccount));
+        const endTime = Date.now();
+        
+        expect(results).toHaveLength(3);
+        expect(results.every(r => r.processed)).toBe(true);
+        
+        // Concurrent processing should be faster than sequential
+        const maxSequentialTime = accounts.reduce((sum, acc) => sum + acc.processingTime, 0);
+        const actualTime = endTime - startTime;
+        
+        expect(actualTime).toBeLessThan(maxSequentialTime);
+      })();
       
-      // Concurrent processing should be faster than sequential
-      const maxSequentialTime = accounts.reduce((sum, acc) => sum + acc.processingTime, 0);
-      const actualTime = endTime - startTime;
-      
-      expect(actualTime).toBeLessThan(maxSequentialTime);
-    });
+      await Promise.race([testPromise, timeoutPromise]);
+    }, 6000); // 6 second timeout for this specific test
   });
 });

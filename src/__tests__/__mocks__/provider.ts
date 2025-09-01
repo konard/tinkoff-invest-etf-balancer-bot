@@ -51,6 +51,26 @@ export const generateOrders = mockFn(async (wallet: any) => {
 
 export const getAccountId = mockFn(async (type: any) => {
   trackCall('getAccountId', [type]);
+  
+  // Handle index-based selection (0, 1, 2, etc. or INDEX:0, INDEX:1, etc.)
+  const indexMatch = typeof type === 'string' && type.startsWith('INDEX:')
+    ? Number(type.split(':')[1])
+    : (typeof type === 'string' && /^\d+$/.test(type) ? Number(type) : null);
+  
+  if (indexMatch !== null) {
+    // Mock accounts array for index-based selection
+    const mockAccounts = [
+      { id: 'test-account-0', accountId: 'test-account-0', account_id: 'test-account-0' },
+      { id: 'test-account-1', accountId: 'test-account-1', account_id: 'test-account-1' },
+      { id: 'test-account-2', accountId: 'test-account-2', account_id: 'test-account-2' },
+    ];
+    
+    const account = mockAccounts[indexMatch];
+    if (account) {
+      return account.id;
+    }
+  }
+  
   return getResponse('getAccountId', 'test-account-id');
 });
 

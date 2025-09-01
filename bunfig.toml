@@ -8,7 +8,8 @@ registry = "https://registry.bun.sh/"
 [test]
 # Настройки для тестирования
 preload = ["./src/test-setup.ts"]
-timeout = 10000
+timeout = 3000
+# Жёсткий таймаут для всех тестов
 
 [run]
 # Настройки для выполнения скриптов
