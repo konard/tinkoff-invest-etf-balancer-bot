@@ -131,7 +131,6 @@ export const mockTinkoffSDK = {
         accounts: [
           {
             id: 'test-account-0',
-            accountId: 'test-account-0',
             account_id: 'test-account-0',
             type: 1, // BROKER account type
             name: 'Test Broker Account',
@@ -141,7 +140,6 @@ export const mockTinkoffSDK = {
           },
           {
             id: 'test-account-1',
-            accountId: 'test-account-1',
             account_id: 'test-account-1',
             type: 2, // ISS account type
             name: 'Test IIS Account',
@@ -151,7 +149,6 @@ export const mockTinkoffSDK = {
           },
           {
             id: 'test-account-2',
-            accountId: 'test-account-2',
             account_id: 'test-account-2',
             type: 1, // BROKER account type
             name: 'Test Account 2',

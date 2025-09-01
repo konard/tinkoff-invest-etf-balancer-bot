@@ -58,16 +58,19 @@ export const getAccountId = mockFn(async (type: any) => {
     : (typeof type === 'string' && /^\d+$/.test(type) ? Number(type) : null);
   
   if (indexMatch !== null) {
-    // Mock accounts array for index-based selection
+    // Mock accounts array for index-based selection - ensure we have accounts at all indexes
     const mockAccounts = [
-      { id: 'test-account-0', accountId: 'test-account-0', account_id: 'test-account-0' },
-      { id: 'test-account-1', accountId: 'test-account-1', account_id: 'test-account-1' },
-      { id: 'test-account-2', accountId: 'test-account-2', account_id: 'test-account-2' },
+      { id: 'test-account-0', account_id: 'test-account-0' },
+      { id: 'test-account-1', account_id: 'test-account-1' },
+      { id: 'test-account-2', account_id: 'test-account-2' },
     ];
     
     const account = mockAccounts[indexMatch];
     if (account) {
       return account.id;
+    } else {
+      // If index is out of bounds, throw an error similar to the real provider
+      throw new Error(`Could not determine ACCOUNT_ID by index ${indexMatch}.`);
     }
   }
   
@@ -87,6 +90,15 @@ export const getPositionsCycle = mockFn(async (options?: { runOnce?: boolean }) 
 export const isExchangeOpenNow = mockFn(async (exchange: string = 'MOEX') => {
   trackCall('isExchangeOpenNow', [exchange]);
   return getResponse('isExchangeOpenNow', true);
+});
+
+export const getAccountsAll = mockFn(async () => {
+  trackCall('getAccountsAll', []);
+  const defaultAccounts = [
+    { id: 'test-account-0', account_id: 'test-account-0', name: 'Test Account 0' },
+    { id: 'test-account-1', account_id: 'test-account-1', name: 'Test Account 1' },
+  ];
+  return getResponse('getAccountsAll', defaultAccounts);
 });
 
 // Mock control functions for tests
