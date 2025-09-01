@@ -360,7 +360,10 @@ export const mockTinkoffSDKControls = {
       mockState.shouldFail = true;
       mockState.errorType = errorType as keyof typeof errorScenarios;
     } else {
-      this.methodFailures[method] = this.createError(errorType);
+      if (!mockTinkoffSDKControls.methodFailures) {
+        mockTinkoffSDKControls.methodFailures = {};
+      }
+      mockTinkoffSDKControls.methodFailures[method] = mockTinkoffSDKControls.createError(errorType);
     }
   },
   

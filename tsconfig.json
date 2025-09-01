@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    "moduleResolution": "node",
     "noEmit": true,
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2020", "DOM"],
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -20,7 +19,8 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["*"]
-    }
+    },
+    "types": ["bun-types"]
   },
   "include": [
     "src/**/*"

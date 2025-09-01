@@ -7,6 +7,15 @@ const mockGetShareMarketCapRUB = mock(async () => null);
 const mockBuildAumMapSmart = mock(async () => ({}));
 const mockToRubFromAum = mock(async () => 0);
 
+// Import the mock controls
+import { mockFs, mockControls } from '../__mocks__/external-deps';
+
+// Mock the fs module with more complete mocking
+mock.module('fs', () => mockFs);
+
+// Also mock fs/promises
+mock.module('fs/promises', () => mockFs.promises);
+
 mock.module('../../tools/etfCap', () => ({
   getEtfMarketCapRUB: mockGetEtfMarketCapRUB,
   buildAumMapSmart: mockBuildAumMapSmart
@@ -33,8 +42,7 @@ import {
   testSuite
 } from '../test-utils';
 import { mockDesiredWallets } from '../__fixtures__/wallets';
-import { mockMarketData, mockMarketCapData, mockAumData } from '../__fixtures__/market-data';
-import { mockControls } from '../__mocks__/external-deps';
+import { mockMarketCapData, mockAumData } from '../__fixtures__/market-data';
 
 testSuite('DesiredBuilder Module', () => {
   beforeEach(() => {
@@ -153,10 +161,11 @@ testSuite('DesiredBuilder Module', () => {
     }, 10000); // Increase timeout for this test
     
     it('should handle missing market cap data by throwing error', async () => {
-      // Set JSON files to have no market cap data
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({ aum: 123 }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({ aum: 456 }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({ aum: 789 }));
+      // Set JSON files to have no market cap data - using the correct path pattern
+      const metricsPath = `${process.cwd()}/etf_metrics`;
+      mockControls.fs.setFile(`${metricsPath}/TRUR.json`, JSON.stringify({ aum: 123 }));
+      mockControls.fs.setFile(`${metricsPath}/TMOS.json`, JSON.stringify({ aum: 456 }));
+      mockControls.fs.setFile(`${metricsPath}/TGLD.json`, JSON.stringify({ aum: 789 }));
       
       // Make sure ALL API functions return null/invalid to simulate missing data
       mockGetEtfMarketCapRUB.mockImplementation(async () => null);
@@ -229,10 +238,11 @@ testSuite('DesiredBuilder Module', () => {
     }, 10000); // Increase timeout for this test
     
     it('should handle missing AUM data by throwing error', async () => {
-      // Set JSON files to have no AUM data
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({ marketCap: 123 }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({ marketCap: 456 }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({ marketCap: 789 }));
+      // Set JSON files to have no AUM data - using the correct path pattern
+      const metricsPath = `${process.cwd()}/etf_metrics`;
+      mockControls.fs.setFile(`${metricsPath}/TRUR.json`, JSON.stringify({ marketCap: 123 }));
+      mockControls.fs.setFile(`${metricsPath}/TMOS.json`, JSON.stringify({ marketCap: 456 }));
+      mockControls.fs.setFile(`${metricsPath}/TGLD.json`, JSON.stringify({ marketCap: 789 }));
       
       // Make sure ALL API functions return null/invalid to simulate missing data
       mockBuildAumMapSmart.mockImplementation(async () => ({}));
@@ -344,9 +354,10 @@ testSuite('DesiredBuilder Module', () => {
     }, 10000); // Increase timeout for this test
     
     it('should throw error when ticker has neither market cap nor AUM', async () => {
-      // Set JSON files to have no relevant data
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({}));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({}));
+      // Set JSON files to have no relevant data - using the correct path pattern
+      const metricsPath = `${process.cwd()}/etf_metrics`;
+      mockControls.fs.setFile(`${metricsPath}/TRUR.json`, JSON.stringify({}));
+      mockControls.fs.setFile(`${metricsPath}/TMOS.json`, JSON.stringify({}));
       
       // No data available for any ticker
       mockGetEtfMarketCapRUB.mockImplementation(async () => null);
@@ -435,12 +446,13 @@ testSuite('DesiredBuilder Module', () => {
     }, 10000); // Increase timeout for this test
     
     it('should require both market cap and AUM for decorrelation', async () => {
-      // TRUR has both, TMOS has only market cap in JSON
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({
+      // TRUR has both, TMOS has only market cap in JSON - using the correct path pattern
+      const metricsPath = `${process.cwd()}/etf_metrics`;
+      mockControls.fs.setFile(`${metricsPath}/TRUR.json`, JSON.stringify({
         marketCap: mockMarketCapData.TRUR.marketCap,
         aum: mockAumData.TRUR.aum
       }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({
+      mockControls.fs.setFile(`${metricsPath}/TMOS.json`, JSON.stringify({
         marketCap: mockMarketCapData.TMOS.marketCap
         // No AUM data for TMOS
       }));
@@ -575,10 +587,11 @@ testSuite('DesiredBuilder Module', () => {
         TGLD: 20
       };
       
-      // Set JSON files to have zero values
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TRUR.json', JSON.stringify({ marketCap: 0 }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TMOS.json', JSON.stringify({ marketCap: 0 }));
-      mockControls.fs.setFile('/test/workspace/etf_metrics/TGLD.json', JSON.stringify({ marketCap: 0 }));
+      // Set JSON files to have zero values - using the correct path pattern
+      const metricsPath = `${process.cwd()}/etf_metrics`;
+      mockControls.fs.setFile(`${metricsPath}/TRUR.json`, JSON.stringify({ marketCap: 0 }));
+      mockControls.fs.setFile(`${metricsPath}/TMOS.json`, JSON.stringify({ marketCap: 0 }));
+      mockControls.fs.setFile(`${metricsPath}/TGLD.json`, JSON.stringify({ marketCap: 0 }));
       
       // Return zero values for all API metrics as well
       mockGetEtfMarketCapRUB.mockImplementation(async () => ({ marketCapRUB: 0 }));

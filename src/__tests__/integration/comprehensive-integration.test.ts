@@ -269,7 +269,7 @@ describe('Integration Tests', () => {
 
   describe('Performance and Scalability', () => {
     it('should handle large portfolios efficiently', () => {
-      const largePortfolio = [];
+      const largePortfolio: any[] = [];
       const numPositions = 50; // Reduced for faster test execution
       
       for (let i = 0; i < numPositions; i++) {
@@ -292,7 +292,7 @@ describe('Integration Tests', () => {
       }
       
       // Calculate derived fields
-      largePortfolio.forEach(position => {
+      largePortfolio.forEach((position: any) => {
         position.totalPrice = position.quantity * position.price;
         position.totalPriceNumber = position.totalPrice;
         position.lots = position.quantity;
