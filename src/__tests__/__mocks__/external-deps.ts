@@ -189,6 +189,55 @@ export const mockAxios = {
   }),
 };
 
+// Request-promise mock (used by etfCap.ts)
+export const mockRequestPromise = mockFn(async (options: any) => {
+  trackNetworkCall('request-promise', [options]);
+  
+  if (networkState.shouldFail) {
+    throw new Error(`${networkState.errorType}: Failed to fetch ${options.uri || options.url}`);
+  }
+  
+  const url = options.uri || options.url || '';
+  
+  if (networkState.responses.has(url)) {
+    return networkState.responses.get(url);
+  }
+  
+  // Default response for T-Capital statistics
+  if (url.includes('t-capital-funds.ru/statistics')) {
+    return `
+      <html>
+        <body>
+          <table>
+            <tr>
+              <th>Фонд</th>
+              <th>СЧА за последний день</th>
+              <th>Другие данные</th>
+            </tr>
+            <tr>
+              <td>TRUR - Стратегия вечного портфеля в рублях</td>
+              <td>1,500,000,000 ₽</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>TMOS - Т-Капитал Индекс МосБиржи</td>
+              <td>2,300,000,000 ₽</td>
+              <td>-</td>
+            </tr>
+            <tr>
+              <td>TGLD - Золото</td>
+              <td>800,000,000 ₽</td>
+              <td>-</td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `;
+  }
+  
+  return '';
+});
+
 // Puppeteer mocks for web scraping
 let puppeteerState = {
   shouldFail: false,
@@ -304,7 +353,8 @@ export const mockDate = {
   create: (isoString: string) => new Date(isoString),
   
   setSystemTime: (timestamp: number) => {
-    mockDate.now.mockReturnValue(timestamp);
+    // Update the mock function to return the new timestamp
+    mockDate.now = mockFn(() => timestamp);
   },
 };
 
