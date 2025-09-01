@@ -352,6 +352,11 @@ export const mockControls = {
       fsState.errorType = errorType;
     },
     
+    setError: (errorType: string = 'ENOENT') => {
+      fsState.shouldFail = true;
+      fsState.errorType = errorType;
+    },
+    
     setSuccess: () => {
       fsState.shouldFail = false;
     },

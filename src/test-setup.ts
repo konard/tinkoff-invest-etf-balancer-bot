@@ -41,8 +41,17 @@ if (typeof (global as any).resetConfigLoader === 'function') {
   },
   // Helper to create mock Tinkoff numbers
   createTinkoffNumber: (value: number) => {
-    const [units, nano] = value.toFixed(9).split('.').map(item => Number(item));
-    return { units, nano };
+    if (value >= 0) {
+      const units = Math.floor(value);
+      const nano = Math.round((value - units) * 1e9);
+      return { units, nano };
+    } else {
+      // For negative numbers: units is negative, nano is positive (fractional part)
+      const absValue = Math.abs(value);
+      const units = -Math.floor(absValue);
+      const nano = -Math.round((absValue - Math.floor(absValue)) * 1e9);
+      return { units, nano };
+    }
   },
 
   // Helper to create mock positions

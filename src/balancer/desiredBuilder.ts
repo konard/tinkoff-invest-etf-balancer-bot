@@ -159,42 +159,46 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
     }
   };
 
-  const calcMarketcap = async (nt: string): Promise<number> => {
+  const calcMarketcap = async (nt: string): Promise<number | null> => {
     debugMetrics(`Calculating market cap for ${nt}`);
     // 1) local JSON, 2) live for ETF, 3) live for shares
     const json = await readMetricFromJson(nt);
-    if (json && typeof json.marketCap === 'number' && Number.isFinite(json.marketCap)) {
+    if (json && typeof json.marketCap === 'number' && Number.isFinite(json.marketCap) && json.marketCap > 0) {
       debugMetrics(`Found market cap in JSON for ${nt}: ${json.marketCap}`);
       return json.marketCap;
     }
     const etfCap = await getEtfMarketCapRUB(nt);
     if (etfCap?.marketCapRUB) {
       const value = Number(etfCap.marketCapRUB) || 0;
-      debugMetrics(`Found ETF market cap for ${nt}: ${value}`);
-      return value;
+      if (value > 0) {
+        debugMetrics(`Found ETF market cap for ${nt}: ${value}`);
+        return value;
+      }
     }
     const shareCap = await getShareMarketCapRUB(nt);
     if (shareCap?.marketCapRUB) {
       const value = Number(shareCap.marketCapRUB) || 0;
-      debugMetrics(`Found share market cap for ${nt}: ${value}`);
-      return value;
+      if (value > 0) {
+        debugMetrics(`Found share market cap for ${nt}: ${value}`);
+        return value;
+      }
     }
-    debugMetrics(`No market cap found for ${nt}`);
-    return 0;
+    debugMetrics(`No valid market cap found for ${nt}`);
+    return null;
   };
 
-  const calcAumRub = async (nt: string): Promise<number> => {
+  const calcAumRub = async (nt: string): Promise<number | null> => {
     debugMetrics(`Calculating AUM for ${nt}`);
     // 1) local JSON, 2) live via T-Capital + FX
     const json = await readMetricFromJson(nt);
-    if (json && typeof json.aum === 'number' && Number.isFinite(json.aum)) {
+    if (json && typeof json.aum === 'number' && Number.isFinite(json.aum) && json.aum > 0) {
       debugMetrics(`Found AUM in JSON for ${nt}: ${json.aum}`);
       return json.aum;
     }
     const aumMap = await buildAumMapSmart([nt]);
     const value = await toRubFromAum(aumMap[nt]);
     debugMetrics(`Calculated live AUM for ${nt}: ${value}`);
-    return value;
+    return value && value > 0 ? value : null;
   };
 
   // Collect all metrics first
@@ -225,10 +229,10 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
       } else if (mode === 'aum') {
         metric = metricByNormalized[nt].aum || 0;
       } else if (mode === 'marketcap_aum') {
-        metric = metricByNormalized[nt].marketCap || 0;
-        if (!metric) {
-          metric = metricByNormalized[nt].aum || 0;
-        }
+        const marketCap = metricByNormalized[nt].marketCap;
+        const aum = metricByNormalized[nt].aum;
+        // Use market cap if available, otherwise use AUM
+        metric = (marketCap && marketCap > 0) ? marketCap : (aum && aum > 0) ? aum : 0;
       }
       weights[nt] = Number(metric) || 0;
     }
