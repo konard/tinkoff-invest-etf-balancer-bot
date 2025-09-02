@@ -273,31 +273,23 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       }
 
       let portfolio: any;
+      let positions: any;
       let portfolioPositions: any;
-      try {
-        debugProvider('Getting portfolio');
-        portfolio = await operations.getPortfolio({
-          accountId: ACCOUNT_ID,
-        });
-        debugProvider('portfolio', portfolio);
 
+      try {
+        debugProvider('Getting portfolio and positions simultaneously');
+        // Минимизируем временной зазор между вызовами для предотвращения race condition
+        [portfolio, positions] = await Promise.all([
+          operations.getPortfolio({ accountId: ACCOUNT_ID }),
+          operations.getPositions({ accountId: ACCOUNT_ID })
+        ]);
+        
         portfolioPositions = portfolio.positions;
+        debugProvider('portfolio', portfolio);
+        debugProvider('positions', positions);
         debugProvider('portfolioPositions', portfolioPositions);
       } catch (err) {
-        console.warn('Error getting portfolio');
-        debugProvider(err);
-        console.trace(err);
-      }
-
-      let positions: any;
-      try {
-        debugProvider('Getting positions');
-        positions = await operations.getPositions({
-          accountId: ACCOUNT_ID,
-        });
-        debugProvider('positions', positions);
-      } catch (err) {
-        console.warn('Error getting positions');
+        console.warn('Error getting portfolio/positions');
         debugProvider(err);
         console.trace(err);
       }
@@ -311,7 +303,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           base: currency.currency.toUpperCase(),
           quote: currency.currency.toUpperCase(),
           figi: undefined,
-          amount: currency.units,
+          amount: convertTinkoffNumberToNumber(currency),
           lotSize: 1,
           price: {
             units: 1,
@@ -424,12 +416,26 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       // Save current portfolio shares BEFORE balancing
       // Important: called after buildDesiredWalletByMode, but before balancer
       const beforeShares = calculatePortfolioShares(coreWallet);
+      
+      // 🔍 DIAGNOSIS: Log portfolio state BEFORE balancing
+      console.log('\n🔍 DIAGNOSIS: Portfolio state BEFORE balancing');
+      console.log(`📊 Total positions in coreWallet: ${coreWallet.length}`);
+      const rubBefore = coreWallet.find(p => p.base === 'RUB')?.amount || 0;
+      console.log(`💰 RUB balance before: ${rubBefore.toFixed(2)}`);
+      console.log(`⏰ Timestamp before balancing: ${new Date().toISOString()}`);
 
       // Determine if we should run in dry-run mode
       const shouldRunDryRun = !isExchangeOpen && exchangeClosureBehavior.mode === 'dry_run';
       
       const enhancedResult = await balancer(coreWallet, desiredForRun, positionMetrics, modeUsed, shouldRunDryRun);
       const { finalPercents, marginInfo } = enhancedResult;
+      
+      // 🔍 DIAGNOSIS: Orders executed, but coreWallet NOT updated!
+      console.log('\n⚡ DIAGNOSIS: Orders executed, BUT coreWallet NOT updated!');
+      console.log(`⏰ Timestamp after balancing: ${new Date().toISOString()}`);
+      const rubAfterOrders = coreWallet.find(p => p.base === 'RUB')?.amount || 0;
+      console.log(`💰 RUB balance in OLD coreWallet: ${rubAfterOrders.toFixed(2)} (should be same as before)`);
+      console.log('❌ This is the problem: afterShares will be calculated using OLD data!');
 
       // Add exchange closure status to logging
       if (!isExchangeOpen) {
@@ -451,8 +457,92 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         }
       }
 
-      // Get updated shares AFTER balancing
-      const afterShares = calculatePortfolioShares(coreWallet);
+      // 🔍 DIAGNOSIS: Fetch FRESH portfolio data after order execution
+      console.log('\n🔄 DIAGNOSIS: Fetching FRESH portfolio data after order execution...');
+      let freshCoreWallet = coreWallet; // Default to old wallet if fresh fetch fails
+      
+      try {
+        // Get fresh portfolio data to see real state after orders
+        const freshPortfolio = await operations.getPortfolio({ accountId: ACCOUNT_ID });
+        const freshPositions = await operations.getPositions({ accountId: ACCOUNT_ID });
+        
+        // Create fresh wallet to compare with old one
+        const tempFreshWallet: Wallet = [];
+        
+        // Add fresh currencies
+        for (const currency of freshPositions.money) {
+          tempFreshWallet.push({
+            pair: `${currency.currency.toUpperCase()}/${currency.currency.toUpperCase()}`,
+            base: currency.currency.toUpperCase(),
+            quote: currency.currency.toUpperCase(),
+            figi: undefined,
+            amount: convertTinkoffNumberToNumber(currency),
+            lotSize: 1,
+            price: { units: 1, nano: 0 },
+            priceNumber: 1,
+            lotPrice: { units: 1, nano: 0 },
+            totalPriceNumber: currency.units,
+          });
+        }
+        
+        // Add fresh positions
+        for (const position of freshPortfolio.positions) {
+          const instrument = _.find((global as any).INSTRUMENTS, { figi: position.figi });
+          if (instrument) {
+            const amount = position.quantity ? convertTinkoffNumberToNumber(position.quantity) : 0;
+            const priceNumber = position.currentPrice ? convertTinkoffNumberToNumber(position.currentPrice) : 0;
+            const totalPriceNumber = amount * priceNumber;
+            
+            tempFreshWallet.push({
+              pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
+              base: instrument.ticker,
+              quote: instrument.currency.toUpperCase(),
+              figi: position.figi,
+              amount: amount,
+              lotSize: instrument.lot,
+              price: position.currentPrice,
+              priceNumber: priceNumber,
+              lotPrice: convertNumberToTinkoffNumber(instrument.lot * priceNumber),
+              totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
+              totalPriceNumber: totalPriceNumber,
+            });
+          }
+        }
+        
+        freshCoreWallet = tempFreshWallet;
+        
+        // 🔍 DIAGNOSIS: Compare old vs fresh data
+        const rubFresh = freshCoreWallet.find(p => p.base === 'RUB')?.amount || 0;
+        console.log(`💰 RUB balance in FRESH wallet: ${rubFresh.toFixed(2)}`);
+        console.log(`📊 Difference in RUB: ${(rubFresh - rubAfterOrders).toFixed(2)}`);
+        
+        if (Math.abs(rubFresh - rubAfterOrders) > 0.01) {
+          console.log('🎯 FOUND IT! Portfolio changed after balancing - dividends or order execution detected!');
+        } else {
+          console.log('🤔 No significant change detected - investigating further...');
+        }
+        
+      } catch (error) {
+        console.log('⚠️ Could not fetch fresh portfolio data:', error);
+      }
+
+      // Get updated shares AFTER balancing (using fresh data if available)
+      const afterShares = calculatePortfolioShares(freshCoreWallet);
+      
+      // 🔍 DIAGNOSIS: Final comparison
+      console.log('\n🎯 DIAGNOSIS: beforeShares vs afterShares comparison');
+      const beforeKeys = Object.keys(beforeShares);
+      const afterKeys = Object.keys(afterShares);
+      
+      for (const ticker of [...new Set([...beforeKeys, ...afterKeys])]) {
+        const before = beforeShares[ticker] || 0;
+        const after = afterShares[ticker] || 0;
+        const diff = after - before;
+        
+        if (Math.abs(diff) > 0.01) {
+          console.log(`📈 ${ticker}: ${before.toFixed(2)}% -> ${after.toFixed(2)}% (${diff > 0 ? '+' : ''}${diff.toFixed(2)}%)`);
+        }
+      }
 
       // Detailed balancing result output
       console.log('\n🎯 BALANCING RESULT:');
