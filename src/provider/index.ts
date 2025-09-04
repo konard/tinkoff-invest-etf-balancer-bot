@@ -75,6 +75,50 @@ export const generateOrders = async (wallet: Wallet) => {
   }
 };
 
+/**
+ * Generates orders with sequential execution groups for buy_requires_total_marginal_sell feature
+ * Ensures sell orders complete before non-margin buy orders are executed
+ */
+export const generateOrdersSequential = async (
+  sellsFirst: Position[], 
+  buysNonMarginFirst: Position[], 
+  remainingOrders: Position[]
+) => {
+  debugProvider('generateOrdersSequential - executing in phases for buy_requires_total_marginal_sell');
+  
+  // Phase 1: Execute sell orders first and wait for completion
+  if (sellsFirst.length > 0) {
+    debugProvider(`🔄 PHASE 1: Executing ${sellsFirst.length} sell orders to raise funds`);
+    for (const position of sellsFirst) {
+      debugProvider(`💰 Executing sell order: ${Math.abs(position.toBuyLots || 0)} lots of ${position.base}`);
+      await generateOrder(position);
+    }
+    
+    // Additional wait time for sell orders to complete and funds to become available
+    debugProvider('⏳ Waiting for sell orders to complete and funds to be available...');
+    await sleep(5000); // Wait 5 seconds for market orders to complete
+  }
+  
+  // Phase 2: Execute non-margin buy orders (TMON etc.)
+  if (buysNonMarginFirst.length > 0) {
+    debugProvider(`🔄 PHASE 2: Executing ${buysNonMarginFirst.length} non-margin buy orders with raised funds`);
+    for (const position of buysNonMarginFirst) {
+      debugProvider(`💰 Executing non-margin buy order: ${Math.abs(position.toBuyLots || 0)} lots of ${position.base}`);
+      await generateOrder(position);
+    }
+  }
+  
+  // Phase 3: Execute remaining orders normally
+  if (remainingOrders.length > 0) {
+    debugProvider(`🔄 PHASE 3: Executing ${remainingOrders.length} remaining orders`);
+    for (const position of remainingOrders) {
+      await generateOrder(position);
+    }
+  }
+  
+  debugProvider('✅ Sequential order execution completed');
+};
+
 export const generateOrder = async (position: Position) => {
   debugProvider('generateOrder');
   debugProvider('position', position);
@@ -83,6 +127,9 @@ export const generateOrder = async (position: Position) => {
     debugProvider('If position is RUB, do nothing');
     return false;
   }
+
+  // Log order details
+  debugProvider(`💰 About to place ${position.toBuyLots! > 0 ? 'BUY' : 'SELL'} order: ${Math.abs(position.toBuyLots || 0)} lots × ${position.lotPriceNumber || 0} = ${Math.abs((position.toBuyLots || 0) * (position.lotPriceNumber || 0)).toFixed(2)} RUB for ${position.base}`);
 
   debugProvider('Position is not currency');
 

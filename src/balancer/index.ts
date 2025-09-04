@@ -8,11 +8,12 @@ import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/or
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
 import { configLoader } from '../configLoader';
 import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig, EnhancedBalancerResult, PositionMetrics, MarginBalancingStrategy } from '../types.d';
-import { getLastPrice, generateOrders } from '../provider';
+import { getLastPrice, generateOrders, generateOrdersSequential } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { 
   identifyProfitablePositions, 
+  identifyPositionsForSelling,
   calculateRequiredFunds, 
   calculateSellingAmounts 
 } from '../utils/buyRequiresTotalMarginalSell';
@@ -490,19 +491,66 @@ export const balancer = async (
   if (buyRequiresConfig?.enabled) {
     debug('Processing buy_requires_total_marginal_sell configuration');
     
-    // 1. Identify profitable positions that can be sold
-    const profitablePositions = identifyProfitablePositions(sortedWallet, buyRequiresConfig);
+    // 1. Identify positions that can be sold based on the mode:
+    //    - 'only_positive_positions_sell': only profitable positions  
+    //    - 'equal_in_percents': all positions proportionally
+    //    - 'none': no positions
+    const sellablePositions = identifyPositionsForSelling(
+      sortedWallet, 
+      buyRequiresConfig,
+      buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions?.mode || 'none'
+    );
     
     // 2. Calculate required funds for non-margin instrument purchases
     const requiredFunds = calculateRequiredFunds(sortedWallet, desiredMap, buyRequiresConfig);
     
     // 3. Calculate selling amounts based on the strategy
     if (buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions) {
+      // Find current RUB balance
+      const rubPosition = _.find(sortedWallet, (p) => p.base === 'RUB' && p.quote === 'RUB');
+      const currentRubBalance = rubPosition ? (rubPosition.totalPriceNumber || 0) : 0;
+      
+      debug(`🔍 CALCULATE SELLING DEBUG:`);
+      debug(`   Current RUB balance: ${currentRubBalance.toFixed(2)} RUB`);
+      debug(`   Required funds:`, requiredFunds);
+      debug(`   Sellable positions count: ${sellablePositions.length}`);
+      debug(`   Mode: ${buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode}`);
+      
       specialSellingPlan = calculateSellingAmounts(
-        profitablePositions,
+        sellablePositions,
         requiredFunds,
-        buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode
+        buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode,
+        currentRubBalance
       );
+      
+      debug(`✅ Special selling plan calculated:`, specialSellingPlan);
+      
+      // Check if selling plan can provide enough funds (informational only)
+      const totalFundsFromSelling = Object.values(specialSellingPlan).reduce((sum, plan) => sum + plan.sellAmount, 0);
+      const totalFundsNeeded = Object.values(requiredFunds).reduce((sum, amount) => sum + amount, 0);
+      const actualFundsNeeded = currentRubBalance < 0 
+        ? Math.abs(currentRubBalance) + totalFundsNeeded
+        : Math.max(0, totalFundsNeeded - currentRubBalance);
+      
+      if (totalFundsFromSelling < actualFundsNeeded) {
+        const shortfall = actualFundsNeeded - totalFundsFromSelling;
+        const shortfallPercent = (shortfall / actualFundsNeeded) * 100;
+        
+        debug(`⚠️  PARTIAL FUNDS WARNING:`);
+        debug(`   Funds needed: ${actualFundsNeeded.toFixed(2)} RUB`);
+        debug(`   Funds from selling: ${totalFundsFromSelling.toFixed(2)} RUB`);
+        debug(`   Shortfall: ${shortfall.toFixed(2)} RUB (${shortfallPercent.toFixed(1)}%)`);
+        
+        // Allow execution even with partial funding - better than nothing
+        if (shortfallPercent > 50) {
+          debug(`🚨 CRITICAL: Shortfall too large (>${shortfallPercent.toFixed(1)}%), cancelling special selling plan`);
+          specialSellingPlan = {};
+        } else {
+          debug(`📈 PROCEEDING: Shortfall acceptable (<50%), executing partial funding strategy`);
+        }
+      } else {
+        debug(`✅ FULL FUNDING: Selling plan covers all required funds`);
+      }
       
       // Adjust the toBuyLots and toBuyNumber for positions that need to be sold
       for (const [ticker, sellPlan] of Object.entries(specialSellingPlan)) {
@@ -577,18 +625,25 @@ export const balancer = async (
   const remainingBuysSorted = _.orderBy(remainingBuys, ['lotPriceNumber'], ['desc']);
   
   // Execution order according to TZ (Technical Specification):
-  // 1) First purchases of non-margin instruments (buysNonMarginFirst)
-  // 2) Then sales for funding non-margin purchases (sellsFirst) 
+  // CRITICAL FIX: Sales must execute BEFORE purchases to provide funds!
+  // 1) First sales for funding non-margin purchases (sellsFirst) - get RUB for buying
+  // 2) Then purchases of non-margin instruments (buysNonMarginFirst) - buy with obtained RUB
   // 3) Then remaining sales (remainingSells)
   // 4) Then remaining purchases (remainingBuys)
-  const ordersPlanned = [...buysNonMarginSorted, ...sellsSorted, ...remainingSellsSorted, ...remainingBuysSorted];
+  const ordersPlanned = [...sellsSorted, ...buysNonMarginSorted, ...remainingSellsSorted, ...remainingBuysSorted];
   debug('ordersPlanned', ordersPlanned);
 
   debug('walletInfo', walletInfo);
 
   if (!dryRun) {
-    debug('Creating necessary orders for all positions');
-    await generateOrders(ordersPlanned);
+    if (buyRequiresConfig?.enabled && (sellsFirst.length > 0 || buysNonMarginFirst.length > 0)) {
+      debug('🔄 Using SEQUENTIAL execution for buy_requires_total_marginal_sell feature');
+      debug(`Sequential execution phases: ${sellsFirst.length} sells first, ${buysNonMarginFirst.length} non-margin buys, ${remainingSells.length + remainingBuys.length} remaining`);
+      await generateOrdersSequential(sellsFirst, buysNonMarginFirst, [...remainingSellsSorted, ...remainingBuysSorted]);
+    } else {
+      debug('Creating necessary orders for all positions (normal mode)');
+      await generateOrders(ordersPlanned);
+    }
   } else {
     debug('Dry-run mode: Skipping order generation. Orders that would be placed:', ordersPlanned.length);
     for (const order of ordersPlanned) {

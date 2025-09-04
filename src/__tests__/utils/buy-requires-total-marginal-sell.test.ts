@@ -265,7 +265,8 @@ testSuite('Buy Requires Total Marginal Sell Utility Functions', () => {
       const sellingPlan = calculateSellingAmounts(
         profitablePositions,
         requiredFunds,
-        'only_positive_positions_sell'
+        'only_positive_positions_sell',
+        0  // Assume 0 RUB balance for test
       );
       
       // Should plan to sell from the positions (the exact number depends on the implementation)
@@ -310,7 +311,8 @@ testSuite('Buy Requires Total Marginal Sell Utility Functions', () => {
       const sellingPlan = calculateSellingAmounts(
         profitablePositions,
         requiredFunds,
-        'equal_in_percents'
+        'equal_in_percents',
+        0  // Assume 0 RUB balance for test
       );
       
       // Should plan to sell proportionally from both positions
@@ -343,11 +345,50 @@ testSuite('Buy Requires Total Marginal Sell Utility Functions', () => {
       const sellingPlan = calculateSellingAmounts(
         profitablePositions,
         requiredFunds,
-        'none'
+        'none',
+        0  // Assume 0 RUB balance for test
       );
       
       // Should not plan to sell anything
       expect(Object.keys(sellingPlan)).toHaveLength(0);
+    });
+
+    it('should calculate correct selling amount with negative RUB balance', () => {
+      const profitablePositions: Wallet = [
+        {
+          base: 'TGLD',
+          quote: 'RUB',
+          figi: 'test_figi',
+          amount: 10,
+          lotSize: 1,
+          price: convertNumberToTinkoffNumber(100),
+          priceNumber: 100,
+          lotPrice: convertNumberToTinkoffNumber(100),
+          lotPriceNumber: 100,
+          totalPrice: convertNumberToTinkoffNumber(1000),
+          totalPriceNumber: 1000,
+        }
+      ];
+
+      const requiredFunds = {
+        'TMON': 142.29 // Need 142.29 RUB for TMON
+      };
+
+      // Test with negative RUB balance like in the log: -454.76
+      const negativeRubBalance = -454.76;
+      const sellingPlan = calculateSellingAmounts(
+        profitablePositions,
+        requiredFunds,
+        'only_positive_positions_sell',
+        negativeRubBalance
+      );
+      
+      // Should sell enough to cover deficit + purchase: 454.76 + 142.29 = 597.05 RUB
+      // With lot price 100, should sell 6 lots (600 RUB) to cover 597.05 RUB needed
+      expect(Object.keys(sellingPlan)).toHaveLength(1);
+      expect(sellingPlan['TGLD']).toBeDefined();
+      expect(sellingPlan['TGLD'].sellLots).toBe(6);
+      expect(sellingPlan['TGLD'].sellAmount).toBe(600);
     });
   });
 });

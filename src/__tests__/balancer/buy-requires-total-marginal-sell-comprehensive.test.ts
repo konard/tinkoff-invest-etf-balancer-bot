@@ -251,14 +251,14 @@ testSuite('Buy Requires Total Marginal Sell Comprehensive Tests', () => {
         'TMON': 500, // Need 500 RUB to buy TMON
       };
 
-      const result = calculateSellingAmounts(profitablePositions, requiredFunds, 'only_positive_positions_sell');
+      const result = calculateSellingAmounts(profitablePositions, requiredFunds, 'only_positive_positions_sell', 0);
       
       // Should sell from TMOS first (higher profit), need 500 RUB
       // TMOS position value: 960 RUB, lot price: 120 RUB
-      // Can sell 4 lots (4 * 120 = 480 RUB) which is the maximum that doesn't exceed funds needed
+      // Need 5 lots (5 * 120 = 600 RUB) to cover 500 RUB needed
       expect(result['TMOS']).toBeDefined();
-      expect(result['TMOS']!.sellLots).toBe(4);
-      expect(result['TMOS']!.sellAmount).toBe(480);
+      expect(result['TMOS']!.sellLots).toBe(5);
+      expect(result['TMOS']!.sellAmount).toBe(600);
     });
   });
 
