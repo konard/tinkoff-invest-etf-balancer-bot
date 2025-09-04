@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { ProjectConfig, AccountConfig, ExchangeClosureBehavior } from './types.d';
+import { ProjectConfig, AccountConfig, ExchangeClosureBehavior, BuyRequiresTotalMarginalSellConfig } from './types.d';
 
 class ConfigLoader {
   private static instance: ConfigLoader;
@@ -132,6 +132,11 @@ class ConfigLoader {
       // Validate exchange_closure_behavior configuration
       this.validateExchangeClosureBehavior(account.exchange_closure_behavior, account.id);
     }
+
+    // Validate buy_requires_total_marginal_sell configuration if present
+    if (account.buy_requires_total_marginal_sell) {
+      this.validateBuyRequiresTotalMarginalSell(account.buy_requires_total_marginal_sell, account);
+    }
   }
 
   private validateExchangeClosureBehavior(behavior: ExchangeClosureBehavior, accountId: string): void {
@@ -149,6 +154,55 @@ class ConfigLoader {
         `Account ${accountId}: exchange_closure_behavior.update_iteration_result must be a boolean. ` +
         `Got: ${typeof behavior.update_iteration_result}`
       );
+    }
+  }
+
+  private validateBuyRequiresTotalMarginalSell(config: BuyRequiresTotalMarginalSellConfig, account: AccountConfig): void {
+    // Validate enabled field
+    if (typeof config.enabled !== 'boolean') {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.enabled must be a boolean. Got: ${typeof config.enabled}`);
+    }
+
+    // Validate instruments field
+    if (!Array.isArray(config.instruments)) {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.instruments must be an array. Got: ${typeof config.instruments}`);
+    }
+
+    // Validate that all instruments are strings
+    for (const instrument of config.instruments) {
+      if (typeof instrument !== 'string') {
+        throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.instruments must contain only strings. Found: ${typeof instrument}`);
+      }
+    }
+
+    // Validate that instruments exist in desired_wallet
+    for (const instrument of config.instruments) {
+      if (!(instrument in account.desired_wallet)) {
+        throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.instruments contains instrument ${instrument} which is not in desired_wallet`);
+      }
+    }
+
+    // Validate allow_to_sell_others_positions_to_buy_non_marginal_positions
+    if (!config.allow_to_sell_others_positions_to_buy_non_marginal_positions) {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.allow_to_sell_others_positions_to_buy_non_marginal_positions is required`);
+    }
+
+    if (!config.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode) {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode is required`);
+    }
+
+    const validModes = ['only_positive_positions_sell', 'equal_in_percents', 'none'];
+    if (!validModes.includes(config.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode)) {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode must be one of: ${validModes.join(', ')}. Got: ${config.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode}`);
+    }
+
+    // Validate min_buy_rebalance_percent
+    if (typeof config.min_buy_rebalance_percent !== 'number') {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.min_buy_rebalance_percent must be a number. Got: ${typeof config.min_buy_rebalance_percent}`);
+    }
+
+    if (config.min_buy_rebalance_percent < 0 || config.min_buy_rebalance_percent > 100) {
+      throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.min_buy_rebalance_percent must be between 0 and 100. Got: ${config.min_buy_rebalance_percent}`);
     }
   }
 

@@ -33,8 +33,15 @@
           "free_threshold": 5000,
           "max_margin_size": 5000,
           "balancing_strategy": "keep_if_small"
+        },
+        "buy_requires_total_marginal_sell": {
+          "enabled": true,
+          "instruments": ["TMON", "TGLD"],
+          "allow_to_sell_others_positions_to_buy_non_marginal_positions": {
+            "mode": "only_positive_positions_sell"
+          },
+          "min_buy_rebalance_percent": 0.5
         }
       }
     ]
   }
-  

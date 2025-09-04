@@ -258,3 +258,96 @@ npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=50 --in
 - СЧА (AUM) - https://t-capital-funds.ru/statistics/
 - Количество паев, капитализация - https://www.tbank.ru/invest/etfs/TDIV@/news/
 - Полное название фонда + тикер - https://investfunds.ru/funds/7067/
+
+[![Build Status](https://github.com/suenot/deep-tinkoff-invest-api/actions/workflows/test.yml/badge.svg)](https://github.com/suenot/deep-tinkoff-invest-api/actions/workflows/test.yml)
+[![License](https://img.shields.io/github/license/suenot/deep-tinkoff-invest-api)](LICENSE)
+
+A trading bot for automatic portfolio rebalancing on Tinkoff Invest accounts.
+
+## Features
+
+- 🤖 **Automatic Portfolio Rebalancing**: Maintains your target portfolio allocation
+- 📊 **Multi-Account Support**: Manage multiple Tinkoff Invest accounts with different configurations
+- 💰 **Margin Trading**: Support for margin trading with configurable strategies
+- 📈 **ETF Metrics Polling**: Collect and analyze ETF market capitalization and AUM data
+- 📰 **News Analysis**: Scrape and analyze financial news for informed decision making
+- 📋 **Detailed Output**: Comprehensive before/after comparison of portfolio changes
+- ⚙️ **Flexible Configuration**: JSON-based configuration with validation
+- 🧪 **Comprehensive Testing**: Extensive test suite with multiple scenarios
+
+## New Feature: Buy Requires Total Marginal Sell
+
+The bot now supports a special configuration for purchasing non-margin instruments (like TMON) when there are insufficient funds. This feature allows you to define how other positions should be sold to fund purchases of non-margin instruments.
+
+See [README.buy_requires_total_marginal_sell.md](README.buy_requires_total_marginal_sell.md) for detailed documentation.
+
+## Quick Start
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/suenot/deep-tinkoff-invest-api.git
+   cd deep-tinkoff-invest-api
+   ```
+
+2. Install dependencies:
+   ```bash
+   curl -fsSL https://bun.sh/install | bash
+   export PATH="$HOME/.bun/bin:$PATH"
+   bun install
+   ```
+
+3. Configure your environment:
+   ```bash
+   cp .env-example .env
+   # Edit .env with your Tinkoff Invest tokens
+   ```
+
+4. Set up your portfolio configuration:
+   ```bash
+   cp CONFIG.example.json CONFIG.json
+   # Edit CONFIG.json with your desired portfolio allocation
+   ```
+
+5. Run the bot:
+   ```bash
+   bun run start
+   ```
+
+## Configuration
+
+See [README.config.md](README.config.md) for detailed configuration instructions.
+
+## Commands
+
+```bash
+# Main bot
+bun run start
+
+# Development mode with debug logging
+bun run dev
+
+# List accounts
+bun run accounts
+
+# Validate configuration
+bun run config validate
+
+# View detailed help
+bun run config help
+```
+
+## Documentation
+
+- [Configuration Guide](README.config.md)
+- [Buy Requires Total Marginal Sell Feature](README.buy_requires_total_marginal_sell.md)
+- [Margin Trading](README.margin_trading.md)
+- [ETF Metrics Polling](README.poll_etf_metrics.md)
+- [Detailed Balancing Output](README.detailed_balancing_output.md)
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

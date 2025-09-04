@@ -1,0 +1,4639 @@
+$ DEBUG=bot:main,bot:provider,bot:balancer bun run ./src/index.ts
+2025-09-04T13:14:53.624Z bot:main main start
+2025-09-04T13:14:53.625Z bot:provider Getting accounts list
+2025-09-04T13:14:54.118Z bot:provider accountsResponse {
+  accounts: [
+    {
+      id: '2272547076',
+      type: 1,
+      name: 'Брокерский счет 4',
+      status: 2,
+      openedDate: 2025-08-08T00:00:00.000Z,
+      closedDate: 1970-01-01T00:00:00.000Z,
+      accessLevel: 1
+    }
+  ]
+}
+2025-09-04T13:14:54.120Z bot:provider Selected account by index {
+  id: '2272547076',
+  type: 1,
+  name: 'Брокерский счет 4',
+  status: 2,
+  openedDate: 2025-08-08T00:00:00.000Z,
+  closedDate: 1970-01-01T00:00:00.000Z,
+  accessLevel: 1
+}
+2025-09-04T13:14:54.121Z bot:provider Getting shares list
+2025-09-04T13:14:58.422Z bot:provider shares count 1937
+2025-09-04T13:15:03.426Z bot:provider Getting ETFs list
+2025-09-04T13:15:04.186Z bot:provider etfs count 276
+2025-09-04T13:15:09.188Z bot:provider Getting bonds list
+2025-09-04T13:15:14.972Z bot:provider bonds count 1406
+2025-09-04T13:15:19.977Z bot:provider Getting currencies list
+2025-09-04T13:15:20.140Z bot:provider currencies count 16
+2025-09-04T13:15:25.142Z bot:provider Getting futures list
+2025-09-04T13:15:26.424Z bot:provider futures count 365
+2025-09-04T13:15:31.426Z bot:provider =========================
+2025-09-04T13:15:31.432Z bot:provider Checking trading schedule for MOEX. Current time: 2025-09-04T13:15:31.432Z
+2025-09-04T13:15:31.432Z bot:provider Request params: from=2025-09-04T13:15:31.432Z, to=2025-09-05T13:15:31.432Z
+2025-09-04T13:15:31.789Z bot:provider Trading schedules response: {
+  "exchanges": [
+    {
+      "exchange": "MOEX",
+      "days": [
+        {
+          "date": "2025-09-04T00:00:00.000Z",
+          "isTradingDay": true,
+          "startTime": "2025-09-04T07:00:00.000Z",
+          "endTime": "2025-09-04T15:39:59.000Z",
+          "openingAuctionStartTime": "2025-09-04T06:50:00.000Z",
+          "closingAuctionEndTime": "2025-09-04T15:50:00.000Z",
+          "closingAuctionStartTime": "2025-09-04T15:40:01.000Z",
+          "openingAuctionEndTime": "2025-09-04T06:59:59.000Z",
+          "intervals": [
+            {
+              "type": "regular_trading_session",
+              "interval": {
+                "startTs": "2025-09-04T07:00:00.000Z",
+                "endTs": "2025-09-04T15:39:59.000Z"
+              }
+            },
+            {
+              "type": "regular_trading_session_main",
+              "interval": {
+                "startTs": "2025-09-04T07:00:00.000Z",
+                "endTs": "2025-09-04T15:39:59.000Z"
+              }
+            },
+            {
+              "type": "opening_auction",
+              "interval": {
+                "startTs": "2025-09-04T06:50:00.000Z",
+                "endTs": "2025-09-04T06:59:59.000Z"
+              }
+            },
+            {
+              "type": "opening_auction_main",
+              "interval": {
+                "startTs": "2025-09-04T06:50:00.000Z",
+                "endTs": "2025-09-04T06:59:59.000Z"
+              }
+            },
+            {
+              "type": "closing_auction",
+              "interval": {
+                "startTs": "2025-09-04T15:40:01.000Z",
+                "endTs": "2025-09-04T15:50:00.000Z"
+              }
+            },
+            {
+              "type": "closing_auction_main",
+              "interval": {
+                "startTs": "2025-09-04T15:40:01.000Z",
+                "endTs": "2025-09-04T15:50:00.000Z"
+              }
+            }
+          ]
+        },
+        {
+          "date": "2025-09-05T00:00:00.000Z",
+          "isTradingDay": true,
+          "startTime": "2025-09-05T07:00:00.000Z",
+          "endTime": "2025-09-05T15:39:59.000Z",
+          "openingAuctionStartTime": "2025-09-05T06:50:00.000Z",
+          "closingAuctionEndTime": "2025-09-05T15:50:00.000Z",
+          "closingAuctionStartTime": "2025-09-05T15:40:01.000Z",
+          "openingAuctionEndTime": "2025-09-05T06:59:59.000Z",
+          "intervals": [
+            {
+              "type": "regular_trading_session",
+              "interval": {
+                "startTs": "2025-09-05T07:00:00.000Z",
+                "endTs": "2025-09-05T15:39:59.000Z"
+              }
+            },
+            {
+              "type": "regular_trading_session_main",
+              "interval": {
+                "startTs": "2025-09-05T07:00:00.000Z",
+                "endTs": "2025-09-05T15:39:59.000Z"
+              }
+            },
+            {
+              "type": "opening_auction",
+              "interval": {
+                "startTs": "2025-09-05T06:50:00.000Z",
+                "endTs": "2025-09-05T06:59:59.000Z"
+              }
+            },
+            {
+              "type": "opening_auction_main",
+              "interval": {
+                "startTs": "2025-09-05T06:50:00.000Z",
+                "endTs": "2025-09-05T06:59:59.000Z"
+              }
+            },
+            {
+              "type": "closing_auction",
+              "interval": {
+                "startTs": "2025-09-05T15:40:01.000Z",
+                "endTs": "2025-09-05T15:50:00.000Z"
+              }
+            },
+            {
+              "type": "closing_auction_main",
+              "interval": {
+                "startTs": "2025-09-05T15:40:01.000Z",
+                "endTs": "2025-09-05T15:50:00.000Z"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+2025-09-04T13:15:31.789Z bot:provider Found 2 trading days in schedule
+2025-09-04T13:15:31.789Z bot:provider Processing day: {
+  "date": "2025-09-04T00:00:00.000Z",
+  "isTradingDay": true,
+  "startTime": "2025-09-04T07:00:00.000Z",
+  "endTime": "2025-09-04T15:39:59.000Z",
+  "openingAuctionStartTime": "2025-09-04T06:50:00.000Z",
+  "closingAuctionEndTime": "2025-09-04T15:50:00.000Z",
+  "closingAuctionStartTime": "2025-09-04T15:40:01.000Z",
+  "openingAuctionEndTime": "2025-09-04T06:59:59.000Z",
+  "intervals": [
+    {
+      "type": "regular_trading_session",
+      "interval": {
+        "startTs": "2025-09-04T07:00:00.000Z",
+        "endTs": "2025-09-04T15:39:59.000Z"
+      }
+    },
+    {
+      "type": "regular_trading_session_main",
+      "interval": {
+        "startTs": "2025-09-04T07:00:00.000Z",
+        "endTs": "2025-09-04T15:39:59.000Z"
+      }
+    },
+    {
+      "type": "opening_auction",
+      "interval": {
+        "startTs": "2025-09-04T06:50:00.000Z",
+        "endTs": "2025-09-04T06:59:59.000Z"
+      }
+    },
+    {
+      "type": "opening_auction_main",
+      "interval": {
+        "startTs": "2025-09-04T06:50:00.000Z",
+        "endTs": "2025-09-04T06:59:59.000Z"
+      }
+    },
+    {
+      "type": "closing_auction",
+      "interval": {
+        "startTs": "2025-09-04T15:40:01.000Z",
+        "endTs": "2025-09-04T15:50:00.000Z"
+      }
+    },
+    {
+      "type": "closing_auction_main",
+      "interval": {
+        "startTs": "2025-09-04T15:40:01.000Z",
+        "endTs": "2025-09-04T15:50:00.000Z"
+      }
+    }
+  ]
+}
+2025-09-04T13:15:31.789Z bot:provider Session times: start=2025-09-04T07:00:00.000Z, end=2025-09-04T15:39:59.000Z
+2025-09-04T13:15:31.789Z bot:provider Evening session: start=undefined, end=undefined
+2025-09-04T13:15:31.789Z bot:provider Current time is within main trading session
+2025-09-04T13:15:31.789Z bot:provider Getting portfolio and positions simultaneously
+2025-09-04T13:15:32.008Z bot:provider portfolio {
+  totalAmountShares: { currency: 'rub', units: 0, nano: 0 },
+  totalAmountBonds: { currency: 'rub', units: 0, nano: 0 },
+  totalAmountEtf: { currency: 'rub', units: 832, nano: 920000000 },
+  totalAmountCurrencies: { currency: 'rub', units: -450, nano: -150000000 },
+  totalAmountFutures: { currency: 'rub', units: 0, nano: 0 },
+  expectedYield: { units: 0, nano: -90000000 },
+  positions: [
+    {
+      figi: 'TCS00A108WX3',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '41be4f89-9d19-4eac-9ae4-09276f85956a',
+      instrumentUid: '1d0e01e5-148c-40e5-bb8f-1bf2d8e03c1a',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS20A107597',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '5b56d3c6-c302-4417-8c0c-a7e8e5881617',
+      instrumentUid: '2f243f46-34ce-4d50-a931-c6f8a67eb758',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS30A108BL2',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '09a59e18-5be2-4eec-b149-aae369f49561',
+      instrumentUid: '55111741-4618-4254-9c78-255b0067fcbe',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'RUB000UTSTOM',
+      instrumentType: 'currency',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '33e24a92-aab0-409c-88b8-f2d57415b920',
+      instrumentUid: 'a92e2e25-a698-45cc-a781-167cf465257c',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS10A107563',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '8f747dc6-21bf-4f3a-878e-834880728a29',
+      instrumentUid: 'd5cba263-cda7-440c-a21d-134fb5d334f6',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS80A101X50',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '46dd8924-24e9-4581-afd2-97e0ca89009c',
+      instrumentUid: 'de82be66-3b9b-4612-9572-61e3c6039013',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'BBG000000001',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '8005e2ec-66b3-49ae-9711-a424d9c9b61b',
+      instrumentUid: 'e2d0dbac-d354-4c36-a5ed-e5aae42ffc76',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS60A1039N1',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '68f44dc7-7ad2-4246-b1ba-c039b7703371',
+      instrumentUid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS60A101X76',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: 'ffd48f38-aa9b-491c-8e40-140a3f0bc931',
+      instrumentUid: 'f509af83-6e71-462f-901f-bcb073f6773b',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    },
+    {
+      figi: 'TCS00A10B0G9',
+      instrumentType: 'etf',
+      quantity: [Object],
+      averagePositionPrice: [Object],
+      expectedYield: [Object],
+      currentNkd: undefined,
+      averagePositionPricePt: [Object],
+      currentPrice: [Object],
+      averagePositionPriceFifo: [Object],
+      quantityLots: [Object],
+      blocked: false,
+      blockedLots: [Object],
+      positionUid: '0599cd56-02b0-4ceb-8045-eae66523979e',
+      instrumentUid: 'fa20b747-e414-4922-963a-d19b752535b2',
+      varMargin: [Object],
+      expectedYieldFifo: [Object],
+      dailyYield: [Object]
+    }
+  ],
+  accountId: '2272547076',
+  totalAmountOptions: { currency: 'rub', units: 0, nano: 0 },
+  totalAmountSp: { currency: 'rub', units: 0, nano: 0 },
+  totalAmountPortfolio: { currency: 'rub', units: 382, nano: 770000000 },
+  virtualPositions: [],
+  dailyYield: { currency: 'rub', units: 0, nano: -340000000 },
+  dailyYieldRelative: { units: 0, nano: -90000000 }
+}
+2025-09-04T13:15:32.013Z bot:provider positions {
+  money: [ { currency: 'rub', units: -450, nano: -150000000 } ],
+  blocked: [],
+  securities: [
+    {
+      figi: 'TCS00A108WX3',
+      blocked: 0,
+      balance: 1,
+      positionUid: '41be4f89-9d19-4eac-9ae4-09276f85956a',
+      instrumentUid: '1d0e01e5-148c-40e5-bb8f-1bf2d8e03c1a',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'BBG000000001',
+      blocked: 0,
+      balance: 10,
+      positionUid: '8005e2ec-66b3-49ae-9711-a424d9c9b61b',
+      instrumentUid: 'e2d0dbac-d354-4c36-a5ed-e5aae42ffc76',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS60A101X76',
+      blocked: 0,
+      balance: 14,
+      positionUid: 'ffd48f38-aa9b-491c-8e40-140a3f0bc931',
+      instrumentUid: 'f509af83-6e71-462f-901f-bcb073f6773b',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS10A107563',
+      blocked: 0,
+      balance: 9,
+      positionUid: '8f747dc6-21bf-4f3a-878e-834880728a29',
+      instrumentUid: 'd5cba263-cda7-440c-a21d-134fb5d334f6',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS00A10B0G9',
+      blocked: 0,
+      balance: 9,
+      positionUid: '0599cd56-02b0-4ceb-8045-eae66523979e',
+      instrumentUid: 'fa20b747-e414-4922-963a-d19b752535b2',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS20A107597',
+      blocked: 0,
+      balance: 9,
+      positionUid: '5b56d3c6-c302-4417-8c0c-a7e8e5881617',
+      instrumentUid: '2f243f46-34ce-4d50-a931-c6f8a67eb758',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS30A108BL2',
+      blocked: 0,
+      balance: 14,
+      positionUid: '09a59e18-5be2-4eec-b149-aae369f49561',
+      instrumentUid: '55111741-4618-4254-9c78-255b0067fcbe',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS80A101X50',
+      blocked: 0,
+      balance: 8,
+      positionUid: '46dd8924-24e9-4581-afd2-97e0ca89009c',
+      instrumentUid: 'de82be66-3b9b-4612-9572-61e3c6039013',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    },
+    {
+      figi: 'TCS60A1039N1',
+      blocked: 0,
+      balance: 12,
+      positionUid: '68f44dc7-7ad2-4246-b1ba-c039b7703371',
+      instrumentUid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+      exchangeBlocked: false,
+      instrumentType: 'etf'
+    }
+  ],
+  limitsLoadingInProgress: false,
+  futures: [],
+  options: [],
+  accountId: '2272547076'
+}
+2025-09-04T13:15:32.014Z bot:provider portfolioPositions [
+  {
+    figi: 'TCS00A108WX3',
+    instrumentType: 'etf',
+    quantity: { units: 1, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 100, nano: 660000000 },
+    expectedYield: { units: 0, nano: 0 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 100, nano: 660000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 100, nano: 660000000 },
+    quantityLots: { units: 1, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '41be4f89-9d19-4eac-9ae4-09276f85956a',
+    instrumentUid: '1d0e01e5-148c-40e5-bb8f-1bf2d8e03c1a',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: 0 },
+    dailyYield: { currency: 'rub', units: 0, nano: 0 }
+  },
+  {
+    figi: 'TCS20A107597',
+    instrumentType: 'etf',
+    quantity: { units: 9, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 10, nano: 190000000 },
+    expectedYield: { units: 0, nano: 0 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 10, nano: 190000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 10, nano: 190000000 },
+    quantityLots: { units: 9, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '5b56d3c6-c302-4417-8c0c-a7e8e5881617',
+    instrumentUid: '2f243f46-34ce-4d50-a931-c6f8a67eb758',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: 0 },
+    dailyYield: { currency: 'rub', units: 0, nano: 0 }
+  },
+  {
+    figi: 'TCS30A108BL2',
+    instrumentType: 'etf',
+    quantity: { units: 14, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 6, nano: 410000000 },
+    expectedYield: { units: 0, nano: -140000000 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 6, nano: 400000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 6, nano: 410000000 },
+    quantityLots: { units: 14, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '09a59e18-5be2-4eec-b149-aae369f49561',
+    instrumentUid: '55111741-4618-4254-9c78-255b0067fcbe',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: -140000000 },
+    dailyYield: { currency: 'rub', units: 0, nano: -140000000 }
+  },
+  {
+    figi: 'RUB000UTSTOM',
+    instrumentType: 'currency',
+    quantity: { units: -450, nano: -150000000 },
+    averagePositionPrice: { currency: 'rub', units: 1, nano: 0 },
+    expectedYield: { units: 0, nano: 0 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 1, nano: 0 },
+    averagePositionPriceFifo: { currency: 'rub', units: 1, nano: 0 },
+    quantityLots: { units: -450, nano: -150000000 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '33e24a92-aab0-409c-88b8-f2d57415b920',
+    instrumentUid: 'a92e2e25-a698-45cc-a781-167cf465257c',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: 0 },
+    dailyYield: { currency: 'rub', units: 0, nano: 0 }
+  },
+  {
+    figi: 'TCS10A107563',
+    instrumentType: 'etf',
+    quantity: { units: 9, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 10, nano: 490000000 },
+    expectedYield: { units: 0, nano: -20000000 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 10, nano: 490000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 10, nano: 490000000 },
+    quantityLots: { units: 9, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '8f747dc6-21bf-4f3a-878e-834880728a29',
+    instrumentUid: 'd5cba263-cda7-440c-a21d-134fb5d334f6',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: -20000000 },
+    dailyYield: { currency: 'rub', units: 0, nano: -20000000 }
+  },
+  {
+    figi: 'TCS80A101X50',
+    instrumentType: 'etf',
+    quantity: { units: 8, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 11, nano: 400000000 },
+    expectedYield: { units: 0, nano: -80000000 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 11, nano: 390000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 11, nano: 400000000 },
+    quantityLots: { units: 8, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '46dd8924-24e9-4581-afd2-97e0ca89009c',
+    instrumentUid: 'de82be66-3b9b-4612-9572-61e3c6039013',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: -80000000 },
+    dailyYield: { currency: 'rub', units: 0, nano: -80000000 }
+  },
+  {
+    figi: 'BBG000000001',
+    instrumentType: 'etf',
+    quantity: { units: 10, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 9, nano: 480000000 },
+    expectedYield: { units: 0, nano: 0 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 9, nano: 480000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 9, nano: 480000000 },
+    quantityLots: { units: 10, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '8005e2ec-66b3-49ae-9711-a424d9c9b61b',
+    instrumentUid: 'e2d0dbac-d354-4c36-a5ed-e5aae42ffc76',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: 0 },
+    dailyYield: { currency: 'rub', units: 0, nano: 0 }
+  },
+  {
+    figi: 'TCS60A1039N1',
+    instrumentType: 'etf',
+    quantity: { units: 12, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 7, nano: 420000000 },
+    expectedYield: { units: 0, nano: 0 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 7, nano: 420000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 7, nano: 420000000 },
+    quantityLots: { units: 12, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '68f44dc7-7ad2-4246-b1ba-c039b7703371',
+    instrumentUid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: 0 },
+    dailyYield: { currency: 'rub', units: 0, nano: 0 }
+  },
+  {
+    figi: 'TCS60A101X76',
+    instrumentType: 'etf',
+    quantity: { units: 14, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 6, nano: 670000000 },
+    expectedYield: { units: 0, nano: 0 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 6, nano: 670000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 6, nano: 670000000 },
+    quantityLots: { units: 14, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: 'ffd48f38-aa9b-491c-8e40-140a3f0bc931',
+    instrumentUid: 'f509af83-6e71-462f-901f-bcb073f6773b',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: 0 },
+    dailyYield: { currency: 'rub', units: 0, nano: 0 }
+  },
+  {
+    figi: 'TCS00A10B0G9',
+    instrumentType: 'etf',
+    quantity: { units: 9, nano: 0 },
+    averagePositionPrice: { currency: 'rub', units: 9, nano: 810000000 },
+    expectedYield: { units: 0, nano: -100000000 },
+    currentNkd: undefined,
+    averagePositionPricePt: { units: 0, nano: 0 },
+    currentPrice: { currency: 'rub', units: 9, nano: 800000000 },
+    averagePositionPriceFifo: { currency: 'rub', units: 9, nano: 810000000 },
+    quantityLots: { units: 9, nano: 0 },
+    blocked: false,
+    blockedLots: { units: 0, nano: 0 },
+    positionUid: '0599cd56-02b0-4ceb-8045-eae66523979e',
+    instrumentUid: 'fa20b747-e414-4922-963a-d19b752535b2',
+    varMargin: { currency: '', units: 0, nano: 0 },
+    expectedYieldFifo: { units: 0, nano: -100000000 },
+    dailyYield: { currency: 'rub', units: 0, nano: -100000000 }
+  }
+]
+2025-09-04T13:15:32.015Z bot:provider Adding currencies to Wallet
+2025-09-04T13:15:32.015Z bot:provider corePosition {
+  pair: 'RUB/RUB',
+  base: 'RUB',
+  quote: 'RUB',
+  figi: undefined,
+  amount: -449.85,
+  lotSize: 1,
+  price: { units: 1, nano: 0 },
+  priceNumber: 1,
+  lotPrice: { units: 1, nano: 0 }
+}
+2025-09-04T13:15:32.016Z bot:provider Adding positions to Wallet
+2025-09-04T13:15:32.016Z bot:provider position {
+  figi: 'TCS00A108WX3',
+  instrumentType: 'etf',
+  quantity: { units: 1, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 100, nano: 660000000 },
+  expectedYield: { units: 0, nano: 0 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 100, nano: 660000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 100, nano: 660000000 },
+  quantityLots: { units: 1, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '41be4f89-9d19-4eac-9ae4-09276f85956a',
+  instrumentUid: '1d0e01e5-148c-40e5-bb8f-1bf2d8e03c1a',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: 0 },
+  dailyYield: { currency: 'rub', units: 0, nano: 0 }
+}
+2025-09-04T13:15:32.017Z bot:provider instrument {
+  figi: 'TCS00A108WX3',
+  ticker: 'TPAY',
+  classCode: 'TQTF',
+  isin: 'RU000A108WX3',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 166600000 },
+  dshort: undefined,
+  dlongMin: { units: 0, nano: 153800000 },
+  dshortMin: undefined,
+  shortEnabledFlag: false,
+  name: 'Пассивный доход',
+  exchange: 'moex_etf_evening',
+  fixedCommission: { units: 0, nano: 900000000 },
+  focusType: 'fixed_income',
+  releasedDate: 2024-06-27T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'semi_annual',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: '1d0e01e5-148c-40e5-bb8f-1bf2d8e03c1a',
+  realExchange: 1,
+  positionUid: '41be4f89-9d19-4eac-9ae4-09276f85956a',
+  assetUid: 'a9f74b0a-f3dc-4a25-aebe-7fb1732dd510',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2024-08-12T06:59:00.000Z,
+  first1dayCandleDate: 2024-08-12T00:00:00.000Z,
+  brand: {
+    logoName: 'TPAY.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 153800000 },
+  dshortClient: { units: 0, nano: 0 }
+}
+2025-09-04T13:15:32.017Z bot:provider Getting last price
+2025-09-04T13:15:32.158Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS00A108WX3',
+      price: [Object],
+      time: 2025-09-04T13:15:47.328Z,
+      instrumentUid: '1d0e01e5-148c-40e5-bb8f-1bf2d8e03c1a',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:15:32.159Z bot:provider lastPrice { units: 100, nano: 660000000 }
+2025-09-04T13:15:37.160Z bot:provider priceWhenAddToWallet { units: 100, nano: 660000000 }
+2025-09-04T13:15:37.161Z bot:provider corePosition {
+  pair: 'TPAY/RUB',
+  base: 'TPAY',
+  quote: 'RUB',
+  figi: 'TCS00A108WX3',
+  amount: 1,
+  lotSize: 1,
+  price: { units: 100, nano: 660000000 },
+  priceNumber: 100.66,
+  lotPrice: { units: 100, nano: 660000000 },
+  totalPrice: { units: 100, nano: 660000000 },
+  totalPriceNumber: 100.66,
+  averagePositionPriceFifoNumber: 100.66,
+  averagePositionPriceNumber: 100.66
+}
+2025-09-04T13:15:37.161Z bot:provider position {
+  figi: 'TCS20A107597',
+  instrumentType: 'etf',
+  quantity: { units: 9, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 10, nano: 190000000 },
+  expectedYield: { units: 0, nano: 0 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 10, nano: 190000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 10, nano: 190000000 },
+  quantityLots: { units: 9, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '5b56d3c6-c302-4417-8c0c-a7e8e5881617',
+  instrumentUid: '2f243f46-34ce-4d50-a931-c6f8a67eb758',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: 0 },
+  dailyYield: { currency: 'rub', units: 0, nano: 0 }
+}
+2025-09-04T13:15:37.162Z bot:provider instrument {
+  figi: 'TCS20A107597',
+  ticker: 'TLCB@',
+  classCode: 'SPBRU',
+  isin: 'RU000A107597',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 250000000 },
+  dshort: { units: 0, nano: 600000000 },
+  dlongMin: { units: 0, nano: 200000000 },
+  dshortMin: { units: 0, nano: 350000000 },
+  shortEnabledFlag: true,
+  name: 'Локальные валютные облигации',
+  exchange: 'spb_etf_t',
+  fixedCommission: { units: 1, nano: 500000000 },
+  focusType: 'fixed_income',
+  releasedDate: 2023-10-19T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'semi_annual',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: '2f243f46-34ce-4d50-a931-c6f8a67eb758',
+  realExchange: 2,
+  positionUid: '5b56d3c6-c302-4417-8c0c-a7e8e5881617',
+  assetUid: '9b267b9e-d257-4b01-ad84-aac93de0b3f2',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2023-11-23T07:25:00.000Z,
+  first1dayCandleDate: 2023-11-23T07:00:00.000Z,
+  brand: {
+    logoName: 'TLCB.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 200000000 },
+  dshortClient: { units: 0, nano: 350000000 }
+}
+2025-09-04T13:15:37.163Z bot:provider Getting last price
+2025-09-04T13:15:37.345Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS20A107597',
+      price: [Object],
+      time: 2025-09-04T13:15:21.225Z,
+      instrumentUid: '2f243f46-34ce-4d50-a931-c6f8a67eb758',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:15:37.346Z bot:provider lastPrice { units: 10, nano: 190000000 }
+2025-09-04T13:15:42.348Z bot:provider priceWhenAddToWallet { units: 10, nano: 190000000 }
+2025-09-04T13:15:42.348Z bot:provider corePosition {
+  pair: 'TLCB@/RUB',
+  base: 'TLCB@',
+  quote: 'RUB',
+  figi: 'TCS20A107597',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 190000000 },
+  priceNumber: 10.19,
+  lotPrice: { units: 10, nano: 190000000 },
+  totalPrice: { units: 91, nano: 710000000 },
+  totalPriceNumber: 91.71,
+  averagePositionPriceFifoNumber: 10.19,
+  averagePositionPriceNumber: 10.19
+}
+2025-09-04T13:15:42.349Z bot:provider position {
+  figi: 'TCS30A108BL2',
+  instrumentType: 'etf',
+  quantity: { units: 14, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 6, nano: 410000000 },
+  expectedYield: { units: 0, nano: -140000000 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 6, nano: 400000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 6, nano: 410000000 },
+  quantityLots: { units: 14, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '09a59e18-5be2-4eec-b149-aae369f49561',
+  instrumentUid: '55111741-4618-4254-9c78-255b0067fcbe',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: -140000000 },
+  dailyYield: { currency: 'rub', units: 0, nano: -140000000 }
+}
+2025-09-04T13:15:42.350Z bot:provider instrument {
+  figi: 'TCS30A108BL2',
+  ticker: 'TITR@',
+  classCode: 'SPBRU',
+  isin: 'RU000A108BL2',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 250000000 },
+  dshort: undefined,
+  dlongMin: { units: 0, nano: 200000000 },
+  dshortMin: undefined,
+  shortEnabledFlag: false,
+  name: 'Российские Технологии',
+  exchange: 'spb_etf_t',
+  fixedCommission: { units: 2, nano: 0 },
+  focusType: 'mixed_allocation',
+  releasedDate: 2024-04-18T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'quarterly',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: '55111741-4618-4254-9c78-255b0067fcbe',
+  realExchange: 2,
+  positionUid: '09a59e18-5be2-4eec-b149-aae369f49561',
+  assetUid: 'a0c7e33e-e836-46bd-928b-2486852496d5',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2024-05-20T07:06:00.000Z,
+  first1dayCandleDate: 2024-05-20T00:00:00.000Z,
+  brand: {
+    logoName: 'TITR.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 200000000 },
+  dshortClient: { units: 0, nano: 0 }
+}
+2025-09-04T13:15:42.351Z bot:provider Getting last price
+2025-09-04T13:15:43.107Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS30A108BL2',
+      price: [Object],
+      time: 2025-09-04T13:13:41.226Z,
+      instrumentUid: '55111741-4618-4254-9c78-255b0067fcbe',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:15:43.108Z bot:provider lastPrice { units: 6, nano: 400000000 }
+2025-09-04T13:15:48.110Z bot:provider priceWhenAddToWallet { units: 6, nano: 400000000 }
+2025-09-04T13:15:48.110Z bot:provider corePosition {
+  pair: 'TITR@/RUB',
+  base: 'TITR@',
+  quote: 'RUB',
+  figi: 'TCS30A108BL2',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 400000000 },
+  priceNumber: 6.4,
+  lotPrice: { units: 6, nano: 400000000 },
+  totalPrice: { units: 89, nano: 600000000 },
+  totalPriceNumber: 89.60000000000001,
+  averagePositionPriceFifoNumber: 6.41,
+  averagePositionPriceNumber: 6.41
+}
+2025-09-04T13:15:48.110Z bot:provider position {
+  figi: 'RUB000UTSTOM',
+  instrumentType: 'currency',
+  quantity: { units: -450, nano: -150000000 },
+  averagePositionPrice: { currency: 'rub', units: 1, nano: 0 },
+  expectedYield: { units: 0, nano: 0 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 1, nano: 0 },
+  averagePositionPriceFifo: { currency: 'rub', units: 1, nano: 0 },
+  quantityLots: { units: -450, nano: -150000000 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '33e24a92-aab0-409c-88b8-f2d57415b920',
+  instrumentUid: 'a92e2e25-a698-45cc-a781-167cf465257c',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: 0 },
+  dailyYield: { currency: 'rub', units: 0, nano: 0 }
+}
+2025-09-04T13:15:48.111Z bot:provider instrument undefined
+2025-09-04T13:15:48.111Z bot:provider instrument not found by figi, skip position RUB000UTSTOM
+2025-09-04T13:15:48.111Z bot:provider position {
+  figi: 'TCS10A107563',
+  instrumentType: 'etf',
+  quantity: { units: 9, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 10, nano: 490000000 },
+  expectedYield: { units: 0, nano: -20000000 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 10, nano: 490000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 10, nano: 490000000 },
+  quantityLots: { units: 9, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '8f747dc6-21bf-4f3a-878e-834880728a29',
+  instrumentUid: 'd5cba263-cda7-440c-a21d-134fb5d334f6',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: -20000000 },
+  dailyYield: { currency: 'rub', units: 0, nano: -20000000 }
+}
+2025-09-04T13:15:48.112Z bot:provider instrument {
+  figi: 'TCS10A107563',
+  ticker: 'TDIV@',
+  classCode: 'SPBRU',
+  isin: 'RU000A107563',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 250000000 },
+  dshort: { units: 0, nano: 600000000 },
+  dlongMin: { units: 0, nano: 200000000 },
+  dshortMin: { units: 0, nano: 350000000 },
+  shortEnabledFlag: true,
+  name: 'Дивидендные акции',
+  exchange: 'spb_etf_ru_noweekend',
+  fixedCommission: { units: 2, nano: 0 },
+  focusType: 'equity',
+  releasedDate: 2023-10-12T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'annual',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'd5cba263-cda7-440c-a21d-134fb5d334f6',
+  realExchange: 2,
+  positionUid: '8f747dc6-21bf-4f3a-878e-834880728a29',
+  assetUid: 'a47c97b9-35b0-43f5-b4b7-05f42dfcaf67',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2023-11-23T06:59:00.000Z,
+  first1dayCandleDate: 2023-11-23T07:00:00.000Z,
+  brand: {
+    logoName: 'TDIV.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 200000000 },
+  dshortClient: { units: 0, nano: 350000000 }
+}
+2025-09-04T13:15:48.112Z bot:provider Getting last price
+2025-09-04T13:15:48.419Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS10A107563',
+      price: [Object],
+      time: 2025-09-04T13:15:13.574Z,
+      instrumentUid: 'd5cba263-cda7-440c-a21d-134fb5d334f6',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:15:48.419Z bot:provider lastPrice { units: 10, nano: 490000000 }
+2025-09-04T13:15:53.420Z bot:provider priceWhenAddToWallet { units: 10, nano: 490000000 }
+2025-09-04T13:15:53.421Z bot:provider corePosition {
+  pair: 'TDIV@/RUB',
+  base: 'TDIV@',
+  quote: 'RUB',
+  figi: 'TCS10A107563',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 490000000 },
+  priceNumber: 10.49,
+  lotPrice: { units: 10, nano: 490000000 },
+  totalPrice: { units: 94, nano: 410000000 },
+  totalPriceNumber: 94.41,
+  averagePositionPriceFifoNumber: 10.49,
+  averagePositionPriceNumber: 10.49
+}
+2025-09-04T13:15:53.421Z bot:provider position {
+  figi: 'TCS80A101X50',
+  instrumentType: 'etf',
+  quantity: { units: 8, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 11, nano: 400000000 },
+  expectedYield: { units: 0, nano: -80000000 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 11, nano: 390000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 11, nano: 400000000 },
+  quantityLots: { units: 8, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '46dd8924-24e9-4581-afd2-97e0ca89009c',
+  instrumentUid: 'de82be66-3b9b-4612-9572-61e3c6039013',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: -80000000 },
+  dailyYield: { currency: 'rub', units: 0, nano: -80000000 }
+}
+2025-09-04T13:15:53.422Z bot:provider instrument {
+  figi: 'TCS80A101X50',
+  ticker: 'TGLD@',
+  classCode: 'SPBRU',
+  isin: 'RU000A101X50',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 181800000 },
+  dshort: { units: 0, nano: 200000000 },
+  dlongMin: { units: 0, nano: 125000000 },
+  dshortMin: { units: 0, nano: 166600000 },
+  shortEnabledFlag: true,
+  name: 'Золото',
+  exchange: 'spb_etf_t',
+  fixedCommission: { units: 2, nano: 0 },
+  focusType: 'alternative_investment',
+  releasedDate: 2020-07-13T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: '',
+  rebalancingFreq: '',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'de82be66-3b9b-4612-9572-61e3c6039013',
+  realExchange: 2,
+  positionUid: '46dd8924-24e9-4581-afd2-97e0ca89009c',
+  assetUid: '1ca14ff7-ab31-4657-9303-b0455a1290cb',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2021-08-25T07:02:00.000Z,
+  first1dayCandleDate: 2021-08-25T07:00:00.000Z,
+  brand: {
+    logoName: 'TGLD.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 125000000 },
+  dshortClient: { units: 0, nano: 166600000 }
+}
+2025-09-04T13:15:53.422Z bot:provider Getting last price
+2025-09-04T13:15:55.310Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS80A101X50',
+      price: [Object],
+      time: 2025-09-04T13:16:23.127Z,
+      instrumentUid: 'de82be66-3b9b-4612-9572-61e3c6039013',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:15:55.310Z bot:provider lastPrice { units: 11, nano: 400000000 }
+2025-09-04T13:16:00.312Z bot:provider priceWhenAddToWallet { units: 11, nano: 400000000 }
+2025-09-04T13:16:00.313Z bot:provider corePosition {
+  pair: 'TGLD@/RUB',
+  base: 'TGLD@',
+  quote: 'RUB',
+  figi: 'TCS80A101X50',
+  amount: 8,
+  lotSize: 1,
+  price: { units: 11, nano: 400000000 },
+  priceNumber: 11.39,
+  lotPrice: { units: 11, nano: 400000000 },
+  totalPrice: { units: 91, nano: 120000000 },
+  totalPriceNumber: 91.12,
+  averagePositionPriceFifoNumber: 11.4,
+  averagePositionPriceNumber: 11.4
+}
+2025-09-04T13:16:00.313Z bot:provider position {
+  figi: 'BBG000000001',
+  instrumentType: 'etf',
+  quantity: { units: 10, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 9, nano: 480000000 },
+  expectedYield: { units: 0, nano: 0 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 9, nano: 480000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 9, nano: 480000000 },
+  quantityLots: { units: 10, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '8005e2ec-66b3-49ae-9711-a424d9c9b61b',
+  instrumentUid: 'e2d0dbac-d354-4c36-a5ed-e5aae42ffc76',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: 0 },
+  dailyYield: { currency: 'rub', units: 0, nano: 0 }
+}
+2025-09-04T13:16:00.315Z bot:provider instrument {
+  figi: 'BBG000000001',
+  ticker: 'TRUR',
+  classCode: 'TQTF',
+  isin: 'RU000A1011U5',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 181800000 },
+  dshort: { units: 0, nano: 200000000 },
+  dlongMin: { units: 0, nano: 125000000 },
+  dshortMin: { units: 0, nano: 142800000 },
+  shortEnabledFlag: true,
+  name: 'Вечный портфель',
+  exchange: 'moex_etf',
+  fixedCommission: { units: 2, nano: 0 },
+  focusType: 'mixed_allocation',
+  releasedDate: 2019-11-07T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: '',
+  rebalancingFreq: 'annual',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'e2d0dbac-d354-4c36-a5ed-e5aae42ffc76',
+  realExchange: 1,
+  positionUid: '8005e2ec-66b3-49ae-9711-a424d9c9b61b',
+  assetUid: 'df43c28e-9523-4ee2-8383-9fdb88b49e34',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2019-12-09T07:11:00.000Z,
+  first1dayCandleDate: 2019-12-09T07:00:00.000Z,
+  brand: {
+    logoName: 'TRUR.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 125000000 },
+  dshortClient: { units: 0, nano: 142800000 }
+}
+2025-09-04T13:16:00.315Z bot:provider Getting last price
+2025-09-04T13:16:00.463Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'BBG000000001',
+      price: [Object],
+      time: 2025-09-04T13:16:30.556Z,
+      instrumentUid: 'e2d0dbac-d354-4c36-a5ed-e5aae42ffc76',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:16:00.464Z bot:provider lastPrice { units: 9, nano: 470000000 }
+2025-09-04T13:16:05.465Z bot:provider priceWhenAddToWallet { units: 9, nano: 470000000 }
+2025-09-04T13:16:05.465Z bot:provider corePosition {
+  pair: 'TRUR/RUB',
+  base: 'TRUR',
+  quote: 'RUB',
+  figi: 'BBG000000001',
+  amount: 10,
+  lotSize: 1,
+  price: { units: 9, nano: 470000000 },
+  priceNumber: 9.48,
+  lotPrice: { units: 9, nano: 470000000 },
+  totalPrice: { units: 94, nano: 800000000 },
+  totalPriceNumber: 94.80000000000001,
+  averagePositionPriceFifoNumber: 9.48,
+  averagePositionPriceNumber: 9.48
+}
+2025-09-04T13:16:05.465Z bot:provider position {
+  figi: 'TCS60A1039N1',
+  instrumentType: 'etf',
+  quantity: { units: 12, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 7, nano: 420000000 },
+  expectedYield: { units: 0, nano: 0 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 7, nano: 420000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 7, nano: 420000000 },
+  quantityLots: { units: 12, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '68f44dc7-7ad2-4246-b1ba-c039b7703371',
+  instrumentUid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: 0 },
+  dailyYield: { currency: 'rub', units: 0, nano: 0 }
+}
+2025-09-04T13:16:05.467Z bot:provider instrument {
+  figi: 'TCS60A1039N1',
+  ticker: 'TBRU@',
+  classCode: 'SPBRU',
+  isin: 'RU000A1039N1',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 200000000 },
+  dshort: { units: 0, nano: 200000000 },
+  dlongMin: { units: 0, nano: 142800000 },
+  dshortMin: { units: 0, nano: 142800000 },
+  shortEnabledFlag: true,
+  name: 'Российские облигации',
+  exchange: 'spb_etf_ru_noweekend',
+  fixedCommission: { units: 1, nano: 500000000 },
+  focusType: 'fixed_income',
+  releasedDate: 2021-06-10T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'semi_annual',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+  realExchange: 2,
+  positionUid: '68f44dc7-7ad2-4246-b1ba-c039b7703371',
+  assetUid: 'a327ef84-2aaa-4ffe-b71c-1cbeb9dadd0f',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2021-07-12T07:00:00.000Z,
+  first1dayCandleDate: 2021-07-12T07:00:00.000Z,
+  brand: {
+    logoName: 'TBRU.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 142800000 },
+  dshortClient: { units: 0, nano: 142800000 }
+}
+2025-09-04T13:16:05.467Z bot:provider Getting last price
+2025-09-04T13:16:05.914Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS60A1039N1',
+      price: [Object],
+      time: 2025-09-04T13:16:32.799Z,
+      instrumentUid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:16:05.914Z bot:provider lastPrice { units: 7, nano: 420000000 }
+2025-09-04T13:16:10.917Z bot:provider priceWhenAddToWallet { units: 7, nano: 420000000 }
+2025-09-04T13:16:10.918Z bot:provider corePosition {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.03999999999999,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42
+}
+2025-09-04T13:16:10.918Z bot:provider position {
+  figi: 'TCS60A101X76',
+  instrumentType: 'etf',
+  quantity: { units: 14, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 6, nano: 670000000 },
+  expectedYield: { units: 0, nano: 0 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 6, nano: 670000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 6, nano: 670000000 },
+  quantityLots: { units: 14, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: 'ffd48f38-aa9b-491c-8e40-140a3f0bc931',
+  instrumentUid: 'f509af83-6e71-462f-901f-bcb073f6773b',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: 0 },
+  dailyYield: { currency: 'rub', units: 0, nano: 0 }
+}
+2025-09-04T13:16:10.920Z bot:provider instrument {
+  figi: 'TCS60A101X76',
+  ticker: 'TMOS@',
+  classCode: 'SPBRU',
+  isin: 'RU000A101X76',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 181800000 },
+  dshort: { units: 0, nano: 200000000 },
+  dlongMin: { units: 0, nano: 125000000 },
+  dshortMin: { units: 0, nano: 142800000 },
+  shortEnabledFlag: true,
+  name: 'Крупнейшие компании РФ',
+  exchange: 'spb_etf_ru_noweekend',
+  fixedCommission: { units: 0, nano: 700000000 },
+  focusType: 'equity',
+  releasedDate: 2020-07-13T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'quarterly',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'f509af83-6e71-462f-901f-bcb073f6773b',
+  realExchange: 2,
+  positionUid: 'ffd48f38-aa9b-491c-8e40-140a3f0bc931',
+  assetUid: '41ee95a0-318f-49e1-bfe4-2c3f7c83fe21',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2020-08-26T07:14:00.000Z,
+  first1dayCandleDate: 2020-08-26T07:00:00.000Z,
+  brand: {
+    logoName: 'TMOS.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 125000000 },
+  dshortClient: { units: 0, nano: 142800000 }
+}
+2025-09-04T13:16:10.921Z bot:provider Getting last price
+2025-09-04T13:16:11.184Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS60A101X76',
+      price: [Object],
+      time: 2025-09-04T13:16:26.735Z,
+      instrumentUid: 'f509af83-6e71-462f-901f-bcb073f6773b',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:16:11.184Z bot:provider lastPrice { units: 6, nano: 670000000 }
+2025-09-04T13:16:16.187Z bot:provider priceWhenAddToWallet { units: 6, nano: 670000000 }
+2025-09-04T13:16:16.187Z bot:provider corePosition {
+  pair: 'TMOS@/RUB',
+  base: 'TMOS@',
+  quote: 'RUB',
+  figi: 'TCS60A101X76',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 670000000 },
+  priceNumber: 6.67,
+  lotPrice: { units: 6, nano: 670000000 },
+  totalPrice: { units: 93, nano: 380000000 },
+  totalPriceNumber: 93.38,
+  averagePositionPriceFifoNumber: 6.67,
+  averagePositionPriceNumber: 6.67
+}
+2025-09-04T13:16:16.187Z bot:provider position {
+  figi: 'TCS00A10B0G9',
+  instrumentType: 'etf',
+  quantity: { units: 9, nano: 0 },
+  averagePositionPrice: { currency: 'rub', units: 9, nano: 810000000 },
+  expectedYield: { units: 0, nano: -100000000 },
+  currentNkd: undefined,
+  averagePositionPricePt: { units: 0, nano: 0 },
+  currentPrice: { currency: 'rub', units: 9, nano: 800000000 },
+  averagePositionPriceFifo: { currency: 'rub', units: 9, nano: 810000000 },
+  quantityLots: { units: 9, nano: 0 },
+  blocked: false,
+  blockedLots: { units: 0, nano: 0 },
+  positionUid: '0599cd56-02b0-4ceb-8045-eae66523979e',
+  instrumentUid: 'fa20b747-e414-4922-963a-d19b752535b2',
+  varMargin: { currency: '', units: 0, nano: 0 },
+  expectedYieldFifo: { units: 0, nano: -100000000 },
+  dailyYield: { currency: 'rub', units: 0, nano: -100000000 }
+}
+2025-09-04T13:16:16.189Z bot:provider instrument {
+  figi: 'TCS00A10B0G9',
+  ticker: 'TRND',
+  classCode: 'TQTF',
+  isin: 'RU000A10B0G9',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 181800000 },
+  dshort: { units: 0, nano: 300000000 },
+  dlongMin: { units: 0, nano: 125000000 },
+  dshortMin: { units: 0, nano: 250000000 },
+  shortEnabledFlag: true,
+  name: 'Трендовые акции',
+  exchange: 'MOEX_PLUS',
+  fixedCommission: { units: 2, nano: 0 },
+  focusType: 'equity',
+  releasedDate: 2025-02-20T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'quarterly',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'fa20b747-e414-4922-963a-d19b752535b2',
+  realExchange: 1,
+  positionUid: '0599cd56-02b0-4ceb-8045-eae66523979e',
+  assetUid: '63334cd2-9656-41f0-9889-8ef28b89e56e',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2025-03-24T07:00:00.000Z,
+  first1dayCandleDate: 2025-03-24T00:00:00.000Z,
+  brand: {
+    logoName: 'TRND.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 125000000 },
+  dshortClient: { units: 0, nano: 250000000 }
+}
+2025-09-04T13:16:16.190Z bot:provider Getting last price
+2025-09-04T13:16:16.790Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS00A10B0G9',
+      price: [Object],
+      time: 2025-09-04T13:16:16.335Z,
+      instrumentUid: 'fa20b747-e414-4922-963a-d19b752535b2',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:16:16.790Z bot:provider lastPrice { units: 9, nano: 810000000 }
+2025-09-04T13:16:21.791Z bot:provider priceWhenAddToWallet { units: 9, nano: 810000000 }
+2025-09-04T13:16:21.791Z bot:provider corePosition {
+  pair: 'TRND/RUB',
+  base: 'TRND',
+  quote: 'RUB',
+  figi: 'TCS00A10B0G9',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 9, nano: 810000000 },
+  priceNumber: 9.8,
+  lotPrice: { units: 9, nano: 810000000 },
+  totalPrice: { units: 88, nano: 200000000 },
+  totalPriceNumber: 88.2,
+  averagePositionPriceFifoNumber: 9.81,
+  averagePositionPriceNumber: 9.81
+}
+2025-09-04T13:16:21.792Z bot:provider [
+  {
+    pair: 'RUB/RUB',
+    base: 'RUB',
+    quote: 'RUB',
+    figi: undefined,
+    amount: -449.85,
+    lotSize: 1,
+    price: { units: 1, nano: 0 },
+    priceNumber: 1,
+    lotPrice: { units: 1, nano: 0 }
+  },
+  {
+    pair: 'TPAY/RUB',
+    base: 'TPAY',
+    quote: 'RUB',
+    figi: 'TCS00A108WX3',
+    amount: 1,
+    lotSize: 1,
+    price: { units: 100, nano: 660000000 },
+    priceNumber: 100.66,
+    lotPrice: { units: 100, nano: 660000000 },
+    totalPrice: { units: 100, nano: 660000000 },
+    totalPriceNumber: 100.66,
+    averagePositionPriceFifoNumber: 100.66,
+    averagePositionPriceNumber: 100.66
+  },
+  {
+    pair: 'TLCB@/RUB',
+    base: 'TLCB@',
+    quote: 'RUB',
+    figi: 'TCS20A107597',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 190000000 },
+    priceNumber: 10.19,
+    lotPrice: { units: 10, nano: 190000000 },
+    totalPrice: { units: 91, nano: 710000000 },
+    totalPriceNumber: 91.71,
+    averagePositionPriceFifoNumber: 10.19,
+    averagePositionPriceNumber: 10.19
+  },
+  {
+    pair: 'TITR@/RUB',
+    base: 'TITR@',
+    quote: 'RUB',
+    figi: 'TCS30A108BL2',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 400000000 },
+    priceNumber: 6.4,
+    lotPrice: { units: 6, nano: 400000000 },
+    totalPrice: { units: 89, nano: 600000000 },
+    totalPriceNumber: 89.60000000000001,
+    averagePositionPriceFifoNumber: 6.41,
+    averagePositionPriceNumber: 6.41
+  },
+  {
+    pair: 'TDIV@/RUB',
+    base: 'TDIV@',
+    quote: 'RUB',
+    figi: 'TCS10A107563',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 490000000 },
+    priceNumber: 10.49,
+    lotPrice: { units: 10, nano: 490000000 },
+    totalPrice: { units: 94, nano: 410000000 },
+    totalPriceNumber: 94.41,
+    averagePositionPriceFifoNumber: 10.49,
+    averagePositionPriceNumber: 10.49
+  },
+  {
+    pair: 'TGLD@/RUB',
+    base: 'TGLD@',
+    quote: 'RUB',
+    figi: 'TCS80A101X50',
+    amount: 8,
+    lotSize: 1,
+    price: { units: 11, nano: 400000000 },
+    priceNumber: 11.39,
+    lotPrice: { units: 11, nano: 400000000 },
+    totalPrice: { units: 91, nano: 120000000 },
+    totalPriceNumber: 91.12,
+    averagePositionPriceFifoNumber: 11.4,
+    averagePositionPriceNumber: 11.4
+  },
+  {
+    pair: 'TRUR/RUB',
+    base: 'TRUR',
+    quote: 'RUB',
+    figi: 'BBG000000001',
+    amount: 10,
+    lotSize: 1,
+    price: { units: 9, nano: 470000000 },
+    priceNumber: 9.48,
+    lotPrice: { units: 9, nano: 470000000 },
+    totalPrice: { units: 94, nano: 800000000 },
+    totalPriceNumber: 94.80000000000001,
+    averagePositionPriceFifoNumber: 9.48,
+    averagePositionPriceNumber: 9.48
+  },
+  {
+    pair: 'TBRU@/RUB',
+    base: 'TBRU@',
+    quote: 'RUB',
+    figi: 'TCS60A1039N1',
+    amount: 12,
+    lotSize: 1,
+    price: { units: 7, nano: 420000000 },
+    priceNumber: 7.42,
+    lotPrice: { units: 7, nano: 420000000 },
+    totalPrice: { units: 89, nano: 40000000 },
+    totalPriceNumber: 89.03999999999999,
+    averagePositionPriceFifoNumber: 7.42,
+    averagePositionPriceNumber: 7.42
+  },
+  {
+    pair: 'TMOS@/RUB',
+    base: 'TMOS@',
+    quote: 'RUB',
+    figi: 'TCS60A101X76',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 670000000 },
+    priceNumber: 6.67,
+    lotPrice: { units: 6, nano: 670000000 },
+    totalPrice: { units: 93, nano: 380000000 },
+    totalPriceNumber: 93.38,
+    averagePositionPriceFifoNumber: 6.67,
+    averagePositionPriceNumber: 6.67
+  },
+  {
+    pair: 'TRND/RUB',
+    base: 'TRND',
+    quote: 'RUB',
+    figi: 'TCS00A10B0G9',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 9, nano: 810000000 },
+    priceNumber: 9.8,
+    lotPrice: { units: 9, nano: 810000000 },
+    totalPrice: { units: 88, nano: 200000000 },
+    totalPriceNumber: 88.2,
+    averagePositionPriceFifoNumber: 9.81,
+    averagePositionPriceNumber: 9.81
+  }
+]
+[etfCap] buildAumMapSmart: fetched HTML length=242158
+[etfCap] buildAumMapSmart: auto result: {}
+[etfCap] [DEBUG] TBRU AUM search: FOUND
+[etfCap] [DEBUG] TDIV AUM search: FOUND
+[etfCap] [DEBUG] TITR AUM search: FOUND
+[etfCap] [DEBUG] TMON AUM search: FOUND
+[etfCap] [DEBUG] TMOS AUM search: FOUND
+[etfCap] [DEBUG] TOFZ AUM search: FOUND
+[etfCap] buildAumMapSmart: final result: {
+  TPAY: {
+    amount: 22635393237.16,
+    currency: "RUB",
+  },
+  TGLD: {
+    amount: 114598621.82,
+    currency: "USD",
+  },
+  TRUR: {
+    amount: 17050366643.57,
+    currency: "RUB",
+  },
+  TRND: {
+    amount: 244077714.87,
+    currency: "RUB",
+  },
+  TBRU: {
+    amount: 5285175355.07,
+    currency: "RUB",
+  },
+  TDIV: {
+    amount: 1016702408.84,
+    currency: "RUB",
+  },
+  TITR: {
+    amount: 433300999.3,
+    currency: "RUB",
+  },
+  TLCB: {
+    amount: 11055654865.39,
+    currency: "RUB",
+  },
+  TMON: {
+    amount: 211332641270.12,
+    currency: "RUB",
+  },
+  TMOS: {
+    amount: 12125435811.93,
+    currency: "RUB",
+  },
+  TOFZ: {
+    amount: 4146010476.77,
+    currency: "RUB",
+  },
+}
+[pollEtfMetrics] symbol=TPAY search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1755089428151…
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1752238292570…
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1750254973012…
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1747144158727…
+[pollEtfMetrics] smartfeed hit id=18548236 title=Количество паев в обращении уменьшилось count=225600000
+[pollEtfMetrics] price: lastPriceRUB=100.66 for TPAY
+[pollEtfMetrics] payload TPAY: price=100.66 shares=225600000 aum=22635393237.16 mcap=22708896000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TPAY.json
+[pollEtfMetrics] symbol=TGLD search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Золото news=50 cursorNext=ts:1754923020000…
+[pollEtfMetrics] smartfeed hit id=18549181 title=Количество паев в обращении уменьшилось count=824900000
+[pollEtfMetrics] price: lastPriceRUB=11.4 for TGLD
+[pollEtfMetrics] payload TGLD: price=11.4 shares=824900000 aum=9265161055.800816 mcap=9403860000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TGLD.json
+[pollEtfMetrics] symbol=TRUR search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Вечный портфель news=50 cursorNext=ts:1749070448297…
+[pollEtfMetrics] smartfeed hit id=18549024 title=В фонд поступили новые деньги count=1818500000
+[pollEtfMetrics] price: lastPriceRUB=9.48 for TRUR
+[pollEtfMetrics] payload TRUR: price=9.48 shares=1818500000 aum=17050366643.57 mcap=17239380000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TRUR.json
+[pollEtfMetrics] symbol=TRND search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Трендовые акции news=0 cursorNext=null
+[pollEtfMetrics] symbol=TRND sharesCount from local cache: 19500000
+[pollEtfMetrics] price: lastPriceRUB=9.81 for TRND
+[pollEtfMetrics] payload TRND: price=9.81 shares=19500000 aum=244077714.87 mcap=191295000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TRND.json
+[pollEtfMetrics] symbol=TBRU search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Российские облигации news=50 cursorNext=ts:1755781320372…
+[pollEtfMetrics] [DEBUG] Parsing API: https://www.tbank.ru/api/invest/smartfeed-public/v1/feed/api/brands/%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B9%D1%81%D0%BA%D0%B8%D0%B5%20%D0%BE%D0%B1%D0%BB%D0%B8%D0%B3%D0%B0%D1%86%D0%B8%D0%B8/fund-news?limit=50
+[pollEtfMetrics] [DEBUG] Found 50 news items
+[pollEtfMetrics] [DEBUG] News 1: id=18549214, title="Фонд получил купон по облигациям Медскан 001Р-01"
+[pollEtfMetrics] [DEBUG] Additional fields: [{"name":"Тип дохода","value":"Купон"},{"name":"Сумма дохода","value":"834,1 тыс ₽"},{"name":"Доля фонда","value":"0,02 %"}]
+[pollEtfMetrics] [DEBUG] News 2: id=18549209, title="Совершены сделки с ценными бумагами в составе фонда"
+[pollEtfMetrics] [DEBUG] News 3: id=18549204, title="Фонд получил купон по облигациям АФК Система 002P-03"
+[pollEtfMetrics] [DEBUG] Additional fields: [{"name":"Тип дохода","value":"Купон"},{"name":"Сумма дохода","value":"1,8 млн ₽"},{"name":"Доля фонда","value":"0,03 %"}]
+[pollEtfMetrics] [DEBUG] News 4: id=18549203, title="Фонд получил купон по облигациям Группа ЛСР 001P-10"
+[pollEtfMetrics] [DEBUG] Additional fields: [{"name":"Тип дохода","value":"Купон"},{"name":"Сумма дохода","value":"1,1 млн ₽"},{"name":"Доля фонда","value":"0,02 %"}]
+[pollEtfMetrics] [DEBUG] News 5: id=18549202, title="Фонд получил купон по облигациям Делимобиль 001Р-06"
+[pollEtfMetrics] [DEBUG] Additional fields: [{"name":"Тип дохода","value":"Купон"},{"name":"Сумма дохода","value":"1,1 млн ₽"},{"name":"Доля фонда","value":"0,02 %"}]
+[pollEtfMetrics] smartfeed hit id=18549140 title=В фонд поступили новые деньги count=714300000
+[pollEtfMetrics] [DEBUG] AUM search for TBRU:
+[pollEtfMetrics] [DEBUG] AUM map entry: {"amount":5285175355.07,"currency":"RUB"}
+[pollEtfMetrics] [DEBUG] AUM result: found
+[pollEtfMetrics] price: lastPriceRUB=7.42 for TBRU
+[pollEtfMetrics] payload TBRU: price=7.42 shares=714300000 aum=5285175355.07 mcap=5300106000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TBRU.json
+[pollEtfMetrics] symbol=TDIV search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Дивидендные акции news=50 cursorNext=ts:1753884533041…
+[pollEtfMetrics] smartfeed hit id=18549143 title=В фонд поступили новые деньги count=96900000
+[pollEtfMetrics] price: lastPriceRUB=10.49 for TDIV
+[pollEtfMetrics] payload TDIV: price=10.49 shares=96900000 aum=1016702408.84 mcap=1016481000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TDIV.json
+[pollEtfMetrics] symbol=TITR search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Российские Технологии news=50 cursorNext=ts:1749675249155…
+[pollEtfMetrics] smartfeed hit id=18549061 title=Количество паев в обращении уменьшилось count=66900000
+[pollEtfMetrics] price: lastPriceRUB=6.4 for TITR
+[pollEtfMetrics] payload TITR: price=6.4 shares=66900000 aum=433300999.3 mcap=428160000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TITR.json
+[pollEtfMetrics] symbol=TLCB search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Локальные валютные облигации news=50 cursorNext=ts:1754570732339…
+[pollEtfMetrics] smartfeed hit id=18549192 title=В фонд поступили новые деньги count=1094700000
+[pollEtfMetrics] price: lastPriceRUB=10.19 for TLCB
+[pollEtfMetrics] payload TLCB: price=10.19 shares=1094700000 aum=11055654865.39 mcap=11154993000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TLCB.json
+[pollEtfMetrics] symbol=TMON search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Денежный рынок news=50 cursorNext=ts:1751376358905…
+[pollEtfMetrics] smartfeed hit id=18549206 title=В фонд поступили новые деньги count=1500200000
+[pollEtfMetrics] price: lastPriceRUB=142.29 for TMON
+[pollEtfMetrics] payload TMON: price=142.29 shares=1500200000 aum=211332641270.12 mcap=213463458000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TMON.json
+[pollEtfMetrics] symbol=TMOS search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Крупнейшие компании РФ news=50 cursorNext=ts:1753274815243…
+[pollEtfMetrics] smartfeed hit id=18549215 title=В фонд поступили новые деньги count=1849600000
+[pollEtfMetrics] price: lastPriceRUB=6.67 for TMOS
+[pollEtfMetrics] payload TMOS: price=6.67 shares=1849600000 aum=12125435811.93 mcap=12336832000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TMOS.json
+[pollEtfMetrics] symbol=TOFZ search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Государственные облигации news=50 cursorNext=ts:1753390453491…
+[pollEtfMetrics] smartfeed hit id=18549184 title=В фонд поступили новые деньги count=314800000
+[pollEtfMetrics] price: lastPriceRUB=13.43 for TOFZ
+[pollEtfMetrics] payload TOFZ: price=13.43 shares=314800000 aum=4146010476.77 mcap=4227764000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TOFZ.json
+[pollEtfMetrics] symbol=TPAY search sharesCount via Smartfeed API
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1755089428151…
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1752238292570…
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1750254973012…
+[pollEtfMetrics] smartfeed brand=Пассивный доход news=50 cursorNext=ts:1747144158727…
+[pollEtfMetrics] smartfeed hit id=18548236 title=Количество паев в обращении уменьшилось count=225600000
+[pollEtfMetrics] price: lastPriceRUB=100.66 for TPAY
+[pollEtfMetrics] payload TPAY: price=100.66 shares=225600000 aum=22635393237.16 mcap=22708896000
+[pollEtfMetrics] saved /Users/suenot/projects/tinkoff-invest-etf-balancer-bot/etf_metrics/TPAY.json
+
+📊 Successfully applied mode: manual
+
+🔍 DIAGNOSIS: Portfolio state BEFORE balancing
+📊 Total positions in coreWallet: 10
+💰 RUB balance before: -449.85
+⏰ Timestamp before balancing: 2025-09-04T13:17:12.996Z
+2025-09-04T13:17:12.999Z bot:balancer Buy requires total marginal sell is enabled, checking for special handling
+2025-09-04T13:17:12.999Z bot:balancer Margin strategy: {
+  shouldRemoveMargin: false,
+  reason: 'Not time to apply margin strategy',
+  transferCost: 0,
+  timeInfo: { timeToClose: 0, timeToNextBalance: 0, isLastBalance: false },
+  marginPositions: [
+    {
+      pair: 'TPAY/RUB',
+      base: 'TPAY',
+      quote: 'RUB',
+      figi: 'TCS00A108WX3',
+      amount: 1,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 100.66,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 100.66,
+      averagePositionPriceFifoNumber: 100.66,
+      averagePositionPriceNumber: 100.66,
+      isMargin: true,
+      marginValue: 67.10666666666665,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TLCB@/RUB',
+      base: 'TLCB@',
+      quote: 'RUB',
+      figi: 'TCS20A107597',
+      amount: 9,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 10.19,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 91.71,
+      averagePositionPriceFifoNumber: 10.19,
+      averagePositionPriceNumber: 10.19,
+      isMargin: true,
+      marginValue: 61.14,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TITR@/RUB',
+      base: 'TITR@',
+      quote: 'RUB',
+      figi: 'TCS30A108BL2',
+      amount: 14,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 6.4,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 89.60000000000001,
+      averagePositionPriceFifoNumber: 6.41,
+      averagePositionPriceNumber: 6.41,
+      isMargin: true,
+      marginValue: 59.733333333333334,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TDIV@/RUB',
+      base: 'TDIV@',
+      quote: 'RUB',
+      figi: 'TCS10A107563',
+      amount: 9,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 10.49,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 94.41,
+      averagePositionPriceFifoNumber: 10.49,
+      averagePositionPriceNumber: 10.49,
+      isMargin: true,
+      marginValue: 62.94,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TGLD@/RUB',
+      base: 'TGLD@',
+      quote: 'RUB',
+      figi: 'TCS80A101X50',
+      amount: 8,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 11.39,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 91.12,
+      averagePositionPriceFifoNumber: 11.4,
+      averagePositionPriceNumber: 11.4,
+      isMargin: true,
+      marginValue: 60.74666666666667,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TRUR/RUB',
+      base: 'TRUR',
+      quote: 'RUB',
+      figi: 'BBG000000001',
+      amount: 10,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 9.48,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 94.80000000000001,
+      averagePositionPriceFifoNumber: 9.48,
+      averagePositionPriceNumber: 9.48,
+      isMargin: true,
+      marginValue: 63.2,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TBRU@/RUB',
+      base: 'TBRU@',
+      quote: 'RUB',
+      figi: 'TCS60A1039N1',
+      amount: 12,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 7.42,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 89.03999999999999,
+      averagePositionPriceFifoNumber: 7.42,
+      averagePositionPriceNumber: 7.42,
+      isMargin: true,
+      marginValue: 59.36,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TMOS@/RUB',
+      base: 'TMOS@',
+      quote: 'RUB',
+      figi: 'TCS60A101X76',
+      amount: 14,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 6.67,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 93.38,
+      averagePositionPriceFifoNumber: 6.67,
+      averagePositionPriceNumber: 6.67,
+      isMargin: true,
+      marginValue: 62.25333333333333,
+      leverage: 3,
+      marginCall: false
+    },
+    {
+      pair: 'TRND/RUB',
+      base: 'TRND',
+      quote: 'RUB',
+      figi: 'TCS00A10B0G9',
+      amount: 9,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 9.8,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 88.2,
+      averagePositionPriceFifoNumber: 9.81,
+      averagePositionPriceNumber: 9.81,
+      isMargin: true,
+      marginValue: 58.8,
+      leverage: 3,
+      marginCall: false
+    }
+  ]
+}
+2025-09-04T13:17:13.000Z bot:balancer Normalizing percentages to make total sum equal 100%, to exclude human factor
+2025-09-04T13:17:13.000Z bot:balancer desiredWallet {
+  TRAY: 8.33,
+  TGLD: 8.33,
+  TRUR: 8.33,
+  TRND: 8.33,
+  TBRU: 8.33,
+  TDIV: 8.33,
+  TITR: 8.33,
+  TLCB: 8.33,
+  TMON: 8.33,
+  TMOS: 8.33,
+  TOFZ: 8.33,
+  TPAY: 8.33
+}
+2025-09-04T13:17:13.000Z bot:balancer desiredSum 99.96
+2025-09-04T13:17:13.000Z bot:balancer normalizedDesire {
+  TRAY: 8.333333333333334,
+  TGLD: 8.333333333333334,
+  TRUR: 8.333333333333334,
+  TRND: 8.333333333333334,
+  TBRU: 8.333333333333334,
+  TDIV: 8.333333333333334,
+  TITR: 8.333333333333334,
+  TLCB: 8.333333333333334,
+  TMON: 8.333333333333334,
+  TMOS: 8.333333333333334,
+  TOFZ: 8.333333333333334,
+  TPAY: 8.333333333333334
+}
+2025-09-04T13:17:13.001Z bot:balancer Adding missing instruments from portfolio to DesireWallet with value 0
+2025-09-04T13:17:13.001Z bot:balancer RUB not found in desired portfolio, adding with value 0.
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 1
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 5
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 6
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 9
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 7
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 4
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 3
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex 2
+2025-09-04T13:17:13.001Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:13.001Z bot:balancer positionIndex -1
+2025-09-04T13:17:13.001Z bot:balancer Ticker from DesireWallet not found in portfolio. Creating.
+2025-09-04T13:17:13.002Z bot:balancer {
+  figi: 'TCS70A106DL2',
+  ticker: 'TMON@',
+  classCode: 'SPBRU',
+  isin: 'RU000A106DL2',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 66600000 },
+  dshort: undefined,
+  dlongMin: { units: 0, nano: 50000000 },
+  dshortMin: undefined,
+  shortEnabledFlag: false,
+  name: 'Денежный рынок',
+  exchange: 'spb_etf_ru',
+  fixedCommission: { units: 1, nano: 0 },
+  focusType: 'equity',
+  releasedDate: 2022-12-22T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: '',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: '498ec3ff-ef27-4729-9703-a5aac48d5789',
+  realExchange: 2,
+  positionUid: '96a4604c-79d9-4a30-8a46-95a80dfd9f02',
+  assetUid: 'e16bc6c8-63c2-4023-8c95-e0d212aac4b8',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2025-02-25T07:00:00.000Z,
+  first1dayCandleDate: 2025-02-25T00:00:00.000Z,
+  brand: {
+    logoName: 'TMON2.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 50000000 },
+  dshortClient: { units: 0, nano: 0 }
+}
+2025-09-04T13:17:13.002Z bot:balancer TCS70A106DL2
+2025-09-04T13:17:13.002Z bot:balancer 1
+2025-09-04T13:17:13.002Z bot:provider Getting last price
+2025-09-04T13:17:13.334Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS70A106DL2',
+      price: [Object],
+      time: 2025-09-04T13:17:39.801Z,
+      instrumentUid: '498ec3ff-ef27-4729-9703-a5aac48d5789',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:17:13.335Z bot:provider lastPrice { units: 142, nano: 290000000 }
+2025-09-04T13:17:18.337Z bot:balancer newPosition {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 }
+}
+2025-09-04T13:17:18.338Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:18.338Z bot:balancer positionIndex 8
+2025-09-04T13:17:18.338Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:18.338Z bot:balancer positionIndex -1
+2025-09-04T13:17:18.338Z bot:balancer Ticker from DesireWallet not found in portfolio. Creating.
+2025-09-04T13:17:18.341Z bot:balancer {
+  figi: 'TCS70A10A1L8',
+  ticker: 'TOFZ@',
+  classCode: 'SPBRU',
+  isin: 'RU000A10A1L8',
+  lot: 1,
+  currency: 'rub',
+  klong: { units: 2, nano: 0 },
+  kshort: { units: 2, nano: 0 },
+  dlong: { units: 0, nano: 250000000 },
+  dshort: { units: 0, nano: 300000000 },
+  dlongMin: { units: 0, nano: 200000000 },
+  dshortMin: { units: 0, nano: 250000000 },
+  shortEnabledFlag: true,
+  name: 'Государственные облигации',
+  exchange: 'spb_etf_ru_noweekend',
+  fixedCommission: { units: 1, nano: 500000000 },
+  focusType: 'fixed_income',
+  releasedDate: 2024-11-07T00:00:00.000Z,
+  numShares: undefined,
+  countryOfRisk: 'RU',
+  countryOfRiskName: 'Российская Федерация',
+  sector: 'other',
+  rebalancingFreq: 'semi_annual',
+  tradingStatus: 5,
+  otcFlag: false,
+  buyAvailableFlag: true,
+  sellAvailableFlag: true,
+  minPriceIncrement: { units: 0, nano: 10000000 },
+  apiTradeAvailableFlag: true,
+  uid: 'c5049184-ded4-49d0-8e14-bffefc40a223',
+  realExchange: 2,
+  positionUid: '83fd264c-28fc-4b6a-b8f2-ae090148050d',
+  assetUid: 'a20a8e51-dd4e-4ba3-beb0-a9bf4dd0a983',
+  instrumentExchange: 0,
+  forIisFlag: true,
+  forQualInvestorFlag: false,
+  weekendFlag: false,
+  blockedTcaFlag: false,
+  liquidityFlag: true,
+  first1minCandleDate: 2024-12-09T07:02:00.000Z,
+  first1dayCandleDate: 2024-12-09T00:00:00.000Z,
+  brand: {
+    logoName: 'TOFZ.png',
+    logoBaseColor: '#000000',
+    textColor: '#ffffff'
+  },
+  dlongClient: { units: 0, nano: 200000000 },
+  dshortClient: { units: 0, nano: 250000000 }
+}
+2025-09-04T13:17:18.341Z bot:balancer TCS70A10A1L8
+2025-09-04T13:17:18.341Z bot:balancer 1
+2025-09-04T13:17:18.341Z bot:provider Getting last price
+2025-09-04T13:17:18.595Z bot:provider lastPriceResult {
+  lastPrices: [
+    {
+      figi: 'TCS70A10A1L8',
+      price: [Object],
+      time: 2025-09-04T13:17:33.756Z,
+      instrumentUid: 'c5049184-ded4-49d0-8e14-bffefc40a223',
+      lastPriceType: 1
+    }
+  ]
+}
+2025-09-04T13:17:18.595Z bot:provider lastPrice { units: 13, nano: 430000000 }
+2025-09-04T13:17:23.597Z bot:balancer newPosition {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 }
+}
+2025-09-04T13:17:23.597Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.597Z bot:balancer positionIndex 0
+2025-09-04T13:17:23.597Z bot:balancer Calculating totalPrice
+2025-09-04T13:17:23.598Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'RUB/RUB',
+  base: 'RUB',
+  quote: 'RUB',
+  figi: undefined,
+  amount: -449.85,
+  lotSize: 1,
+  price: { units: 1, nano: 0 },
+  priceNumber: 1,
+  lotPrice: { units: 1, nano: 0 }
+}
+2025-09-04T13:17:23.598Z bot:balancer lotPriceNumber 1
+2025-09-04T13:17:23.598Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.598Z bot:balancer -449.85 1
+2025-09-04T13:17:23.598Z bot:balancer totalPriceNumber -449.85
+2025-09-04T13:17:23.598Z bot:balancer totalPrice { units: -449, nano: 850000000 }
+2025-09-04T13:17:23.598Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'RUB/RUB',
+  base: 'RUB',
+  quote: 'RUB',
+  figi: undefined,
+  amount: -449.85,
+  lotSize: 1,
+  price: { units: 1, nano: 0 },
+  priceNumber: 1,
+  lotPrice: { units: 1, nano: 0 },
+  totalPrice: { units: -449, nano: 850000000 }
+}
+2025-09-04T13:17:23.598Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TPAY/RUB',
+  base: 'TPAY',
+  quote: 'RUB',
+  figi: 'TCS00A108WX3',
+  amount: 1,
+  lotSize: 1,
+  price: { units: 100, nano: 660000000 },
+  priceNumber: 100.66,
+  lotPrice: { units: 100, nano: 660000000 },
+  totalPrice: { units: 100, nano: 660000000 },
+  totalPriceNumber: 100.66,
+  averagePositionPriceFifoNumber: 100.66,
+  averagePositionPriceNumber: 100.66
+}
+2025-09-04T13:17:23.598Z bot:balancer lotPriceNumber 100.66
+2025-09-04T13:17:23.598Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.598Z bot:balancer 1 100.66
+2025-09-04T13:17:23.598Z bot:balancer totalPriceNumber 100.66
+2025-09-04T13:17:23.598Z bot:balancer totalPrice { units: 100, nano: 660000000 }
+2025-09-04T13:17:23.598Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TPAY/RUB',
+  base: 'TPAY',
+  quote: 'RUB',
+  figi: 'TCS00A108WX3',
+  amount: 1,
+  lotSize: 1,
+  price: { units: 100, nano: 660000000 },
+  priceNumber: 100.66,
+  lotPrice: { units: 100, nano: 660000000 },
+  totalPrice: { units: 100, nano: 660000000 },
+  totalPriceNumber: 100.66,
+  averagePositionPriceFifoNumber: 100.66,
+  averagePositionPriceNumber: 100.66
+}
+2025-09-04T13:17:23.598Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TLCB@/RUB',
+  base: 'TLCB@',
+  quote: 'RUB',
+  figi: 'TCS20A107597',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 190000000 },
+  priceNumber: 10.19,
+  lotPrice: { units: 10, nano: 190000000 },
+  totalPrice: { units: 91, nano: 710000000 },
+  totalPriceNumber: 91.71,
+  averagePositionPriceFifoNumber: 10.19,
+  averagePositionPriceNumber: 10.19
+}
+2025-09-04T13:17:23.599Z bot:balancer lotPriceNumber 10.19
+2025-09-04T13:17:23.599Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.599Z bot:balancer 9 10.19
+2025-09-04T13:17:23.599Z bot:balancer totalPriceNumber 91.71
+2025-09-04T13:17:23.599Z bot:balancer totalPrice { units: 91, nano: 710000000 }
+2025-09-04T13:17:23.599Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TLCB@/RUB',
+  base: 'TLCB@',
+  quote: 'RUB',
+  figi: 'TCS20A107597',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 190000000 },
+  priceNumber: 10.19,
+  lotPrice: { units: 10, nano: 190000000 },
+  totalPrice: { units: 91, nano: 710000000 },
+  totalPriceNumber: 91.71,
+  averagePositionPriceFifoNumber: 10.19,
+  averagePositionPriceNumber: 10.19
+}
+2025-09-04T13:17:23.599Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TITR@/RUB',
+  base: 'TITR@',
+  quote: 'RUB',
+  figi: 'TCS30A108BL2',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 400000000 },
+  priceNumber: 6.4,
+  lotPrice: { units: 6, nano: 400000000 },
+  totalPrice: { units: 89, nano: 600000000 },
+  totalPriceNumber: 89.60000000000001,
+  averagePositionPriceFifoNumber: 6.41,
+  averagePositionPriceNumber: 6.41
+}
+2025-09-04T13:17:23.599Z bot:balancer lotPriceNumber 6.4
+2025-09-04T13:17:23.599Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.599Z bot:balancer 14 6.4
+2025-09-04T13:17:23.599Z bot:balancer totalPriceNumber 89.60000000000001
+2025-09-04T13:17:23.599Z bot:balancer totalPrice { units: 89, nano: 600000000 }
+2025-09-04T13:17:23.599Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TITR@/RUB',
+  base: 'TITR@',
+  quote: 'RUB',
+  figi: 'TCS30A108BL2',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 400000000 },
+  priceNumber: 6.4,
+  lotPrice: { units: 6, nano: 400000000 },
+  totalPrice: { units: 89, nano: 600000000 },
+  totalPriceNumber: 89.60000000000001,
+  averagePositionPriceFifoNumber: 6.41,
+  averagePositionPriceNumber: 6.41
+}
+2025-09-04T13:17:23.599Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TDIV@/RUB',
+  base: 'TDIV@',
+  quote: 'RUB',
+  figi: 'TCS10A107563',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 490000000 },
+  priceNumber: 10.49,
+  lotPrice: { units: 10, nano: 490000000 },
+  totalPrice: { units: 94, nano: 410000000 },
+  totalPriceNumber: 94.41,
+  averagePositionPriceFifoNumber: 10.49,
+  averagePositionPriceNumber: 10.49
+}
+2025-09-04T13:17:23.600Z bot:balancer lotPriceNumber 10.49
+2025-09-04T13:17:23.600Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.600Z bot:balancer 9 10.49
+2025-09-04T13:17:23.600Z bot:balancer totalPriceNumber 94.41
+2025-09-04T13:17:23.600Z bot:balancer totalPrice { units: 94, nano: 410000000 }
+2025-09-04T13:17:23.600Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TDIV@/RUB',
+  base: 'TDIV@',
+  quote: 'RUB',
+  figi: 'TCS10A107563',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 490000000 },
+  priceNumber: 10.49,
+  lotPrice: { units: 10, nano: 490000000 },
+  totalPrice: { units: 94, nano: 410000000 },
+  totalPriceNumber: 94.41,
+  averagePositionPriceFifoNumber: 10.49,
+  averagePositionPriceNumber: 10.49
+}
+2025-09-04T13:17:23.600Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TGLD@/RUB',
+  base: 'TGLD@',
+  quote: 'RUB',
+  figi: 'TCS80A101X50',
+  amount: 8,
+  lotSize: 1,
+  price: { units: 11, nano: 400000000 },
+  priceNumber: 11.39,
+  lotPrice: { units: 11, nano: 400000000 },
+  totalPrice: { units: 91, nano: 120000000 },
+  totalPriceNumber: 91.12,
+  averagePositionPriceFifoNumber: 11.4,
+  averagePositionPriceNumber: 11.4
+}
+2025-09-04T13:17:23.600Z bot:balancer lotPriceNumber 11.4
+2025-09-04T13:17:23.600Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.600Z bot:balancer 8 11.39
+2025-09-04T13:17:23.600Z bot:balancer totalPriceNumber 91.2
+2025-09-04T13:17:23.600Z bot:balancer totalPrice { units: 91, nano: 200000000 }
+2025-09-04T13:17:23.600Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TGLD@/RUB',
+  base: 'TGLD@',
+  quote: 'RUB',
+  figi: 'TCS80A101X50',
+  amount: 8,
+  lotSize: 1,
+  price: { units: 11, nano: 400000000 },
+  priceNumber: 11.39,
+  lotPrice: { units: 11, nano: 400000000 },
+  totalPrice: { units: 91, nano: 200000000 },
+  totalPriceNumber: 91.12,
+  averagePositionPriceFifoNumber: 11.4,
+  averagePositionPriceNumber: 11.4
+}
+2025-09-04T13:17:23.600Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TRUR/RUB',
+  base: 'TRUR',
+  quote: 'RUB',
+  figi: 'BBG000000001',
+  amount: 10,
+  lotSize: 1,
+  price: { units: 9, nano: 470000000 },
+  priceNumber: 9.48,
+  lotPrice: { units: 9, nano: 470000000 },
+  totalPrice: { units: 94, nano: 800000000 },
+  totalPriceNumber: 94.80000000000001,
+  averagePositionPriceFifoNumber: 9.48,
+  averagePositionPriceNumber: 9.48
+}
+2025-09-04T13:17:23.600Z bot:balancer lotPriceNumber 9.47
+2025-09-04T13:17:23.600Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.600Z bot:balancer 10 9.48
+2025-09-04T13:17:23.600Z bot:balancer totalPriceNumber 94.7
+2025-09-04T13:17:23.600Z bot:balancer totalPrice { units: 94, nano: 700000000 }
+2025-09-04T13:17:23.600Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TRUR/RUB',
+  base: 'TRUR',
+  quote: 'RUB',
+  figi: 'BBG000000001',
+  amount: 10,
+  lotSize: 1,
+  price: { units: 9, nano: 470000000 },
+  priceNumber: 9.48,
+  lotPrice: { units: 9, nano: 470000000 },
+  totalPrice: { units: 94, nano: 700000000 },
+  totalPriceNumber: 94.80000000000001,
+  averagePositionPriceFifoNumber: 9.48,
+  averagePositionPriceNumber: 9.48
+}
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.03999999999999,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42
+}
+2025-09-04T13:17:23.601Z bot:balancer lotPriceNumber 7.42
+2025-09-04T13:17:23.601Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.601Z bot:balancer 12 7.42
+2025-09-04T13:17:23.601Z bot:balancer totalPriceNumber 89.03999999999999
+2025-09-04T13:17:23.601Z bot:balancer totalPrice { units: 89, nano: 40000000 }
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.03999999999999,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42
+}
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TMOS@/RUB',
+  base: 'TMOS@',
+  quote: 'RUB',
+  figi: 'TCS60A101X76',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 670000000 },
+  priceNumber: 6.67,
+  lotPrice: { units: 6, nano: 670000000 },
+  totalPrice: { units: 93, nano: 380000000 },
+  totalPriceNumber: 93.38,
+  averagePositionPriceFifoNumber: 6.67,
+  averagePositionPriceNumber: 6.67
+}
+2025-09-04T13:17:23.601Z bot:balancer lotPriceNumber 6.67
+2025-09-04T13:17:23.601Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.601Z bot:balancer 14 6.67
+2025-09-04T13:17:23.601Z bot:balancer totalPriceNumber 93.38
+2025-09-04T13:17:23.601Z bot:balancer totalPrice { units: 93, nano: 380000000 }
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TMOS@/RUB',
+  base: 'TMOS@',
+  quote: 'RUB',
+  figi: 'TCS60A101X76',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 670000000 },
+  priceNumber: 6.67,
+  lotPrice: { units: 6, nano: 670000000 },
+  totalPrice: { units: 93, nano: 380000000 },
+  totalPriceNumber: 93.38,
+  averagePositionPriceFifoNumber: 6.67,
+  averagePositionPriceNumber: 6.67
+}
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TRND/RUB',
+  base: 'TRND',
+  quote: 'RUB',
+  figi: 'TCS00A10B0G9',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 9, nano: 810000000 },
+  priceNumber: 9.8,
+  lotPrice: { units: 9, nano: 810000000 },
+  totalPrice: { units: 88, nano: 200000000 },
+  totalPriceNumber: 88.2,
+  averagePositionPriceFifoNumber: 9.81,
+  averagePositionPriceNumber: 9.81
+}
+2025-09-04T13:17:23.601Z bot:balancer lotPriceNumber 9.81
+2025-09-04T13:17:23.601Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.601Z bot:balancer 9 9.8
+2025-09-04T13:17:23.601Z bot:balancer totalPriceNumber 88.29
+2025-09-04T13:17:23.601Z bot:balancer totalPrice { units: 88, nano: 290000000 }
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TRND/RUB',
+  base: 'TRND',
+  quote: 'RUB',
+  figi: 'TCS00A10B0G9',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 9, nano: 810000000 },
+  priceNumber: 9.8,
+  lotPrice: { units: 9, nano: 810000000 },
+  totalPrice: { units: 88, nano: 290000000 },
+  totalPriceNumber: 88.2,
+  averagePositionPriceFifoNumber: 9.81,
+  averagePositionPriceNumber: 9.81
+}
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 }
+}
+2025-09-04T13:17:23.601Z bot:balancer lotPriceNumber 142.29
+2025-09-04T13:17:23.601Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.601Z bot:balancer 0 142.29
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 }
+}
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map start: position {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 }
+}
+2025-09-04T13:17:23.601Z bot:balancer lotPriceNumber 13.43
+2025-09-04T13:17:23.601Z bot:balancer position.amount, position.priceNumber
+2025-09-04T13:17:23.601Z bot:balancer 0 13.43
+2025-09-04T13:17:23.601Z bot:balancer walletWithtotalPrice: map end: position {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 }
+}
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.602Z bot:balancer position.price { units: 1, nano: 0 }
+2025-09-04T13:17:23.602Z bot:balancer position.priceNumber 1
+2025-09-04T13:17:23.602Z bot:balancer position.lotPrice { units: 1, nano: 0 }
+2025-09-04T13:17:23.602Z bot:balancer position.lotPriceNumber 1
+2025-09-04T13:17:23.602Z bot:balancer position.totalPrice { units: -449, nano: 850000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.totalPriceNumber -449.85
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition end {
+  pair: 'RUB/RUB',
+  base: 'RUB',
+  quote: 'RUB',
+  figi: undefined,
+  amount: -449.85,
+  lotSize: 1,
+  price: { units: 1, nano: 0 },
+  priceNumber: 1,
+  lotPrice: { units: 1, nano: 0 },
+  totalPrice: { units: -449, nano: 850000000 },
+  lotPriceNumber: 1,
+  totalPriceNumber: -449.85
+}
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.602Z bot:balancer position.price { units: 100, nano: 660000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.priceNumber 100.66
+2025-09-04T13:17:23.602Z bot:balancer position.lotPrice { units: 100, nano: 660000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.lotPriceNumber 100.66
+2025-09-04T13:17:23.602Z bot:balancer position.totalPrice { units: 100, nano: 660000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.totalPriceNumber 100.66
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition end {
+  pair: 'TPAY/RUB',
+  base: 'TPAY',
+  quote: 'RUB',
+  figi: 'TCS00A108WX3',
+  amount: 1,
+  lotSize: 1,
+  price: { units: 100, nano: 660000000 },
+  priceNumber: 100.66,
+  lotPrice: { units: 100, nano: 660000000 },
+  totalPrice: { units: 100, nano: 660000000 },
+  totalPriceNumber: 100.66,
+  averagePositionPriceFifoNumber: 100.66,
+  averagePositionPriceNumber: 100.66,
+  lotPriceNumber: 100.66
+}
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.602Z bot:balancer position.price { units: 10, nano: 190000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.priceNumber 10.19
+2025-09-04T13:17:23.602Z bot:balancer position.lotPrice { units: 10, nano: 190000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.lotPriceNumber 10.19
+2025-09-04T13:17:23.602Z bot:balancer position.totalPrice { units: 91, nano: 710000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.totalPriceNumber 91.71
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition end {
+  pair: 'TLCB@/RUB',
+  base: 'TLCB@',
+  quote: 'RUB',
+  figi: 'TCS20A107597',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 190000000 },
+  priceNumber: 10.19,
+  lotPrice: { units: 10, nano: 190000000 },
+  totalPrice: { units: 91, nano: 710000000 },
+  totalPriceNumber: 91.71,
+  averagePositionPriceFifoNumber: 10.19,
+  averagePositionPriceNumber: 10.19,
+  lotPriceNumber: 10.19
+}
+2025-09-04T13:17:23.602Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.602Z bot:balancer position.price { units: 6, nano: 400000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.priceNumber 6.4
+2025-09-04T13:17:23.602Z bot:balancer position.lotPrice { units: 6, nano: 400000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.lotPriceNumber 6.4
+2025-09-04T13:17:23.602Z bot:balancer position.totalPrice { units: 89, nano: 600000000 }
+2025-09-04T13:17:23.602Z bot:balancer position.totalPriceNumber 89.6
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition end {
+  pair: 'TITR@/RUB',
+  base: 'TITR@',
+  quote: 'RUB',
+  figi: 'TCS30A108BL2',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 400000000 },
+  priceNumber: 6.4,
+  lotPrice: { units: 6, nano: 400000000 },
+  totalPrice: { units: 89, nano: 600000000 },
+  totalPriceNumber: 89.6,
+  averagePositionPriceFifoNumber: 6.41,
+  averagePositionPriceNumber: 6.41,
+  lotPriceNumber: 6.4
+}
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.603Z bot:balancer position.price { units: 10, nano: 490000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.priceNumber 10.49
+2025-09-04T13:17:23.603Z bot:balancer position.lotPrice { units: 10, nano: 490000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.lotPriceNumber 10.49
+2025-09-04T13:17:23.603Z bot:balancer position.totalPrice { units: 94, nano: 410000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.totalPriceNumber 94.41
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition end {
+  pair: 'TDIV@/RUB',
+  base: 'TDIV@',
+  quote: 'RUB',
+  figi: 'TCS10A107563',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 490000000 },
+  priceNumber: 10.49,
+  lotPrice: { units: 10, nano: 490000000 },
+  totalPrice: { units: 94, nano: 410000000 },
+  totalPriceNumber: 94.41,
+  averagePositionPriceFifoNumber: 10.49,
+  averagePositionPriceNumber: 10.49,
+  lotPriceNumber: 10.49
+}
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.603Z bot:balancer position.price { units: 11, nano: 400000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.priceNumber 11.4
+2025-09-04T13:17:23.603Z bot:balancer position.lotPrice { units: 11, nano: 400000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.lotPriceNumber 11.4
+2025-09-04T13:17:23.603Z bot:balancer position.totalPrice { units: 91, nano: 200000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.totalPriceNumber 91.2
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition end {
+  pair: 'TGLD@/RUB',
+  base: 'TGLD@',
+  quote: 'RUB',
+  figi: 'TCS80A101X50',
+  amount: 8,
+  lotSize: 1,
+  price: { units: 11, nano: 400000000 },
+  priceNumber: 11.4,
+  lotPrice: { units: 11, nano: 400000000 },
+  totalPrice: { units: 91, nano: 200000000 },
+  totalPriceNumber: 91.2,
+  averagePositionPriceFifoNumber: 11.4,
+  averagePositionPriceNumber: 11.4,
+  lotPriceNumber: 11.4
+}
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.603Z bot:balancer position.price { units: 9, nano: 470000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.priceNumber 9.47
+2025-09-04T13:17:23.603Z bot:balancer position.lotPrice { units: 9, nano: 470000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.lotPriceNumber 9.47
+2025-09-04T13:17:23.603Z bot:balancer position.totalPrice { units: 94, nano: 700000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.totalPriceNumber 94.7
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition end {
+  pair: 'TRUR/RUB',
+  base: 'TRUR',
+  quote: 'RUB',
+  figi: 'BBG000000001',
+  amount: 10,
+  lotSize: 1,
+  price: { units: 9, nano: 470000000 },
+  priceNumber: 9.47,
+  lotPrice: { units: 9, nano: 470000000 },
+  totalPrice: { units: 94, nano: 700000000 },
+  totalPriceNumber: 94.7,
+  averagePositionPriceFifoNumber: 9.48,
+  averagePositionPriceNumber: 9.48,
+  lotPriceNumber: 9.47
+}
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.603Z bot:balancer position.price { units: 7, nano: 420000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.priceNumber 7.42
+2025-09-04T13:17:23.603Z bot:balancer position.lotPrice { units: 7, nano: 420000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.lotPriceNumber 7.42
+2025-09-04T13:17:23.603Z bot:balancer position.totalPrice { units: 89, nano: 40000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.totalPriceNumber 89.04
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition end {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.04,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42,
+  lotPriceNumber: 7.42
+}
+2025-09-04T13:17:23.603Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.603Z bot:balancer position.price { units: 6, nano: 670000000 }
+2025-09-04T13:17:23.603Z bot:balancer position.priceNumber 6.67
+2025-09-04T13:17:23.603Z bot:balancer position.lotPrice { units: 6, nano: 670000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.lotPriceNumber 6.67
+2025-09-04T13:17:23.604Z bot:balancer position.totalPrice { units: 93, nano: 380000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.totalPriceNumber 93.38
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition end {
+  pair: 'TMOS@/RUB',
+  base: 'TMOS@',
+  quote: 'RUB',
+  figi: 'TCS60A101X76',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 670000000 },
+  priceNumber: 6.67,
+  lotPrice: { units: 6, nano: 670000000 },
+  totalPrice: { units: 93, nano: 380000000 },
+  totalPriceNumber: 93.38,
+  averagePositionPriceFifoNumber: 6.67,
+  averagePositionPriceNumber: 6.67,
+  lotPriceNumber: 6.67
+}
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.604Z bot:balancer position.price { units: 9, nano: 810000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.priceNumber 9.81
+2025-09-04T13:17:23.604Z bot:balancer position.lotPrice { units: 9, nano: 810000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.lotPriceNumber 9.81
+2025-09-04T13:17:23.604Z bot:balancer position.totalPrice { units: 88, nano: 290000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.totalPriceNumber 88.29
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition end {
+  pair: 'TRND/RUB',
+  base: 'TRND',
+  quote: 'RUB',
+  figi: 'TCS00A10B0G9',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 9, nano: 810000000 },
+  priceNumber: 9.81,
+  lotPrice: { units: 9, nano: 810000000 },
+  totalPrice: { units: 88, nano: 290000000 },
+  totalPriceNumber: 88.29,
+  averagePositionPriceFifoNumber: 9.81,
+  averagePositionPriceNumber: 9.81,
+  lotPriceNumber: 9.81
+}
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.604Z bot:balancer position.price { units: 142, nano: 290000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.priceNumber 142.29
+2025-09-04T13:17:23.604Z bot:balancer position.lotPrice { units: 142, nano: 290000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.lotPriceNumber 142.29
+2025-09-04T13:17:23.604Z bot:balancer position.totalPrice undefined
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition end {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 },
+  lotPriceNumber: 142.29
+}
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition start
+2025-09-04T13:17:23.604Z bot:balancer position.price { units: 13, nano: 430000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.priceNumber 13.43
+2025-09-04T13:17:23.604Z bot:balancer position.lotPrice { units: 13, nano: 430000000 }
+2025-09-04T13:17:23.604Z bot:balancer position.lotPriceNumber 13.43
+2025-09-04T13:17:23.604Z bot:balancer position.totalPrice undefined
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToPosition end {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 },
+  lotPriceNumber: 13.43
+}
+2025-09-04T13:17:23.604Z bot:balancer addNumbersToWallet [
+  {
+    pair: 'RUB/RUB',
+    base: 'RUB',
+    quote: 'RUB',
+    figi: undefined,
+    amount: -449.85,
+    lotSize: 1,
+    price: { units: 1, nano: 0 },
+    priceNumber: 1,
+    lotPrice: { units: 1, nano: 0 },
+    totalPrice: { units: -449, nano: 850000000 },
+    lotPriceNumber: 1,
+    totalPriceNumber: -449.85
+  },
+  {
+    pair: 'TPAY/RUB',
+    base: 'TPAY',
+    quote: 'RUB',
+    figi: 'TCS00A108WX3',
+    amount: 1,
+    lotSize: 1,
+    price: { units: 100, nano: 660000000 },
+    priceNumber: 100.66,
+    lotPrice: { units: 100, nano: 660000000 },
+    totalPrice: { units: 100, nano: 660000000 },
+    totalPriceNumber: 100.66,
+    averagePositionPriceFifoNumber: 100.66,
+    averagePositionPriceNumber: 100.66,
+    lotPriceNumber: 100.66
+  },
+  {
+    pair: 'TLCB@/RUB',
+    base: 'TLCB@',
+    quote: 'RUB',
+    figi: 'TCS20A107597',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 190000000 },
+    priceNumber: 10.19,
+    lotPrice: { units: 10, nano: 190000000 },
+    totalPrice: { units: 91, nano: 710000000 },
+    totalPriceNumber: 91.71,
+    averagePositionPriceFifoNumber: 10.19,
+    averagePositionPriceNumber: 10.19,
+    lotPriceNumber: 10.19
+  },
+  {
+    pair: 'TITR@/RUB',
+    base: 'TITR@',
+    quote: 'RUB',
+    figi: 'TCS30A108BL2',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 400000000 },
+    priceNumber: 6.4,
+    lotPrice: { units: 6, nano: 400000000 },
+    totalPrice: { units: 89, nano: 600000000 },
+    totalPriceNumber: 89.6,
+    averagePositionPriceFifoNumber: 6.41,
+    averagePositionPriceNumber: 6.41,
+    lotPriceNumber: 6.4
+  },
+  {
+    pair: 'TDIV@/RUB',
+    base: 'TDIV@',
+    quote: 'RUB',
+    figi: 'TCS10A107563',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 490000000 },
+    priceNumber: 10.49,
+    lotPrice: { units: 10, nano: 490000000 },
+    totalPrice: { units: 94, nano: 410000000 },
+    totalPriceNumber: 94.41,
+    averagePositionPriceFifoNumber: 10.49,
+    averagePositionPriceNumber: 10.49,
+    lotPriceNumber: 10.49
+  },
+  {
+    pair: 'TGLD@/RUB',
+    base: 'TGLD@',
+    quote: 'RUB',
+    figi: 'TCS80A101X50',
+    amount: 8,
+    lotSize: 1,
+    price: { units: 11, nano: 400000000 },
+    priceNumber: 11.4,
+    lotPrice: { units: 11, nano: 400000000 },
+    totalPrice: { units: 91, nano: 200000000 },
+    totalPriceNumber: 91.2,
+    averagePositionPriceFifoNumber: 11.4,
+    averagePositionPriceNumber: 11.4,
+    lotPriceNumber: 11.4
+  },
+  {
+    pair: 'TRUR/RUB',
+    base: 'TRUR',
+    quote: 'RUB',
+    figi: 'BBG000000001',
+    amount: 10,
+    lotSize: 1,
+    price: { units: 9, nano: 470000000 },
+    priceNumber: 9.47,
+    lotPrice: { units: 9, nano: 470000000 },
+    totalPrice: { units: 94, nano: 700000000 },
+    totalPriceNumber: 94.7,
+    averagePositionPriceFifoNumber: 9.48,
+    averagePositionPriceNumber: 9.48,
+    lotPriceNumber: 9.47
+  },
+  {
+    pair: 'TBRU@/RUB',
+    base: 'TBRU@',
+    quote: 'RUB',
+    figi: 'TCS60A1039N1',
+    amount: 12,
+    lotSize: 1,
+    price: { units: 7, nano: 420000000 },
+    priceNumber: 7.42,
+    lotPrice: { units: 7, nano: 420000000 },
+    totalPrice: { units: 89, nano: 40000000 },
+    totalPriceNumber: 89.04,
+    averagePositionPriceFifoNumber: 7.42,
+    averagePositionPriceNumber: 7.42,
+    lotPriceNumber: 7.42
+  },
+  {
+    pair: 'TMOS@/RUB',
+    base: 'TMOS@',
+    quote: 'RUB',
+    figi: 'TCS60A101X76',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 670000000 },
+    priceNumber: 6.67,
+    lotPrice: { units: 6, nano: 670000000 },
+    totalPrice: { units: 93, nano: 380000000 },
+    totalPriceNumber: 93.38,
+    averagePositionPriceFifoNumber: 6.67,
+    averagePositionPriceNumber: 6.67,
+    lotPriceNumber: 6.67
+  },
+  {
+    pair: 'TRND/RUB',
+    base: 'TRND',
+    quote: 'RUB',
+    figi: 'TCS00A10B0G9',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 9, nano: 810000000 },
+    priceNumber: 9.81,
+    lotPrice: { units: 9, nano: 810000000 },
+    totalPrice: { units: 88, nano: 290000000 },
+    totalPriceNumber: 88.29,
+    averagePositionPriceFifoNumber: 9.81,
+    averagePositionPriceNumber: 9.81,
+    lotPriceNumber: 9.81
+  },
+  {
+    pair: 'TMON/RUB',
+    base: 'TMON',
+    quote: 'RUB',
+    figi: 'TCS70A106DL2',
+    price: { units: 142, nano: 290000000 },
+    priceNumber: 142.29,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 142, nano: 290000000 },
+    lotPriceNumber: 142.29
+  },
+  {
+    pair: 'TOFZ/RUB',
+    base: 'TOFZ',
+    quote: 'RUB',
+    figi: 'TCS70A10A1L8',
+    price: { units: 13, nano: 430000000 },
+    priceNumber: 13.43,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 13, nano: 430000000 },
+    lotPriceNumber: 13.43
+  }
+]
+2025-09-04T13:17:23.605Z bot:balancer addNumbersToWallet [Function: addNumbersToWallet]
+2025-09-04T13:17:23.606Z bot:balancer sortedWallet [
+  {
+    pair: 'TMON/RUB',
+    base: 'TMON',
+    quote: 'RUB',
+    figi: 'TCS70A106DL2',
+    price: { units: 142, nano: 290000000 },
+    priceNumber: 142.29,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 142, nano: 290000000 },
+    lotPriceNumber: 142.29
+  },
+  {
+    pair: 'TPAY/RUB',
+    base: 'TPAY',
+    quote: 'RUB',
+    figi: 'TCS00A108WX3',
+    amount: 1,
+    lotSize: 1,
+    price: { units: 100, nano: 660000000 },
+    priceNumber: 100.66,
+    lotPrice: { units: 100, nano: 660000000 },
+    totalPrice: { units: 100, nano: 660000000 },
+    totalPriceNumber: 100.66,
+    averagePositionPriceFifoNumber: 100.66,
+    averagePositionPriceNumber: 100.66,
+    lotPriceNumber: 100.66
+  },
+  {
+    pair: 'TOFZ/RUB',
+    base: 'TOFZ',
+    quote: 'RUB',
+    figi: 'TCS70A10A1L8',
+    price: { units: 13, nano: 430000000 },
+    priceNumber: 13.43,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 13, nano: 430000000 },
+    lotPriceNumber: 13.43
+  },
+  {
+    pair: 'TGLD@/RUB',
+    base: 'TGLD@',
+    quote: 'RUB',
+    figi: 'TCS80A101X50',
+    amount: 8,
+    lotSize: 1,
+    price: { units: 11, nano: 400000000 },
+    priceNumber: 11.4,
+    lotPrice: { units: 11, nano: 400000000 },
+    totalPrice: { units: 91, nano: 200000000 },
+    totalPriceNumber: 91.2,
+    averagePositionPriceFifoNumber: 11.4,
+    averagePositionPriceNumber: 11.4,
+    lotPriceNumber: 11.4
+  },
+  {
+    pair: 'TDIV@/RUB',
+    base: 'TDIV@',
+    quote: 'RUB',
+    figi: 'TCS10A107563',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 490000000 },
+    priceNumber: 10.49,
+    lotPrice: { units: 10, nano: 490000000 },
+    totalPrice: { units: 94, nano: 410000000 },
+    totalPriceNumber: 94.41,
+    averagePositionPriceFifoNumber: 10.49,
+    averagePositionPriceNumber: 10.49,
+    lotPriceNumber: 10.49
+  },
+  {
+    pair: 'TLCB@/RUB',
+    base: 'TLCB@',
+    quote: 'RUB',
+    figi: 'TCS20A107597',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 190000000 },
+    priceNumber: 10.19,
+    lotPrice: { units: 10, nano: 190000000 },
+    totalPrice: { units: 91, nano: 710000000 },
+    totalPriceNumber: 91.71,
+    averagePositionPriceFifoNumber: 10.19,
+    averagePositionPriceNumber: 10.19,
+    lotPriceNumber: 10.19
+  },
+  {
+    pair: 'TRND/RUB',
+    base: 'TRND',
+    quote: 'RUB',
+    figi: 'TCS00A10B0G9',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 9, nano: 810000000 },
+    priceNumber: 9.81,
+    lotPrice: { units: 9, nano: 810000000 },
+    totalPrice: { units: 88, nano: 290000000 },
+    totalPriceNumber: 88.29,
+    averagePositionPriceFifoNumber: 9.81,
+    averagePositionPriceNumber: 9.81,
+    lotPriceNumber: 9.81
+  },
+  {
+    pair: 'TRUR/RUB',
+    base: 'TRUR',
+    quote: 'RUB',
+    figi: 'BBG000000001',
+    amount: 10,
+    lotSize: 1,
+    price: { units: 9, nano: 470000000 },
+    priceNumber: 9.47,
+    lotPrice: { units: 9, nano: 470000000 },
+    totalPrice: { units: 94, nano: 700000000 },
+    totalPriceNumber: 94.7,
+    averagePositionPriceFifoNumber: 9.48,
+    averagePositionPriceNumber: 9.48,
+    lotPriceNumber: 9.47
+  },
+  {
+    pair: 'TBRU@/RUB',
+    base: 'TBRU@',
+    quote: 'RUB',
+    figi: 'TCS60A1039N1',
+    amount: 12,
+    lotSize: 1,
+    price: { units: 7, nano: 420000000 },
+    priceNumber: 7.42,
+    lotPrice: { units: 7, nano: 420000000 },
+    totalPrice: { units: 89, nano: 40000000 },
+    totalPriceNumber: 89.04,
+    averagePositionPriceFifoNumber: 7.42,
+    averagePositionPriceNumber: 7.42,
+    lotPriceNumber: 7.42
+  },
+  {
+    pair: 'TMOS@/RUB',
+    base: 'TMOS@',
+    quote: 'RUB',
+    figi: 'TCS60A101X76',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 670000000 },
+    priceNumber: 6.67,
+    lotPrice: { units: 6, nano: 670000000 },
+    totalPrice: { units: 93, nano: 380000000 },
+    totalPriceNumber: 93.38,
+    averagePositionPriceFifoNumber: 6.67,
+    averagePositionPriceNumber: 6.67,
+    lotPriceNumber: 6.67
+  },
+  {
+    pair: 'TITR@/RUB',
+    base: 'TITR@',
+    quote: 'RUB',
+    figi: 'TCS30A108BL2',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 400000000 },
+    priceNumber: 6.4,
+    lotPrice: { units: 6, nano: 400000000 },
+    totalPrice: { units: 89, nano: 600000000 },
+    totalPriceNumber: 89.6,
+    averagePositionPriceFifoNumber: 6.41,
+    averagePositionPriceNumber: 6.41,
+    lotPriceNumber: 6.4
+  },
+  {
+    pair: 'RUB/RUB',
+    base: 'RUB',
+    quote: 'RUB',
+    figi: undefined,
+    amount: -449.85,
+    lotSize: 1,
+    price: { units: 1, nano: 0 },
+    priceNumber: 1,
+    lotPrice: { units: 1, nano: 0 },
+    totalPrice: { units: -449, nano: 850000000 },
+    lotPriceNumber: 1,
+    totalPriceNumber: -449.85
+  }
+]
+2025-09-04T13:17:23.606Z bot:balancer Summing up all positions in portfolio
+2025-09-04T13:17:23.607Z bot:balancer [
+  {
+    pair: 'TMON/RUB',
+    base: 'TMON',
+    quote: 'RUB',
+    figi: 'TCS70A106DL2',
+    price: { units: 142, nano: 290000000 },
+    priceNumber: 142.29,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 142, nano: 290000000 },
+    lotPriceNumber: 142.29
+  },
+  {
+    pair: 'TPAY/RUB',
+    base: 'TPAY',
+    quote: 'RUB',
+    figi: 'TCS00A108WX3',
+    amount: 1,
+    lotSize: 1,
+    price: { units: 100, nano: 660000000 },
+    priceNumber: 100.66,
+    lotPrice: { units: 100, nano: 660000000 },
+    totalPrice: { units: 100, nano: 660000000 },
+    totalPriceNumber: 100.66,
+    averagePositionPriceFifoNumber: 100.66,
+    averagePositionPriceNumber: 100.66,
+    lotPriceNumber: 100.66
+  },
+  {
+    pair: 'TOFZ/RUB',
+    base: 'TOFZ',
+    quote: 'RUB',
+    figi: 'TCS70A10A1L8',
+    price: { units: 13, nano: 430000000 },
+    priceNumber: 13.43,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 13, nano: 430000000 },
+    lotPriceNumber: 13.43
+  },
+  {
+    pair: 'TGLD@/RUB',
+    base: 'TGLD@',
+    quote: 'RUB',
+    figi: 'TCS80A101X50',
+    amount: 8,
+    lotSize: 1,
+    price: { units: 11, nano: 400000000 },
+    priceNumber: 11.4,
+    lotPrice: { units: 11, nano: 400000000 },
+    totalPrice: { units: 91, nano: 200000000 },
+    totalPriceNumber: 91.2,
+    averagePositionPriceFifoNumber: 11.4,
+    averagePositionPriceNumber: 11.4,
+    lotPriceNumber: 11.4
+  },
+  {
+    pair: 'TDIV@/RUB',
+    base: 'TDIV@',
+    quote: 'RUB',
+    figi: 'TCS10A107563',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 490000000 },
+    priceNumber: 10.49,
+    lotPrice: { units: 10, nano: 490000000 },
+    totalPrice: { units: 94, nano: 410000000 },
+    totalPriceNumber: 94.41,
+    averagePositionPriceFifoNumber: 10.49,
+    averagePositionPriceNumber: 10.49,
+    lotPriceNumber: 10.49
+  },
+  {
+    pair: 'TLCB@/RUB',
+    base: 'TLCB@',
+    quote: 'RUB',
+    figi: 'TCS20A107597',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 190000000 },
+    priceNumber: 10.19,
+    lotPrice: { units: 10, nano: 190000000 },
+    totalPrice: { units: 91, nano: 710000000 },
+    totalPriceNumber: 91.71,
+    averagePositionPriceFifoNumber: 10.19,
+    averagePositionPriceNumber: 10.19,
+    lotPriceNumber: 10.19
+  },
+  {
+    pair: 'TRND/RUB',
+    base: 'TRND',
+    quote: 'RUB',
+    figi: 'TCS00A10B0G9',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 9, nano: 810000000 },
+    priceNumber: 9.81,
+    lotPrice: { units: 9, nano: 810000000 },
+    totalPrice: { units: 88, nano: 290000000 },
+    totalPriceNumber: 88.29,
+    averagePositionPriceFifoNumber: 9.81,
+    averagePositionPriceNumber: 9.81,
+    lotPriceNumber: 9.81
+  },
+  {
+    pair: 'TRUR/RUB',
+    base: 'TRUR',
+    quote: 'RUB',
+    figi: 'BBG000000001',
+    amount: 10,
+    lotSize: 1,
+    price: { units: 9, nano: 470000000 },
+    priceNumber: 9.47,
+    lotPrice: { units: 9, nano: 470000000 },
+    totalPrice: { units: 94, nano: 700000000 },
+    totalPriceNumber: 94.7,
+    averagePositionPriceFifoNumber: 9.48,
+    averagePositionPriceNumber: 9.48,
+    lotPriceNumber: 9.47
+  },
+  {
+    pair: 'TBRU@/RUB',
+    base: 'TBRU@',
+    quote: 'RUB',
+    figi: 'TCS60A1039N1',
+    amount: 12,
+    lotSize: 1,
+    price: { units: 7, nano: 420000000 },
+    priceNumber: 7.42,
+    lotPrice: { units: 7, nano: 420000000 },
+    totalPrice: { units: 89, nano: 40000000 },
+    totalPriceNumber: 89.04,
+    averagePositionPriceFifoNumber: 7.42,
+    averagePositionPriceNumber: 7.42,
+    lotPriceNumber: 7.42
+  },
+  {
+    pair: 'TMOS@/RUB',
+    base: 'TMOS@',
+    quote: 'RUB',
+    figi: 'TCS60A101X76',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 670000000 },
+    priceNumber: 6.67,
+    lotPrice: { units: 6, nano: 670000000 },
+    totalPrice: { units: 93, nano: 380000000 },
+    totalPriceNumber: 93.38,
+    averagePositionPriceFifoNumber: 6.67,
+    averagePositionPriceNumber: 6.67,
+    lotPriceNumber: 6.67
+  },
+  {
+    pair: 'TITR@/RUB',
+    base: 'TITR@',
+    quote: 'RUB',
+    figi: 'TCS30A108BL2',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 400000000 },
+    priceNumber: 6.4,
+    lotPrice: { units: 6, nano: 400000000 },
+    totalPrice: { units: 89, nano: 600000000 },
+    totalPriceNumber: 89.6,
+    averagePositionPriceFifoNumber: 6.41,
+    averagePositionPriceNumber: 6.41,
+    lotPriceNumber: 6.4
+  },
+  {
+    pair: 'RUB/RUB',
+    base: 'RUB',
+    quote: 'RUB',
+    figi: undefined,
+    amount: -449.85,
+    lotSize: 1,
+    price: { units: 1, nano: 0 },
+    priceNumber: 1,
+    lotPrice: { units: 1, nano: 0 },
+    totalPrice: { units: -449, nano: 850000000 },
+    lotPriceNumber: 1,
+    totalPriceNumber: -449.85
+  }
+]
+2025-09-04T13:17:23.607Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.607Z bot:balancer Optimal position sizes: {
+  TPAY: {
+    baseSize: 63.85666666666667,
+    marginSize: 127.71333333333334,
+    totalSize: 191.57
+  },
+  TGLD: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TRUR: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TRND: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TBRU: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TDIV: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TITR: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TLCB: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TMON: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TMOS: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  TOFZ: {
+    baseSize: 31.928333333333335,
+    marginSize: 63.85666666666667,
+    totalSize: 95.785
+  },
+  RUB: { baseSize: 0, marginSize: 0, totalSize: 0 }
+}
+2025-09-04T13:17:23.607Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.607Z bot:balancer positionIndex 1
+2025-09-04T13:17:23.607Z bot:balancer position {
+  pair: 'TPAY/RUB',
+  base: 'TPAY',
+  quote: 'RUB',
+  figi: 'TCS00A108WX3',
+  amount: 1,
+  lotSize: 1,
+  price: { units: 100, nano: 660000000 },
+  priceNumber: 100.66,
+  lotPrice: { units: 100, nano: 660000000 },
+  totalPrice: { units: 100, nano: 660000000 },
+  totalPriceNumber: 100.66,
+  averagePositionPriceFifoNumber: 100.66,
+  averagePositionPriceNumber: 100.66,
+  lotPriceNumber: 100.66
+}
+2025-09-04T13:17:23.607Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.607Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.607Z bot:balancer desiredPercent 16.666666666666668
+2025-09-04T13:17:23.607Z bot:balancer desiredAmountNumber (considering multiplier) 191.57
+2025-09-04T13:17:23.607Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.607Z bot:balancer canBuyBeforeTargetLots 1
+2025-09-04T13:17:23.607Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.607Z bot:balancer canBuyBeforeTargetNumber 100.66
+2025-09-04T13:17:23.607Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.607Z bot:balancer beforeDiffNumber 90.91
+2025-09-04T13:17:23.607Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.608Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.608Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.608Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.608Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.608Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.608Z bot:balancer positionIndex 3
+2025-09-04T13:17:23.608Z bot:balancer position {
+  pair: 'TGLD@/RUB',
+  base: 'TGLD@',
+  quote: 'RUB',
+  figi: 'TCS80A101X50',
+  amount: 8,
+  lotSize: 1,
+  price: { units: 11, nano: 400000000 },
+  priceNumber: 11.4,
+  lotPrice: { units: 11, nano: 400000000 },
+  totalPrice: { units: 91, nano: 200000000 },
+  totalPriceNumber: 91.2,
+  averagePositionPriceFifoNumber: 11.4,
+  averagePositionPriceNumber: 11.4,
+  lotPriceNumber: 11.4
+}
+2025-09-04T13:17:23.608Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.608Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.608Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.608Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.608Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.608Z bot:balancer canBuyBeforeTargetLots 8
+2025-09-04T13:17:23.608Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.608Z bot:balancer canBuyBeforeTargetNumber 91.2
+2025-09-04T13:17:23.608Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.608Z bot:balancer beforeDiffNumber 4.584999999999994
+2025-09-04T13:17:23.608Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.608Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.608Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.608Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.608Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.608Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.608Z bot:balancer positionIndex 7
+2025-09-04T13:17:23.608Z bot:balancer position {
+  pair: 'TRUR/RUB',
+  base: 'TRUR',
+  quote: 'RUB',
+  figi: 'BBG000000001',
+  amount: 10,
+  lotSize: 1,
+  price: { units: 9, nano: 470000000 },
+  priceNumber: 9.47,
+  lotPrice: { units: 9, nano: 470000000 },
+  totalPrice: { units: 94, nano: 700000000 },
+  totalPriceNumber: 94.7,
+  averagePositionPriceFifoNumber: 9.48,
+  averagePositionPriceNumber: 9.48,
+  lotPriceNumber: 9.47
+}
+2025-09-04T13:17:23.608Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.608Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.608Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.608Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.608Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.608Z bot:balancer canBuyBeforeTargetLots 10
+2025-09-04T13:17:23.608Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.608Z bot:balancer canBuyBeforeTargetNumber 94.7
+2025-09-04T13:17:23.608Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.609Z bot:balancer beforeDiffNumber 1.0849999999999937
+2025-09-04T13:17:23.609Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.609Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.609Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.609Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.609Z bot:balancer positionIndex 6
+2025-09-04T13:17:23.609Z bot:balancer position {
+  pair: 'TRND/RUB',
+  base: 'TRND',
+  quote: 'RUB',
+  figi: 'TCS00A10B0G9',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 9, nano: 810000000 },
+  priceNumber: 9.81,
+  lotPrice: { units: 9, nano: 810000000 },
+  totalPrice: { units: 88, nano: 290000000 },
+  totalPriceNumber: 88.29,
+  averagePositionPriceFifoNumber: 9.81,
+  averagePositionPriceNumber: 9.81,
+  lotPriceNumber: 9.81
+}
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.609Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.609Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.609Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.609Z bot:balancer canBuyBeforeTargetLots 9
+2025-09-04T13:17:23.609Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.609Z bot:balancer canBuyBeforeTargetNumber 88.29
+2025-09-04T13:17:23.609Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.609Z bot:balancer beforeDiffNumber 7.49499999999999
+2025-09-04T13:17:23.609Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.609Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.609Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.609Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.609Z bot:balancer positionIndex 8
+2025-09-04T13:17:23.609Z bot:balancer position {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.04,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42,
+  lotPriceNumber: 7.42
+}
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.609Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.609Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.609Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.609Z bot:balancer canBuyBeforeTargetLots 12
+2025-09-04T13:17:23.609Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.609Z bot:balancer canBuyBeforeTargetNumber 89.03999999999999
+2025-09-04T13:17:23.609Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.609Z bot:balancer beforeDiffNumber 6.7450000000000045
+2025-09-04T13:17:23.609Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.609Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyNumber -1.4210854715202004e-14
+2025-09-04T13:17:23.609Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.609Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.609Z bot:balancer positionIndex 4
+2025-09-04T13:17:23.609Z bot:balancer position {
+  pair: 'TDIV@/RUB',
+  base: 'TDIV@',
+  quote: 'RUB',
+  figi: 'TCS10A107563',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 490000000 },
+  priceNumber: 10.49,
+  lotPrice: { units: 10, nano: 490000000 },
+  totalPrice: { units: 94, nano: 410000000 },
+  totalPriceNumber: 94.41,
+  averagePositionPriceFifoNumber: 10.49,
+  averagePositionPriceNumber: 10.49,
+  lotPriceNumber: 10.49
+}
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.609Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.609Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.609Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.609Z bot:balancer canBuyBeforeTargetLots 9
+2025-09-04T13:17:23.609Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.609Z bot:balancer canBuyBeforeTargetNumber 94.41
+2025-09-04T13:17:23.609Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.609Z bot:balancer beforeDiffNumber 1.375
+2025-09-04T13:17:23.609Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.609Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.609Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.609Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.609Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.609Z bot:balancer positionIndex 10
+2025-09-04T13:17:23.609Z bot:balancer position {
+  pair: 'TITR@/RUB',
+  base: 'TITR@',
+  quote: 'RUB',
+  figi: 'TCS30A108BL2',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 400000000 },
+  priceNumber: 6.4,
+  lotPrice: { units: 6, nano: 400000000 },
+  totalPrice: { units: 89, nano: 600000000 },
+  totalPriceNumber: 89.6,
+  averagePositionPriceFifoNumber: 6.41,
+  averagePositionPriceNumber: 6.41,
+  lotPriceNumber: 6.4
+}
+2025-09-04T13:17:23.609Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.609Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.610Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.610Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetLots 14
+2025-09-04T13:17:23.610Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetNumber 89.60000000000001
+2025-09-04T13:17:23.610Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.610Z bot:balancer beforeDiffNumber 6.184999999999988
+2025-09-04T13:17:23.610Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.610Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyNumber 1.4210854715202004e-14
+2025-09-04T13:17:23.610Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.610Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.610Z bot:balancer positionIndex 5
+2025-09-04T13:17:23.610Z bot:balancer position {
+  pair: 'TLCB@/RUB',
+  base: 'TLCB@',
+  quote: 'RUB',
+  figi: 'TCS20A107597',
+  amount: 9,
+  lotSize: 1,
+  price: { units: 10, nano: 190000000 },
+  priceNumber: 10.19,
+  lotPrice: { units: 10, nano: 190000000 },
+  totalPrice: { units: 91, nano: 710000000 },
+  totalPriceNumber: 91.71,
+  averagePositionPriceFifoNumber: 10.19,
+  averagePositionPriceNumber: 10.19,
+  lotPriceNumber: 10.19
+}
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.610Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.610Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.610Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetLots 9
+2025-09-04T13:17:23.610Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetNumber 91.71
+2025-09-04T13:17:23.610Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.610Z bot:balancer beforeDiffNumber 4.075000000000003
+2025-09-04T13:17:23.610Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.610Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.610Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.610Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.610Z bot:balancer positionIndex 0
+2025-09-04T13:17:23.610Z bot:balancer position {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 },
+  lotPriceNumber: 142.29
+}
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.610Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.610Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.610Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetLots 0
+2025-09-04T13:17:23.610Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetNumber 0
+2025-09-04T13:17:23.610Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.610Z bot:balancer beforeDiffNumber 95.785
+2025-09-04T13:17:23.610Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.610Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer New position with positive target: setting toBuyLots to minimum 1 TMON
+2025-09-04T13:17:23.610Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.610Z bot:balancer positionIndex 9
+2025-09-04T13:17:23.610Z bot:balancer position {
+  pair: 'TMOS@/RUB',
+  base: 'TMOS@',
+  quote: 'RUB',
+  figi: 'TCS60A101X76',
+  amount: 14,
+  lotSize: 1,
+  price: { units: 6, nano: 670000000 },
+  priceNumber: 6.67,
+  lotPrice: { units: 6, nano: 670000000 },
+  totalPrice: { units: 93, nano: 380000000 },
+  totalPriceNumber: 93.38,
+  averagePositionPriceFifoNumber: 6.67,
+  averagePositionPriceNumber: 6.67,
+  lotPriceNumber: 6.67
+}
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.610Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.610Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.610Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetLots 14
+2025-09-04T13:17:23.610Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetNumber 93.38
+2025-09-04T13:17:23.610Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.610Z bot:balancer beforeDiffNumber 2.405000000000001
+2025-09-04T13:17:23.610Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.610Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyNumber 0
+2025-09-04T13:17:23.610Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyLots 0
+2025-09-04T13:17:23.610Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.610Z bot:balancer positionIndex 2
+2025-09-04T13:17:23.610Z bot:balancer position {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 },
+  lotPriceNumber: 13.43
+}
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.610Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.610Z bot:balancer desiredPercent 8.333333333333334
+2025-09-04T13:17:23.610Z bot:balancer desiredAmountNumber (considering multiplier) 95.785
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetLots 7
+2025-09-04T13:17:23.610Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetNumber 94.00999999999999
+2025-09-04T13:17:23.610Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.610Z bot:balancer beforeDiffNumber 1.7750000000000057
+2025-09-04T13:17:23.610Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.610Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer New position with positive target: setting toBuyLots to minimum 1 TOFZ
+2025-09-04T13:17:23.610Z bot:balancer  Looking for base (ticker) in wallet
+2025-09-04T13:17:23.610Z bot:balancer positionIndex 11
+2025-09-04T13:17:23.610Z bot:balancer position {
+  pair: 'RUB/RUB',
+  base: 'RUB',
+  quote: 'RUB',
+  figi: undefined,
+  amount: -449.85,
+  lotSize: 1,
+  price: { units: 1, nano: 0 },
+  priceNumber: 1,
+  lotPrice: { units: 1, nano: 0 },
+  totalPrice: { units: -449, nano: 850000000 },
+  lotPriceNumber: 1,
+  totalPriceNumber: -449.85
+}
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many rubles the desired share will be with multiplier
+2025-09-04T13:17:23.610Z bot:balancer walletSumNumber 383.14
+2025-09-04T13:17:23.610Z bot:balancer desiredPercent 0
+2025-09-04T13:17:23.610Z bot:balancer desiredAmountNumber (considering multiplier) 0
+2025-09-04T13:17:23.610Z bot:balancer Calculating how many lots can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetLots 0
+2025-09-04T13:17:23.610Z bot:balancer Calculating cost of position that can be bought before desired target
+2025-09-04T13:17:23.610Z bot:balancer canBuyBeforeTargetNumber 0
+2025-09-04T13:17:23.610Z bot:balancer Calculating difference between desired value and value before target. Unallocated remainder.
+2025-09-04T13:17:23.610Z bot:balancer beforeDiffNumber 0
+2025-09-04T13:17:23.610Z bot:balancer Summing up remainders
+2025-09-04T13:17:23.610Z bot:balancer How much to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyNumber 449.85
+2025-09-04T13:17:23.610Z bot:balancer How many lots to buy (can be negative, then need to sell)
+2025-09-04T13:17:23.610Z bot:balancer toBuyLots 449.85
+2025-09-04T13:17:23.610Z bot:balancer Processing buy_requires_total_marginal_sell configuration
+2025-09-04T13:17:23.611Z bot:balancer Adjusted selling plan for TBRU@: 12 lots, 89.04 RUB
+2025-09-04T13:17:23.611Z bot:balancer sortedWallet [
+  {
+    pair: 'TMON/RUB',
+    base: 'TMON',
+    quote: 'RUB',
+    figi: 'TCS70A106DL2',
+    price: { units: 142, nano: 290000000 },
+    priceNumber: 142.29,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 142, nano: 290000000 },
+    lotPriceNumber: 142.29,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 0,
+    canBuyBeforeTargetNumber: 0,
+    beforeDiffNumber: 95.785,
+    toBuyLots: 1,
+    toBuyNumber: 142.29
+  },
+  {
+    pair: 'TPAY/RUB',
+    base: 'TPAY',
+    quote: 'RUB',
+    figi: 'TCS00A108WX3',
+    amount: 1,
+    lotSize: 1,
+    price: { units: 100, nano: 660000000 },
+    priceNumber: 100.66,
+    lotPrice: { units: 100, nano: 660000000 },
+    totalPrice: { units: 100, nano: 660000000 },
+    totalPriceNumber: 100.66,
+    averagePositionPriceFifoNumber: 100.66,
+    averagePositionPriceNumber: 100.66,
+    lotPriceNumber: 100.66,
+    desiredAmountNumber: 191.57,
+    canBuyBeforeTargetLots: 1,
+    canBuyBeforeTargetNumber: 100.66,
+    beforeDiffNumber: 90.91,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TOFZ/RUB',
+    base: 'TOFZ',
+    quote: 'RUB',
+    figi: 'TCS70A10A1L8',
+    price: { units: 13, nano: 430000000 },
+    priceNumber: 13.43,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 13, nano: 430000000 },
+    lotPriceNumber: 13.43,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 7,
+    canBuyBeforeTargetNumber: 94.00999999999999,
+    beforeDiffNumber: 1.7750000000000057,
+    toBuyLots: 7,
+    toBuyNumber: 94.00999999999999
+  },
+  {
+    pair: 'TGLD@/RUB',
+    base: 'TGLD@',
+    quote: 'RUB',
+    figi: 'TCS80A101X50',
+    amount: 8,
+    lotSize: 1,
+    price: { units: 11, nano: 400000000 },
+    priceNumber: 11.4,
+    lotPrice: { units: 11, nano: 400000000 },
+    totalPrice: { units: 91, nano: 200000000 },
+    totalPriceNumber: 91.2,
+    averagePositionPriceFifoNumber: 11.4,
+    averagePositionPriceNumber: 11.4,
+    lotPriceNumber: 11.4,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 8,
+    canBuyBeforeTargetNumber: 91.2,
+    beforeDiffNumber: 4.584999999999994,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TDIV@/RUB',
+    base: 'TDIV@',
+    quote: 'RUB',
+    figi: 'TCS10A107563',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 490000000 },
+    priceNumber: 10.49,
+    lotPrice: { units: 10, nano: 490000000 },
+    totalPrice: { units: 94, nano: 410000000 },
+    totalPriceNumber: 94.41,
+    averagePositionPriceFifoNumber: 10.49,
+    averagePositionPriceNumber: 10.49,
+    lotPriceNumber: 10.49,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 9,
+    canBuyBeforeTargetNumber: 94.41,
+    beforeDiffNumber: 1.375,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TLCB@/RUB',
+    base: 'TLCB@',
+    quote: 'RUB',
+    figi: 'TCS20A107597',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 10, nano: 190000000 },
+    priceNumber: 10.19,
+    lotPrice: { units: 10, nano: 190000000 },
+    totalPrice: { units: 91, nano: 710000000 },
+    totalPriceNumber: 91.71,
+    averagePositionPriceFifoNumber: 10.19,
+    averagePositionPriceNumber: 10.19,
+    lotPriceNumber: 10.19,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 9,
+    canBuyBeforeTargetNumber: 91.71,
+    beforeDiffNumber: 4.075000000000003,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TRND/RUB',
+    base: 'TRND',
+    quote: 'RUB',
+    figi: 'TCS00A10B0G9',
+    amount: 9,
+    lotSize: 1,
+    price: { units: 9, nano: 810000000 },
+    priceNumber: 9.81,
+    lotPrice: { units: 9, nano: 810000000 },
+    totalPrice: { units: 88, nano: 290000000 },
+    totalPriceNumber: 88.29,
+    averagePositionPriceFifoNumber: 9.81,
+    averagePositionPriceNumber: 9.81,
+    lotPriceNumber: 9.81,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 9,
+    canBuyBeforeTargetNumber: 88.29,
+    beforeDiffNumber: 7.49499999999999,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TRUR/RUB',
+    base: 'TRUR',
+    quote: 'RUB',
+    figi: 'BBG000000001',
+    amount: 10,
+    lotSize: 1,
+    price: { units: 9, nano: 470000000 },
+    priceNumber: 9.47,
+    lotPrice: { units: 9, nano: 470000000 },
+    totalPrice: { units: 94, nano: 700000000 },
+    totalPriceNumber: 94.7,
+    averagePositionPriceFifoNumber: 9.48,
+    averagePositionPriceNumber: 9.48,
+    lotPriceNumber: 9.47,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 10,
+    canBuyBeforeTargetNumber: 94.7,
+    beforeDiffNumber: 1.0849999999999937,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TBRU@/RUB',
+    base: 'TBRU@',
+    quote: 'RUB',
+    figi: 'TCS60A1039N1',
+    amount: 12,
+    lotSize: 1,
+    price: { units: 7, nano: 420000000 },
+    priceNumber: 7.42,
+    lotPrice: { units: 7, nano: 420000000 },
+    totalPrice: { units: 89, nano: 40000000 },
+    totalPriceNumber: 89.04,
+    averagePositionPriceFifoNumber: 7.42,
+    averagePositionPriceNumber: 7.42,
+    lotPriceNumber: 7.42,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 12,
+    canBuyBeforeTargetNumber: 89.03999999999999,
+    beforeDiffNumber: 6.7450000000000045,
+    toBuyNumber: -89.04,
+    toBuyLots: -12
+  },
+  {
+    pair: 'TMOS@/RUB',
+    base: 'TMOS@',
+    quote: 'RUB',
+    figi: 'TCS60A101X76',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 670000000 },
+    priceNumber: 6.67,
+    lotPrice: { units: 6, nano: 670000000 },
+    totalPrice: { units: 93, nano: 380000000 },
+    totalPriceNumber: 93.38,
+    averagePositionPriceFifoNumber: 6.67,
+    averagePositionPriceNumber: 6.67,
+    lotPriceNumber: 6.67,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 14,
+    canBuyBeforeTargetNumber: 93.38,
+    beforeDiffNumber: 2.405000000000001,
+    toBuyNumber: 0,
+    toBuyLots: 0
+  },
+  {
+    pair: 'TITR@/RUB',
+    base: 'TITR@',
+    quote: 'RUB',
+    figi: 'TCS30A108BL2',
+    amount: 14,
+    lotSize: 1,
+    price: { units: 6, nano: 400000000 },
+    priceNumber: 6.4,
+    lotPrice: { units: 6, nano: 400000000 },
+    totalPrice: { units: 89, nano: 600000000 },
+    totalPriceNumber: 89.6,
+    averagePositionPriceFifoNumber: 6.41,
+    averagePositionPriceNumber: 6.41,
+    lotPriceNumber: 6.4,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 14,
+    canBuyBeforeTargetNumber: 89.60000000000001,
+    beforeDiffNumber: 6.184999999999988,
+    toBuyNumber: 1.4210854715202004e-14,
+    toBuyLots: 0
+  },
+  {
+    pair: 'RUB/RUB',
+    base: 'RUB',
+    quote: 'RUB',
+    figi: undefined,
+    amount: -449.85,
+    lotSize: 1,
+    price: { units: 1, nano: 0 },
+    priceNumber: 1,
+    lotPrice: { units: 1, nano: 0 },
+    totalPrice: { units: -449, nano: 850000000 },
+    lotPriceNumber: 1,
+    totalPriceNumber: -449.85,
+    desiredAmountNumber: 0,
+    canBuyBeforeTargetLots: 0,
+    canBuyBeforeTargetNumber: 0,
+    beforeDiffNumber: 0,
+    toBuyNumber: 449.85,
+    toBuyLots: 449.85
+  }
+]
+2025-09-04T13:17:23.612Z bot:balancer specialSellingPlan {
+  'TBRU@': {
+    position: {
+      pair: 'TBRU@/RUB',
+      base: 'TBRU@',
+      quote: 'RUB',
+      figi: 'TCS60A1039N1',
+      amount: 12,
+      lotSize: 1,
+      price: [Object],
+      priceNumber: 7.42,
+      lotPrice: [Object],
+      totalPrice: [Object],
+      totalPriceNumber: 89.04,
+      averagePositionPriceFifoNumber: 7.42,
+      averagePositionPriceNumber: 7.42,
+      lotPriceNumber: 7.42,
+      desiredAmountNumber: 95.785,
+      canBuyBeforeTargetLots: 12,
+      canBuyBeforeTargetNumber: 89.03999999999999,
+      beforeDiffNumber: 6.7450000000000045,
+      toBuyNumber: -89.04,
+      toBuyLots: -12
+    },
+    sellAmount: 89.03999999999999,
+    sellLots: 12
+  }
+}
+2025-09-04T13:17:23.613Z bot:balancer ordersPlanned [
+  {
+    pair: 'TBRU@/RUB',
+    base: 'TBRU@',
+    quote: 'RUB',
+    figi: 'TCS60A1039N1',
+    amount: 12,
+    lotSize: 1,
+    price: { units: 7, nano: 420000000 },
+    priceNumber: 7.42,
+    lotPrice: { units: 7, nano: 420000000 },
+    totalPrice: { units: 89, nano: 40000000 },
+    totalPriceNumber: 89.04,
+    averagePositionPriceFifoNumber: 7.42,
+    averagePositionPriceNumber: 7.42,
+    lotPriceNumber: 7.42,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 12,
+    canBuyBeforeTargetNumber: 89.03999999999999,
+    beforeDiffNumber: 6.7450000000000045,
+    toBuyNumber: -89.04,
+    toBuyLots: -12
+  },
+  {
+    pair: 'TMON/RUB',
+    base: 'TMON',
+    quote: 'RUB',
+    figi: 'TCS70A106DL2',
+    price: { units: 142, nano: 290000000 },
+    priceNumber: 142.29,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 142, nano: 290000000 },
+    lotPriceNumber: 142.29,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 0,
+    canBuyBeforeTargetNumber: 0,
+    beforeDiffNumber: 95.785,
+    toBuyLots: 1,
+    toBuyNumber: 142.29
+  },
+  {
+    pair: 'TOFZ/RUB',
+    base: 'TOFZ',
+    quote: 'RUB',
+    figi: 'TCS70A10A1L8',
+    price: { units: 13, nano: 430000000 },
+    priceNumber: 13.43,
+    amount: 0,
+    lotSize: 1,
+    lotPrice: { units: 13, nano: 430000000 },
+    lotPriceNumber: 13.43,
+    desiredAmountNumber: 95.785,
+    canBuyBeforeTargetLots: 7,
+    canBuyBeforeTargetNumber: 94.00999999999999,
+    beforeDiffNumber: 1.7750000000000057,
+    toBuyLots: 7,
+    toBuyNumber: 94.00999999999999
+  },
+  {
+    pair: 'RUB/RUB',
+    base: 'RUB',
+    quote: 'RUB',
+    figi: undefined,
+    amount: -449.85,
+    lotSize: 1,
+    price: { units: 1, nano: 0 },
+    priceNumber: 1,
+    lotPrice: { units: 1, nano: 0 },
+    totalPrice: { units: -449, nano: 850000000 },
+    lotPriceNumber: 1,
+    totalPriceNumber: -449.85,
+    desiredAmountNumber: 0,
+    canBuyBeforeTargetLots: 0,
+    canBuyBeforeTargetNumber: 0,
+    beforeDiffNumber: 0,
+    toBuyNumber: 449.85,
+    toBuyLots: 449.85
+  }
+]
+2025-09-04T13:17:23.613Z bot:balancer walletInfo { remains: 222.41999999999996 }
+2025-09-04T13:17:23.613Z bot:balancer Creating necessary orders for all positions
+2025-09-04T13:17:23.613Z bot:provider generateOrders
+2025-09-04T13:17:23.614Z bot:provider generateOrder
+2025-09-04T13:17:23.614Z bot:provider position {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.04,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42,
+  lotPriceNumber: 7.42,
+  desiredAmountNumber: 95.785,
+  canBuyBeforeTargetLots: 12,
+  canBuyBeforeTargetNumber: 89.03999999999999,
+  beforeDiffNumber: 6.7450000000000045,
+  toBuyNumber: -89.04,
+  toBuyLots: -12
+}
+2025-09-04T13:17:23.614Z bot:provider Position is not currency
+2025-09-04T13:17:23.614Z bot:provider position.toBuyLots -12
+2025-09-04T13:17:23.614Z bot:provider Position is greater than or equal to 1 lot
+2025-09-04T13:17:23.614Z bot:provider direction 2
+2025-09-04T13:17:23.614Z bot:provider position {
+  pair: 'TBRU@/RUB',
+  base: 'TBRU@',
+  quote: 'RUB',
+  figi: 'TCS60A1039N1',
+  amount: 12,
+  lotSize: 1,
+  price: { units: 7, nano: 420000000 },
+  priceNumber: 7.42,
+  lotPrice: { units: 7, nano: 420000000 },
+  totalPrice: { units: 89, nano: 40000000 },
+  totalPriceNumber: 89.04,
+  averagePositionPriceFifoNumber: 7.42,
+  averagePositionPriceNumber: 7.42,
+  lotPriceNumber: 7.42,
+  desiredAmountNumber: 95.785,
+  canBuyBeforeTargetLots: 12,
+  canBuyBeforeTargetNumber: 89.03999999999999,
+  beforeDiffNumber: 6.7450000000000045,
+  toBuyNumber: -89.04,
+  toBuyLots: -12
+}
+2025-09-04T13:17:23.614Z bot:provider Creating market order
+2025-09-04T13:17:23.614Z bot:provider Sending market order {
+  accountId: '2272547076',
+  figi: 'TCS60A1039N1',
+  quantity: 12,
+  direction: 2,
+  orderType: 2,
+  orderId: '1q6gh18mf5fkv1b'
+}
+2025-09-04T13:17:24.070Z bot:provider Successfully placed order {
+  orderId: '620084707930',
+  executionReportStatus: 1,
+  lotsRequested: 12,
+  lotsExecuted: 12,
+  initialOrderPrice: { currency: 'rub', units: 88, nano: 560000000 },
+  executedOrderPrice: { currency: 'rub', units: 7, nano: 410000000 },
+  totalOrderAmount: { currency: 'rub', units: 88, nano: 920000000 },
+  initialCommission: { currency: 'rub', units: 0, nano: 0 },
+  executedCommission: { currency: 'rub', units: 0, nano: 0 },
+  aciValue: undefined,
+  figi: 'TCS60A1039N1',
+  direction: 2,
+  initialSecurityPrice: { currency: 'rub', units: 7, nano: 380000000 },
+  orderType: 2,
+  message: '',
+  initialOrderPricePt: undefined,
+  instrumentUid: 'e8acd2fb-6de6-4ea4-9bfb-0daad9b2ed7b',
+  orderRequestId: '1q6gh18mf5fkv1b',
+  responseMetadata: {
+    trackingId: '46674cbc9884f9b5b41c32d34ff0d8d4',
+    serverTime: 2025-09-04T13:17:54.287Z
+  }
+}
+2025-09-04T13:17:29.072Z bot:provider generateOrder
+2025-09-04T13:17:29.073Z bot:provider position {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 },
+  lotPriceNumber: 142.29,
+  desiredAmountNumber: 95.785,
+  canBuyBeforeTargetLots: 0,
+  canBuyBeforeTargetNumber: 0,
+  beforeDiffNumber: 95.785,
+  toBuyLots: 1,
+  toBuyNumber: 142.29
+}
+2025-09-04T13:17:29.073Z bot:provider Position is not currency
+2025-09-04T13:17:29.073Z bot:provider position.toBuyLots 1
+2025-09-04T13:17:29.073Z bot:provider Position is greater than or equal to 1 lot
+2025-09-04T13:17:29.073Z bot:provider direction 1
+2025-09-04T13:17:29.073Z bot:provider position {
+  pair: 'TMON/RUB',
+  base: 'TMON',
+  quote: 'RUB',
+  figi: 'TCS70A106DL2',
+  price: { units: 142, nano: 290000000 },
+  priceNumber: 142.29,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 142, nano: 290000000 },
+  lotPriceNumber: 142.29,
+  desiredAmountNumber: 95.785,
+  canBuyBeforeTargetLots: 0,
+  canBuyBeforeTargetNumber: 0,
+  beforeDiffNumber: 95.785,
+  toBuyLots: 1,
+  toBuyNumber: 142.29
+}
+2025-09-04T13:17:29.073Z bot:provider Creating market order
+2025-09-04T13:17:29.073Z bot:provider Sending market order {
+  accountId: '2272547076',
+  figi: 'TCS70A106DL2',
+  quantity: 1,
+  direction: 1,
+  orderType: 2,
+  orderId: '1q6gh18mf5fkz8x'
+}
+{
+  trackId: "7ff6de04b7a52ba1e6e1cb577bdd44cd",
+  message: "Post order error: Vozniknovenie ili uvelichenie nepokry`toj poziczii pri sovershenii sdelok s aktivom nedostupno",
+  rateLimit: "300, 300;w=60",
+  rateLimitRemaining: "298",
+  rateLimitReset: "1",
+}
+Client error: INVALID_ARGUMENT(30049) 
+Ошибка метода выставления торгового поручения.<br/>Смотрите подробнее в тексте ошибки. 
+/tinkoff.public.invest.api.contract.v1.OrdersService/PostOrder
+2025-09-04T13:17:29.502Z bot:provider Error placing order
+2025-09-04T13:17:29.502Z bot:provider ClientError: /tinkoff.public.invest.api.contract.v1.OrdersService/PostOrder INVALID_ARGUMENT: 30049
+    at wrapClientError (/Users/suenot/projects/tinkoff-invest-etf-balancer-bot/node_modules/tinkoff-sdk-grpc-js/node_modules/nice-grpc/lib/client/wrapClientError.js:9:39)
+    at <anonymous> (/Users/suenot/projects/tinkoff-invest-etf-balancer-bot/node_modules/tinkoff-sdk-grpc-js/node_modules/nice-grpc/lib/client/createUnaryMethod.js:27:50)
+    at onReceiveStatus (/Users/suenot/projects/tinkoff-invest-etf-balancer-bot/node_modules/tinkoff-sdk-grpc-js/node_modules/@grpc/grpc-js/build/src/client.js:195:36)
+    at onReceiveStatus (/Users/suenot/projects/tinkoff-invest-etf-balancer-bot/node_modules/tinkoff-sdk-grpc-js/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:365:141)
+    at onReceiveStatus (/Users/suenot/projects/tinkoff-invest-etf-balancer-bot/node_modules/tinkoff-sdk-grpc-js/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:328:181)
+    at <anonymous> (/Users/suenot/projects/tinkoff-invest-etf-balancer-bot/node_modules/tinkoff-sdk-grpc-js/node_modules/@grpc/grpc-js/build/src/call-stream.js:188:78)
+    at processTicksAndRejections (native:7:39)
+2025-09-04T13:17:34.505Z bot:provider generateOrder
+2025-09-04T13:17:34.505Z bot:provider position {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 },
+  lotPriceNumber: 13.43,
+  desiredAmountNumber: 95.785,
+  canBuyBeforeTargetLots: 7,
+  canBuyBeforeTargetNumber: 94.00999999999999,
+  beforeDiffNumber: 1.7750000000000057,
+  toBuyLots: 7,
+  toBuyNumber: 94.00999999999999
+}
+2025-09-04T13:17:34.506Z bot:provider Position is not currency
+2025-09-04T13:17:34.506Z bot:provider position.toBuyLots 7
+2025-09-04T13:17:34.506Z bot:provider Position is greater than or equal to 1 lot
+2025-09-04T13:17:34.506Z bot:provider direction 1
+2025-09-04T13:17:34.506Z bot:provider position {
+  pair: 'TOFZ/RUB',
+  base: 'TOFZ',
+  quote: 'RUB',
+  figi: 'TCS70A10A1L8',
+  price: { units: 13, nano: 430000000 },
+  priceNumber: 13.43,
+  amount: 0,
+  lotSize: 1,
+  lotPrice: { units: 13, nano: 430000000 },
+  lotPriceNumber: 13.43,
+  desiredAmountNumber: 95.785,
+  canBuyBeforeTargetLots: 7,
+  canBuyBeforeTargetNumber: 94.00999999999999,
+  beforeDiffNumber: 1.7750000000000057,
+  toBuyLots: 7,
+  toBuyNumber: 94.00999999999999
+}
+2025-09-04T13:17:34.506Z bot:provider Creating market order
+2025-09-04T13:17:34.506Z bot:provider Sending market order {
+  accountId: '2272547076',
+  figi: 'TCS70A10A1L8',
+  quantity: 7,
+  direction: 1,
+  orderType: 2,
+  orderId: '1q6gh18mf5fl3fu'
+}
+2025-09-04T13:17:34.928Z bot:provider Successfully placed order {
+  orderId: '620084710140',
+  executionReportStatus: 1,
+  lotsRequested: 7,
+  lotsExecuted: 7,
+  initialOrderPrice: { currency: 'rub', units: 94, nano: 360000000 },
+  executedOrderPrice: { currency: 'rub', units: 13, nano: 430000000 },
+  totalOrderAmount: { currency: 'rub', units: 94, nano: 10000000 },
+  initialCommission: { currency: 'rub', units: 0, nano: 0 },
+  executedCommission: { currency: 'rub', units: 0, nano: 0 },
+  aciValue: undefined,
+  figi: 'TCS70A10A1L8',
+  direction: 1,
+  initialSecurityPrice: { currency: 'rub', units: 13, nano: 480000000 },
+  orderType: 2,
+  message: '',
+  initialOrderPricePt: undefined,
+  instrumentUid: 'c5049184-ded4-49d0-8e14-bffefc40a223',
+  orderRequestId: '1q6gh18mf5fl3fu',
+  responseMetadata: {
+    trackingId: '589c58a7632190dad036031f13cbb25d',
+    serverTime: 2025-09-04T13:18:05.138Z
+  }
+}
+2025-09-04T13:17:39.930Z bot:provider generateOrder
+2025-09-04T13:17:39.930Z bot:provider position {
+  pair: 'RUB/RUB',
+  base: 'RUB',
+  quote: 'RUB',
+  figi: undefined,
+  amount: -449.85,
+  lotSize: 1,
+  price: { units: 1, nano: 0 },
+  priceNumber: 1,
+  lotPrice: { units: 1, nano: 0 },
+  totalPrice: { units: -449, nano: 850000000 },
+  lotPriceNumber: 1,
+  totalPriceNumber: -449.85,
+  desiredAmountNumber: 0,
+  canBuyBeforeTargetLots: 0,
+  canBuyBeforeTargetNumber: 0,
+  beforeDiffNumber: 0,
+  toBuyNumber: 449.85,
+  toBuyLots: 449.85
+}
+2025-09-04T13:17:39.930Z bot:provider If position is RUB, do nothing
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TMON: currentLots=0, plannedLots=1, finalLots=1, finalValue=142.29
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TPAY: currentLots=1, plannedLots=0, finalLots=1, finalValue=100.66
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TOFZ: currentLots=0, plannedLots=7, finalLots=7, finalValue=94.00999999999999
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TGLD@: currentLots=8, plannedLots=0, finalLots=8, finalValue=91.2
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TDIV@: currentLots=9, plannedLots=0, finalLots=9, finalValue=94.41
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TLCB@: currentLots=9, plannedLots=0, finalLots=9, finalValue=91.71
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TRND: currentLots=9, plannedLots=0, finalLots=9, finalValue=88.29
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TRUR: currentLots=10, plannedLots=0, finalLots=10, finalValue=94.7
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TBRU@: currentLots=12, plannedLots=-12, finalLots=0, finalValue=0
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TMOS@: currentLots=14, plannedLots=0, finalLots=14, finalValue=93.38
+2025-09-04T13:17:39.935Z bot:balancer Final calculation for TITR@: currentLots=14, plannedLots=0, finalLots=14, finalValue=89.60000000000001
+
+⚡ DIAGNOSIS: Orders executed, BUT coreWallet NOT updated!
+⏰ Timestamp after balancing: 2025-09-04T13:17:39.936Z
+💰 RUB balance in OLD coreWallet: -449.85 (should be same as before)
+❌ This is the problem: afterShares will be calculated using OLD data!
+
+📊 Margin Information:
+  Total margin used: 555.33 RUB
+  Within limits: ✅ Yes
+  Margin positions: 9
+
+🔄 DIAGNOSIS: Fetching FRESH portfolio data after order execution...
+💰 RUB balance in FRESH wallet: -454.76
+📊 Difference in RUB: -4.91
+🎯 FOUND IT! Portfolio changed after balancing - dividends or order execution detected!
+
+🎯 DIAGNOSIS: beforeShares vs afterShares comparison
+📈 TPAY: 12.09% -> 12.01% (-0.07%)
+📈 TLCB: 11.01% -> 10.95% (-0.06%)
+📈 TITR: 10.76% -> 10.69% (-0.06%)
+📈 TDIV: 11.33% -> 11.26% (-0.08%)
+📈 TGLD: 10.94% -> 10.88% (-0.05%)
+📈 TRUR: 11.38% -> 11.30% (-0.08%)
+📈 TBRU: 10.69% -> 0.00% (-10.69%)
+📈 TMOS: 11.21% -> 11.15% (-0.07%)
+📈 TRND: 10.59% -> 10.54% (-0.05%)
+📈 TOFZ: 0.00% -> 11.22% (+11.22%)
+
+🎯 BALANCING RESULT:
+Mode used: manual
+Format: TICKER: diff: before% -> after% (target%)
+Where: before% = current share, after% = actual share after balancing, (target%) = target from balancer, diff = change in percentage points
+
+TPAY: -0.07%: 12.09% -> 12.01% (10.27%)
+TRUR: -0.08%: 11.38% -> 11.30% (9.66%)
+TDIV: -0.08%: 11.33% -> 11.26% (9.63%)
+TOFZ: +11.22%: 0.00% -> 11.22% (9.59%)
+TMOS: -0.07%: 11.21% -> 11.15% (9.53%)
+TLCB: -0.06%: 11.01% -> 10.95% (9.36%)
+TGLD: -0.05%: 10.94% -> 10.88% (9.30%)
+TITR: -0.06%: 10.76% -> 10.69% (9.14%)
+TRND: -0.05%: 10.59% -> 10.54% (9.01%)
+TMON: 0%: 0.00% -> 0.00% (14.52%)
+TBRU: -10.69%: 10.69% -> 0.00% (0.00%)
+RUR: -449.85 RUB
+2025-09-04T13:17:40.372Z bot:provider ITERATION #1 FINISHED. TIME: Thu Sep 04 2025 16:17:40 GMT+0300 (Moscow Standard Time)

@@ -25,6 +25,8 @@ export interface Position {
   beforeDiffNumber?: number;
   toBuyLots?: number;
   toBuyNumber?: number;
+  averagePositionPriceFifoNumber?: number;
+  averagePositionPriceNumber?: number;
 }
 
 export type Wallet = Position[];
@@ -46,8 +48,22 @@ export type MarginBalancingStrategy = 'remove' | 'keep' | 'keep_if_small';
 export interface MarginConfig {
   multiplier: number; // Portfolio multiplier (1-4)
   freeThreshold: number; // Free transfer threshold in rubles
-  maxMarginSize?: number; // Maximum margin size in rubles
+  maxMarginSize?: number; // Maximum margin size in RUB
   strategy?: MarginBalancingStrategy; // Balancing strategy (optional)
+}
+
+// New configuration for buy requires total marginal sell feature
+export type SellStrategyMode = 'only_positive_positions_sell' | 'equal_in_percents' | 'none';
+
+export interface SellStrategyConfig {
+  mode: SellStrategyMode;
+}
+
+export interface BuyRequiresTotalMarginalSellConfig {
+  enabled: boolean;
+  instruments: string[];
+  allow_to_sell_others_positions_to_buy_non_marginal_positions: SellStrategyConfig;
+  min_buy_rebalance_percent: number;
 }
 
 // New configuration for multiple accounts
@@ -91,6 +107,7 @@ export interface AccountConfig {
   sleep_between_orders: number;
   margin_trading: AccountMarginConfig;
   exchange_closure_behavior: ExchangeClosureBehavior;
+  buy_requires_total_marginal_sell?: BuyRequiresTotalMarginalSellConfig;
 }
 
 export interface ProjectConfig {
@@ -124,6 +141,7 @@ export interface EnhancedBalancerResult {
     marginPositions: MarginPosition[];
     withinLimits: boolean;
   };
+  ordersPlanned?: Position[];
 }
 
 // Balancing data error for strict mode validation

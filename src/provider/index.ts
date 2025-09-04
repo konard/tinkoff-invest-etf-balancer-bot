@@ -340,6 +340,14 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         const priceNumber = convertTinkoffNumberToNumber(position.currentPrice);
         const totalPriceNumber = amount * priceNumber;
         
+        // Convert averagePositionPriceFifo to number for profit calculation
+        const averagePositionPriceFifoNumber = position.averagePositionPriceFifo ? 
+          convertTinkoffNumberToNumber(position.averagePositionPriceFifo) : undefined;
+        
+        // Convert averagePositionPrice to number as fallback
+        const averagePositionPriceNumber = position.averagePositionPrice ? 
+          convertTinkoffNumberToNumber(position.averagePositionPrice) : undefined;
+
         const corePosition = {
           pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
           base: instrument.ticker,
@@ -352,6 +360,8 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet || { units: 0, nano: 0 })),
           totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
           totalPriceNumber: totalPriceNumber,
+          averagePositionPriceFifoNumber: averagePositionPriceFifoNumber,
+          averagePositionPriceNumber: averagePositionPriceNumber,
         };
         debugProvider('corePosition', corePosition);
         coreWallet.push(corePosition);
@@ -493,6 +503,14 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
             const priceNumber = position.currentPrice ? convertTinkoffNumberToNumber(position.currentPrice) : 0;
             const totalPriceNumber = amount * priceNumber;
             
+            // Convert averagePositionPriceFifo to number for profit calculation
+            const averagePositionPriceFifoNumber = position.averagePositionPriceFifo ? 
+              convertTinkoffNumberToNumber(position.averagePositionPriceFifo) : undefined;
+            
+            // Convert averagePositionPrice to number as fallback
+            const averagePositionPriceNumber = position.averagePositionPrice ? 
+              convertTinkoffNumberToNumber(position.averagePositionPrice) : undefined;
+            
             tempFreshWallet.push({
               pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
               base: instrument.ticker,
@@ -505,6 +523,8 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
               lotPrice: convertNumberToTinkoffNumber(instrument.lot * priceNumber),
               totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
               totalPriceNumber: totalPriceNumber,
+              averagePositionPriceFifoNumber: averagePositionPriceFifoNumber,
+              averagePositionPriceNumber: averagePositionPriceNumber,
             });
           }
         }

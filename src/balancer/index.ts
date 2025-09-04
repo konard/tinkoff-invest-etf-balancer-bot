@@ -11,6 +11,11 @@ import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig, Enhanced
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
+import { 
+  identifyProfitablePositions, 
+  calculateRequiredFunds, 
+  calculateSellingAmounts 
+} from '../utils/buyRequiresTotalMarginalSell';
 
 const debug = require('debug')('bot').extend('balancer');
 
@@ -24,7 +29,7 @@ const getAccountConfig = () => {
   if (!account) {
     // In test environment, provide a default account configuration
     if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
-      return {
+      const config = {
         id: accountId,
         name: "Test Account",
         t_invest_token: "t.test_token",
@@ -44,7 +49,21 @@ const getAccountConfig = () => {
           mode: 'skip_iteration',
           update_iteration_result: false,
         },
-      };
+      } as any;
+      
+      // Add buy_requires_total_marginal_sell configuration for specific test accounts
+      if (accountId === 'test-buy-requires-enabled') {
+        config.buy_requires_total_marginal_sell = {
+          enabled: true,
+          instruments: ['TMON', 'TGLD'],
+          allow_to_sell_others_positions_to_buy_non_marginal_positions: {
+            mode: 'only_positive_positions_sell'
+          },
+          min_buy_rebalance_percent: 0.5
+        };
+      }
+      
+      return config;
     }
     throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
   }
@@ -253,6 +272,17 @@ export const balancer = async (
 
   const wallet = positions;
 
+  // Get current account configuration
+  const accountConfig = getAccountConfig();
+  
+  // Check if buy_requires_total_marginal_sell is enabled
+  const buyRequiresConfig = 'buy_requires_total_marginal_sell' in accountConfig ? accountConfig.buy_requires_total_marginal_sell : undefined;
+  let specialSellingPlan: Record<string, { position: Position; sellAmount: number; sellLots: number }> = {};
+  
+  if (buyRequiresConfig?.enabled) {
+    debug('Buy requires total marginal sell is enabled, checking for special handling');
+  }
+
   // Applies margin position management strategy
   const marginStrategy = applyMarginStrategy(wallet);
   debug('Margin strategy:', marginStrategy);
@@ -379,25 +409,6 @@ export const balancer = async (
     const positionIndex = _.findIndex(sortedWallet, (p: any) => tickersEqual(p.base, desiredTicker));
     debug('positionIndex', positionIndex);
 
-    // TODO:
-    // const position: Position;
-    // if (positionIndex === -1) {
-    //   debug('Ticker from DesireWallet not found in portfolio. Creating.');
-    //   const newPosition = {
-    //     pair: `${desiredTicker}/RUB`,
-    //     base: desiredTicker,
-    //     quote: 'RUB',
-    //     figi: _.find((global as any).INSTRUMENTS, { ticker: desiredTicker })?.figi,
-    //     amount: 0,
-    //     lotSize: 1,
-    //     // price: _.find((global as any).INSTRUMENTS, { ticker: desiredTicker })?.price, // { units: 1, nano: 0 },
-    //     // lotPrice: { units: 1, nano: 0 },
-    //     // totalPrice: { units: 1, nano: 0 },
-    //   };
-    //   sortedWallet.push(newPosition);
-    //   positionIndex = _.findIndex(sortedWallet, { base: desiredTicker });
-    // }
-
     if (positionIndex === -1) {
       debug(`Ticker ${desiredTicker} is missing from wallet after preparation. Skipping calculation for it.`);
       continue;
@@ -475,16 +486,102 @@ export const balancer = async (
     }
   }
 
+  // Handle buy_requires_total_marginal_sell logic
+  if (buyRequiresConfig?.enabled) {
+    debug('Processing buy_requires_total_marginal_sell configuration');
+    
+    // 1. Identify profitable positions that can be sold
+    const profitablePositions = identifyProfitablePositions(sortedWallet, buyRequiresConfig);
+    
+    // 2. Calculate required funds for non-margin instrument purchases
+    const requiredFunds = calculateRequiredFunds(sortedWallet, desiredMap, buyRequiresConfig);
+    
+    // 3. Calculate selling amounts based on the strategy
+    if (buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions) {
+      specialSellingPlan = calculateSellingAmounts(
+        profitablePositions,
+        requiredFunds,
+        buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode
+      );
+      
+      // Adjust the toBuyLots and toBuyNumber for positions that need to be sold
+      for (const [ticker, sellPlan] of Object.entries(specialSellingPlan)) {
+        const positionIndex = _.findIndex(sortedWallet, (p: Position) => 
+          tickersEqual(p.base || '', ticker)
+        );
+        
+        if (positionIndex !== -1) {
+          const position = sortedWallet[positionIndex];
+          // Update the position to reflect the planned selling
+          if (position.toBuyLots !== undefined) {
+            position.toBuyLots -= sellPlan.sellLots;
+          }
+          if (position.toBuyNumber !== undefined) {
+            position.toBuyNumber -= sellPlan.sellAmount;
+          }
+          debug(`Adjusted selling plan for ${ticker}: ${sellPlan.sellLots} lots, ${sellPlan.sellAmount.toFixed(2)} RUB`);
+        }
+      }
+    }
+  }
+
   debug('sortedWallet', sortedWallet);
+  debug('specialSellingPlan', specialSellingPlan);
 
   // Execution order:
-  // 1) First sales (get rubles)
-  // 2) Then purchases, sorted by lot cost in descending order (expensive first)
-  const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
+  // 1) First sales (get rubles) - but only for profitable positions if buy_requires_total_marginal_sell is enabled
+  // 2) Then purchases of non-margin instruments first (if buy_requires_total_marginal_sell is enabled)
+  // 3) Then remaining sales
+  // 4) Then remaining purchases
+  
+  let sellsFirst: Position[] = [];
+  let buysNonMarginFirst: Position[] = [];
+  let remainingSells: Position[] = [];
+  let remainingBuys: Position[] = [];
+  
+  if (buyRequiresConfig?.enabled) {
+    // Separate non-margin instrument purchases to be executed first
+    const nonMarginInstruments = buyRequiresConfig.instruments || [];
+    
+    buysNonMarginFirst = _.filter(sortedWallet, (p) => {
+      return p.toBuyLots && p.toBuyLots >= 1 && 
+             nonMarginInstruments.some((instrument: string) => tickersEqual(p.base || '', instrument));
+    }) as Position[];
+    
+    // Sales for funding non-margin purchases - only sell positions identified in specialSellingPlan
+    sellsFirst = _.filter(sortedWallet, (p) => {
+      return p.toBuyLots && p.toBuyLots <= -1 && 
+             Object.keys(specialSellingPlan).some((ticker: string) => tickersEqual(p.base || '', ticker));
+    }) as Position[];
+    
+    // Remaining sales (not part of special selling plan)
+    remainingSells = _.filter(sortedWallet, (p) => {
+      return p.toBuyLots && p.toBuyLots <= -1 && 
+             !Object.keys(specialSellingPlan).some((ticker: string) => tickersEqual(p.base || '', ticker));
+    }) as Position[];
+    
+    // Remaining purchases (excluding non-margin instruments already handled)
+    remainingBuys = _.filter(sortedWallet, (p) => {
+      return p.toBuyLots && p.toBuyLots >= 1 && 
+             !nonMarginInstruments.some((instrument: string) => tickersEqual(p.base || '', instrument));
+    }) as Position[];
+  } else {
+    // Normal execution order when buy_requires_total_marginal_sell is not enabled
+    sellsFirst = _.filter(sortedWallet, (p) => (p.toBuyLots || 0) <= -1) as Position[];
+    remainingBuys = _.filter(sortedWallet, (p) => (p.toBuyLots || 0) >= 1) as Position[];
+  }
+  
   const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
-  const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
-  const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);
-  const ordersPlanned = [...sellsSorted, ...buysSortedByLotDesc];
+  const buysNonMarginSorted = _.orderBy(buysNonMarginFirst, ['lotPriceNumber'], ['desc']);
+  const remainingSellsSorted = _.orderBy(remainingSells, ['toBuyNumber'], ['asc']);
+  const remainingBuysSorted = _.orderBy(remainingBuys, ['lotPriceNumber'], ['desc']);
+  
+  // Execution order according to TZ (Technical Specification):
+  // 1) First purchases of non-margin instruments (buysNonMarginFirst)
+  // 2) Then sales for funding non-margin purchases (sellsFirst) 
+  // 3) Then remaining sales (remainingSells)
+  // 4) Then remaining purchases (remainingBuys)
+  const ordersPlanned = [...buysNonMarginSorted, ...sellsSorted, ...remainingSellsSorted, ...remainingBuysSorted];
   debug('ordersPlanned', ordersPlanned);
 
   debug('walletInfo', walletInfo);
@@ -537,9 +634,6 @@ export const balancer = async (
   const totalPortfolioValue = wallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
   
   // Get current account configuration for margin info
-  const accountConfig = getAccountConfig();
-  
-  // Get current margin positions and validate limits
   const currentMarginPositions = identifyMarginPositions(wallet);
   
   let marginLimits = { totalMarginUsed: 0, isValid: true };
@@ -566,7 +660,8 @@ export const balancer = async (
       totalMarginUsed: marginLimits.totalMarginUsed,
       marginPositions: currentMarginPositions,
       withinLimits: marginLimits.isValid
-    } : undefined
+    } : undefined,
+    ordersPlanned
   };
   
   return enhancedResult;
