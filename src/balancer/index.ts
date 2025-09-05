@@ -553,6 +553,7 @@ export const balancer = async (
       }
       
       // Adjust the toBuyLots and toBuyNumber for positions that need to be sold
+      // BUT: Only if the position is not already planned for selling (avoid double counting)
       for (const [ticker, sellPlan] of Object.entries(specialSellingPlan)) {
         const positionIndex = _.findIndex(sortedWallet, (p: Position) => 
           tickersEqual(p.base || '', ticker)
@@ -560,14 +561,42 @@ export const balancer = async (
         
         if (positionIndex !== -1) {
           const position = sortedWallet[positionIndex];
-          // Update the position to reflect the planned selling
-          if (position.toBuyLots !== undefined) {
-            position.toBuyLots -= sellPlan.sellLots;
+          const currentToBuyLots = position.toBuyLots || 0;
+          
+          // Only apply additional selling if position is not already being sold
+          // or if we need to sell more than already planned
+          if (currentToBuyLots >= 0) {
+            // Position is not being sold, apply full special selling plan
+            if (position.toBuyLots !== undefined) {
+              position.toBuyLots -= sellPlan.sellLots;
+            }
+            if (position.toBuyNumber !== undefined) {
+              position.toBuyNumber -= sellPlan.sellAmount;
+            }
+            debug(`Applied special selling plan for ${ticker}: ${sellPlan.sellLots} lots, ${sellPlan.sellAmount.toFixed(2)} RUB`);
+          } else {
+            // Position is already being sold, check if we need to sell more
+            const currentSellLots = Math.abs(currentToBuyLots);
+            const maxAvailableLots = Math.floor((position.amount || 0) / (position.lotSize || 1));
+            
+            if (sellPlan.sellLots > currentSellLots && currentSellLots < maxAvailableLots) {
+              // We can sell more, but not exceed available lots
+              const additionalSellLots = Math.min(
+                sellPlan.sellLots - currentSellLots,
+                maxAvailableLots - currentSellLots
+              );
+              
+              if (additionalSellLots > 0) {
+                position.toBuyLots -= additionalSellLots;
+                if (position.toBuyNumber !== undefined && position.lotPriceNumber) {
+                  position.toBuyNumber -= additionalSellLots * position.lotPriceNumber;
+                }
+                debug(`Added ${additionalSellLots} more sell lots for ${ticker} (was ${currentSellLots}, now ${Math.abs(position.toBuyLots || 0)})`);
+              }
+            } else {
+              debug(`Skipping additional selling for ${ticker}: already selling ${currentSellLots} lots (max available: ${maxAvailableLots})`);
+            }
           }
-          if (position.toBuyNumber !== undefined) {
-            position.toBuyNumber -= sellPlan.sellAmount;
-          }
-          debug(`Adjusted selling plan for ${ticker}: ${sellPlan.sellLots} lots, ${sellPlan.sellAmount.toFixed(2)} RUB`);
         }
       }
     }
