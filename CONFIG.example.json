@@ -6,7 +6,6 @@
       "t_invest_token": "${T_INVEST_TOKEN}",
       "account_id": "BROKER",
       "desired_wallet": {
-        "TRAY": 8.33,
         "TGLD": 8.33,
         "TRUR": 8.33,
         "TRND": 8.33,
