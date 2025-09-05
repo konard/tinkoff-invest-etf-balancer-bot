@@ -654,7 +654,8 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       }
 
       // Add RUB balance (can be negative with margin trading)
-      const rubPosition = coreWallet.find(p => p.base === 'RUB' && p.quote === 'RUB');
+      // Use fresh wallet data to get accurate RUB balance after orders
+      const rubPosition = freshCoreWallet.find(p => p.base === 'RUB' && p.quote === 'RUB');
       if (rubPosition) {
         const rubBalance = rubPosition.totalPriceNumber || 0;
         const rubSign = rubBalance >= 0 ? '' : '-';
