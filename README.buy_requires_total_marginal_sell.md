@@ -12,7 +12,7 @@ The following new configuration fields will be added to the account configuratio
 {
   "buy_requires_total_marginal_sell": {
     "enabled": false,
-    "instruments": ["TMON"],
+    "instruments": ["TMON", "LQDT"],
     "allow_to_sell_others_positions_to_buy_non_marginal_positions": {
       "mode": "only_positive_positions_sell"
     },
@@ -20,6 +20,8 @@ The following new configuration fields will be added to the account configuratio
   }
 }
 ```
+
+**Важно:** `instruments` содержит список активов, которые **НЕ поддерживают маржинальную торговлю** на бирже. Эти инструменты не обязательно должны быть в `desired_wallet` - это просто справочный список немаржинальных активов.
 
 ### Complete Configuration Example
 

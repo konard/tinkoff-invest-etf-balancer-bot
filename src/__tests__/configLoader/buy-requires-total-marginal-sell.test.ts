@@ -159,7 +159,7 @@ testSuite('Buy Requires Total Marginal Sell Configuration Tests', () => {
       }).toThrow(/instruments must be an array/);
     });
 
-    it('should reject instruments not in desired_wallet', () => {
+    it('should accept instruments not in desired_wallet (they represent non-margin assets on exchange)', () => {
       const config: ProjectConfig = {
         accounts: [
           {
@@ -187,7 +187,7 @@ testSuite('Buy Requires Total Marginal Sell Configuration Tests', () => {
             },
             buy_requires_total_marginal_sell: {
               enabled: true,
-              instruments: ["TINVALID"], // Not in desired_wallet
+              instruments: ["LQDT"], // Not in desired_wallet, but that's OK - it's a non-margin asset on exchange
               allow_to_sell_others_positions_to_buy_non_marginal_positions: {
                 mode: "only_positive_positions_sell"
               },
@@ -197,10 +197,11 @@ testSuite('Buy Requires Total Marginal Sell Configuration Tests', () => {
         ]
       };
 
+      // This should NOT throw an error
       expect(() => {
         const loader = new ConfigLoader('');
         (loader as any).validateConfig(config);
-      }).toThrow(/instrument TINVALID which is not in desired_wallet/);
+      }).not.toThrow();
     });
 
     it('should reject invalid mode', () => {

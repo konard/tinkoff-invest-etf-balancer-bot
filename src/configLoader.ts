@@ -175,12 +175,8 @@ class ConfigLoader {
       }
     }
 
-    // Validate that instruments exist in desired_wallet
-    for (const instrument of config.instruments) {
-      if (!(instrument in account.desired_wallet)) {
-        throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.instruments contains instrument ${instrument} which is not in desired_wallet`);
-      }
-    }
+    // Note: instruments in buy_requires_total_marginal_sell represent assets that don't support margin trading
+    // They don't need to be in desired_wallet - this is just a list of non-margin instruments on the exchange
 
     // Validate allow_to_sell_others_positions_to_buy_non_marginal_positions
     if (!config.allow_to_sell_others_positions_to_buy_non_marginal_positions) {
