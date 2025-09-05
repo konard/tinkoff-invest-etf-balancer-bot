@@ -251,20 +251,23 @@ export class MarginCalculator {
     desiredWallet: Record<string, number>
   ): Record<string, { baseSize: number; marginSize: number; totalSize: number }> {
     const totalPortfolioValue = portfolio.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
+    
+    // Calculate target portfolio size with margin multiplier
+    const targetPortfolioSize = totalPortfolioValue * this.config.multiplier;
     const availableMargin = this.calculateAvailableMargin(portfolio);
 
     const result: Record<string, { baseSize: number; marginSize: number; totalSize: number }> = {};
 
     for (const [ticker, percentage] of Object.entries(desiredWallet)) {
-      const targetValue = (totalPortfolioValue * percentage) / 100;
-      const baseSize = targetValue;
-      const marginSize = Math.min(availableMargin * (percentage / 100), targetValue * (this.config.multiplier - 1));
-      const totalSize = baseSize + marginSize;
-
+      // Calculate target position size based on multiplied portfolio
+      const targetPositionSize = (targetPortfolioSize * percentage) / 100;
+      const baseSize = (totalPortfolioValue * percentage) / 100;  // Base from current portfolio
+      const marginSize = targetPositionSize - baseSize;  // Additional margin size
+      
       result[ticker] = {
         baseSize,
-        marginSize,
-        totalSize
+        marginSize: Math.max(0, marginSize),  // Ensure non-negative margin
+        totalSize: targetPositionSize
       };
     }
 
