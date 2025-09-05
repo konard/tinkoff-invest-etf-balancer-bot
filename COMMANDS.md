@@ -9,7 +9,18 @@ DEBUG=bot:main,bot:provider,bot:balancer bun run ./src/index.ts
 
 ### Запуск тестов
 ```bash
+# Все тесты
 bun test
+
+# Тесты buy_requires_total_marginal_sell
+bun test src/__tests__/buyRequires*.test.ts
+
+# Конкретный набор тестов
+bun test src/__tests__/buyRequiresTotalMarginalSell.test.ts
+bun test src/__tests__/buyRequiresConfigValidation.test.ts
+bun test src/__tests__/buyRequiresIntegration.test.ts
+bun test src/__tests__/buyRequiresEdgeCases.test.ts
+bun test src/__tests__/buyRequiresDocumentationExamples.test.ts
 ```
 
 ## Найденные и исправленные проблемы
