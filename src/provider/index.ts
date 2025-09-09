@@ -33,10 +33,24 @@ const getAccountConfig = () => {
   return account;
 };
 
-const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
-
 // Получаем конфигурацию аккаунта на уровне модуля
 const accountConfig = getAccountConfig();
+
+// Получаем токен из конфигурации аккаунта
+const getTokenForAccount = () => {
+  const token = configLoader.getAccountToken(accountConfig.id);
+  if (!token) {
+    // Fallback на основной токен
+    const fallbackToken = process.env.T_INVEST_TOKEN;
+    if (!fallbackToken) {
+      throw new Error(`No token found for account ${accountConfig.id}. Please set token in CONFIG.json or T_INVEST_TOKEN in .env`);
+    }
+    return fallbackToken;
+  }
+  return token;
+};
+
+const { orders, operations, marketData, users, instruments } = createSdk(getTokenForAccount());
 
 /**
  * Рассчитывает доли каждого инструмента в портфеле
@@ -63,7 +77,8 @@ const calculatePortfolioShares = (wallet: Wallet): Record<string, number> => {
 let ACCOUNT_ID: string;
 
 export const provider = async (options?: { runOnce?: boolean }) => {
-  ACCOUNT_ID = await getAccountId(process.env.ACCOUNT_ID);
+  // Используем account_id из конфигурации аккаунта
+  ACCOUNT_ID = await getAccountId(accountConfig.account_id);
   await getInstruments();
   await getPositionsCycle(options);
 };
