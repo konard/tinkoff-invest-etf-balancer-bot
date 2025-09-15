@@ -25,6 +25,9 @@ export interface Position {
   beforeDiffNumber?: number;
   toBuyLots?: number;
   toBuyNumber?: number;
+  blocked?: boolean;
+  blockedLots?: TinkoffNumber;
+  blockedLotsNumber?: number;
 }
 
 export type Wallet = Position[];

@@ -44,8 +44,8 @@ const accountConfig = getAccountConfig();
  * @returns объект с тикерами и их долями в процентах
  */
 const calculatePortfolioShares = (wallet: Wallet): Record<string, number> => {
-  // Исключаем валюты (позиции где base === quote)
-  const securities = wallet.filter(p => p.base !== p.quote);
+  // Исключаем валюты (позиции где base === quote) и заблокированные позиции
+  const securities = wallet.filter(p => p.base !== p.quote && !p.blocked);
   const totalValue = _.sumBy(securities, 'totalPriceNumber');
   
   if (totalValue <= 0) return {};
@@ -58,6 +58,25 @@ const calculatePortfolioShares = (wallet: Wallet): Record<string, number> => {
     }
   }
   return shares;
+};
+
+/**
+ * Filters out frozen (blocked) assets from the wallet
+ * @param wallet - array of portfolio positions
+ * @returns filtered wallet containing only available (non-blocked) positions
+ */
+const filterFrozenAssets = (wallet: Wallet): Wallet => {
+  return wallet.filter(position => !position.blocked);
+};
+
+/**
+ * Calculates the total value of available (non-frozen) assets in the portfolio
+ * @param wallet - array of portfolio positions
+ * @returns total value of available assets
+ */
+const calculateAvailablePortfolioValue = (wallet: Wallet): number => {
+  const availableWallet = filterFrozenAssets(wallet);
+  return _.sumBy(availableWallet, 'totalPriceNumber');
 };
 
 let ACCOUNT_ID: string;
@@ -81,6 +100,11 @@ export const generateOrder = async (position: Position) => {
 
   if (position.base === 'RUB') {
     debugProvider('If position is RUB, do nothing');
+    return false;
+  }
+
+  if (position.blocked) {
+    debugProvider('Position is blocked/frozen, skipping order generation');
     return false;
   }
 
@@ -323,6 +347,11 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         const priceNumber = convertTinkoffNumberToNumber(position.currentPrice);
         const totalPriceNumber = amount * priceNumber;
         
+        // Extract blocked status from Tinkoff API response
+        const blocked = position.blocked || false;
+        const blockedLots = position.blockedLots || position.blocked_lots || { units: 0, nano: 0 };
+        const blockedLotsNumber = convertTinkoffNumberToNumber(blockedLots);
+        
         const corePosition = {
           pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
           base: instrument.ticker,
@@ -335,12 +364,50 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet || { units: 0, nano: 0 })),
           totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
           totalPriceNumber: totalPriceNumber,
+          blocked: blocked,
+          blockedLots: blockedLots,
+          blockedLotsNumber: blockedLotsNumber,
         };
         debugProvider('corePosition', corePosition);
         coreWallet.push(corePosition);
       }
 
       debugProvider(coreWallet);
+
+      // Report frozen assets detection
+      const frozenAssets = coreWallet.filter(position => position.blocked);
+      const totalPortfolioValue = _.sumBy(coreWallet.filter(p => p.base !== p.quote), 'totalPriceNumber');
+      const frozenValue = _.sumBy(frozenAssets, 'totalPriceNumber');
+      const availableValue = calculateAvailablePortfolioValue(coreWallet);
+
+      if (frozenAssets.length > 0) {
+        debugProvider('FROZEN ASSETS DETECTED:');
+        console.log('⚠️  FROZEN ASSETS DETECTED:');
+        for (const asset of frozenAssets) {
+          if (asset.base && asset.base !== 'RUB') {
+            const frozenValueFormatted = asset.totalPriceNumber?.toFixed(2) || '0.00';
+            const blockedLotsFormatted = asset.blockedLotsNumber?.toFixed(2) || '0.00';
+            debugProvider(`- ${asset.base}: ${frozenValueFormatted} RUB (blocked lots: ${blockedLotsFormatted})`);
+            console.log(`- ${asset.base}: ${frozenValueFormatted} RUB (blocked lots: ${blockedLotsFormatted})`);
+          }
+        }
+        
+        if (totalPortfolioValue > 0) {
+          const frozenPercentage = ((frozenValue / totalPortfolioValue) * 100).toFixed(2);
+          const availablePercentage = ((availableValue / totalPortfolioValue) * 100).toFixed(2);
+          debugProvider(`Total Frozen Value: ${frozenValue.toFixed(2)} RUB (${frozenPercentage}% of portfolio)`);
+          debugProvider(`Available for Trading: ${availableValue.toFixed(2)} RUB (${availablePercentage}% of portfolio)`);
+          console.log(`Total Frozen Value: ${frozenValue.toFixed(2)} RUB (${frozenPercentage}% of portfolio)`);
+          console.log(`Available for Trading: ${availableValue.toFixed(2)} RUB (${availablePercentage}% of portfolio)`);
+          
+          if (parseFloat(frozenPercentage) >= 25) {
+            console.log(`⚠️  WARNING: ${frozenPercentage}% of your portfolio is frozen and unavailable for trading`);
+          }
+        }
+        console.log('');
+      } else {
+        debugProvider('No frozen assets detected in portfolio');
+      }
 
       // Before calculating desired weights, we can collect fresh metrics for needed tickers
       try {
@@ -357,7 +424,9 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       // Important: called after buildDesiredWalletByMode, but before balancer
       const beforeShares = calculatePortfolioShares(coreWallet);
 
-      const { finalPercents } = await balancer(coreWallet, desiredForRun);
+      // Pass only available (non-blocked) positions to the balancer
+      const availableWallet = filterFrozenAssets(coreWallet);
+      const { finalPercents } = await balancer(availableWallet, desiredForRun);
 
       // Get updated shares AFTER balancing
       const afterShares = calculatePortfolioShares(coreWallet);
