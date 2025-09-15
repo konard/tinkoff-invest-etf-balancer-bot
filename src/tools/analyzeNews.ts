@@ -1,8 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import 'dotenv/config';
 
 type Nullable<T> = T | null | undefined;
 

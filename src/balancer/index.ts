@@ -12,7 +12,8 @@ import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 
-const debug = require('debug')('bot').extend('balancer');
+import debugModule from 'debug';
+const debug = debugModule('bot').extend('balancer');
 
 // const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
 
