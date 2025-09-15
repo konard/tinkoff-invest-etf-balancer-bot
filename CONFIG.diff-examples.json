@@ -1,0 +1,91 @@
+{
+  "accounts": [
+    {
+      "id": "account_manual_no_diff",
+      "name": "Manual allocation without diff",
+      "t_invest_token": "${T_INVEST_TOKEN_1}",
+      "account_id": "BROKER",
+      "desired_wallet": {
+        "TRAY": 8.33,
+        "TGLD": 8.33,
+        "TRUR": 8.33,
+        "TRND": 8.33,
+        "TBRU": 8.33,
+        "TDIV": 8.33,
+        "TITR": 8.33,
+        "TLCB": 8.33,
+        "TMON": 8.33,
+        "TMOS": 8.33,
+        "TOFZ": 8.33,
+        "TPAY": 8.33
+      },
+      "desired_mode": "manual",
+      "balance_interval": 3600000,
+      "sleep_between_orders": 3000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 4,
+        "free_threshold": 5000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "diff": "off",
+      "diff_multiplier": 0
+    },
+    {
+      "id": "account_marketcap_iteration_diff",
+      "name": "Market cap allocation with iteration diff",
+      "t_invest_token": "${T_INVEST_TOKEN_2}",
+      "account_id": "BROKER",
+      "desired_wallet": {
+        "TRAY": 8.33,
+        "TGLD": 8.33,
+        "TRUR": 8.33,
+        "TRND": 8.33,
+        "TBRU": 8.33,
+        "TDIV": 8.33,
+        "TITR": 8.33,
+        "TLCB": 8.33,
+        "TMON": 8.33,
+        "TMOS": 8.33,
+        "TOFZ": 8.33,
+        "TPAY": 8.33
+      },
+      "desired_mode": "marketcap_aum",
+      "balance_interval": 3600000,
+      "sleep_between_orders": 3000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 1000,
+        "balancing_strategy": "remove"
+      },
+      "diff": "iteration",
+      "diff_multiplier": 25
+    },
+    {
+      "id": "account_decorrelation_day_diff",
+      "name": "Decorrelation allocation with daily diff",
+      "t_invest_token": "${T_INVEST_TOKEN_3}",
+      "account_id": "IIS",
+      "desired_wallet": {
+        "TRAY": 16.67,
+        "TGLD": 16.67,
+        "TRUR": 16.67,
+        "TBRU": 16.67,
+        "TMON": 16.67,
+        "TMOS": 16.65
+      },
+      "desired_mode": "decorrelation",
+      "balance_interval": 1800000,
+      "sleep_between_orders": 2000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 0,
+        "balancing_strategy": "keep"
+      },
+      "diff": "day",
+      "diff_multiplier": 40
+    }
+  ]
+}

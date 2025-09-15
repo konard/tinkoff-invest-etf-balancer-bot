@@ -27,7 +27,9 @@
         "multiplier": 4,
         "free_threshold": 5000,
         "balancing_strategy": "keep_if_small"
-      }
+      },
+      "diff": "off",
+      "diff_multiplier": 0
     }
   ]
 }

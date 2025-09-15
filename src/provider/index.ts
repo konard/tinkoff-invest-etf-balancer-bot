@@ -11,7 +11,7 @@ import { configLoader } from '../configLoader';
 import { Wallet, Position } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { balancer } from '../balancer';
-import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
+import { buildDesiredWalletByMode, buildDesiredWalletWithDiff } from '../balancer/desiredBuilder';
 import { collectOnceForSymbols } from '../tools/pollEtfMetrics';
 import { normalizeTicker } from '../utils';
 
@@ -351,7 +351,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         console.log('[provider] collectOnceForSymbols failed (will proceed with live APIs/fallbacks):', e);
       }
 
-      const desiredForRun = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
+      const desiredForRun = await buildDesiredWalletWithDiff(accountConfig);
 
       // Save current portfolio shares BEFORE balancing
       // Important: called after buildDesiredWalletByMode, but before balancer

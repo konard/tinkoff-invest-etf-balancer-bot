@@ -111,6 +111,17 @@ class ConfigLoader {
     if (Math.abs(totalWeight - 100) > 1) {
       console.warn(`Warning: sum of weights for account ${account.id} equals ${totalWeight}%, not 100%`);
     }
+
+    // Validate diff configuration
+    if (account.diff !== undefined && !['off', 'iteration', 'day'].includes(account.diff)) {
+      throw new Error(`Account ${account.id}: diff must be 'off', 'iteration', or 'day'`);
+    }
+
+    if (account.diff_multiplier !== undefined) {
+      if (typeof account.diff_multiplier !== 'number' || account.diff_multiplier < 0 || account.diff_multiplier > 100) {
+        throw new Error(`Account ${account.id}: diff_multiplier must be a number between 0 and 100`);
+      }
+    }
   }
 
 }

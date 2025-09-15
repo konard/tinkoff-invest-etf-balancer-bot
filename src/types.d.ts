@@ -69,6 +69,8 @@ export interface AccountConfig {
   balance_interval: number;
   sleep_between_orders: number;
   margin_trading: AccountMarginConfig;
+  diff?: 'off' | 'iteration' | 'day';
+  diff_multiplier?: number;
 }
 
 export interface ProjectConfig {
@@ -83,4 +85,11 @@ export interface Ohlcv {
   volume: number;
   time: Date;
   isComplete: boolean;
+}
+
+export interface DiffSnapshot {
+  date: string;
+  snapshots: {
+    [key: string]: DesiredWallet; // e.g. "00:00", "iteration_1", etc.
+  };
 }

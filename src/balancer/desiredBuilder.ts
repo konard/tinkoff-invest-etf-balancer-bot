@@ -1,12 +1,13 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 import _ from 'lodash';
-import { DesiredWallet, DesiredMode } from '../types.d';
+import { DesiredWallet, DesiredMode, AccountConfig } from '../types.d';
 import { normalizeTicker } from '../utils';
 import { getEtfMarketCapRUB } from '../tools/etfCap';
 import { getShareMarketCapRUB } from '../tools/shareCap';
 import { buildAumMapSmart } from '../tools/etfCap';
 import { toRubFromAum } from '../tools/pollEtfMetrics';
+import { diffCalculator } from './diffCalculator';
 
 const debug = require('debug')('bot').extend('desiredBuilder');
 
@@ -110,6 +111,21 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
     result[orig] = (m / totalMetric) * 100;
   }
   return result;
+};
+
+export const buildDesiredWalletWithDiff = async (accountConfig: AccountConfig): Promise<DesiredWallet> => {
+  // First, calculate the base desired wallet using the existing mode
+  const baseDesired = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
+  
+  // Then apply diff calculations if enabled
+  const finalDesired = await diffCalculator.calculateDiff(accountConfig, baseDesired);
+  
+  // Store the result as current iteration snapshot for future diff calculations
+  if (accountConfig.diff === 'iteration') {
+    await diffCalculator.storeIterationSnapshot(accountConfig.id, finalDesired);
+  }
+  
+  return finalDesired;
 };
 
 
