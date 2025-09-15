@@ -1,0 +1,221 @@
+
+> deep-tinkoff-invest-api@1.0.0 test
+> bun test --timeout 10000 src/__tests__/configManager/
+
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/configManager/configManager.test.ts:
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should pass validation when wallet percentages sum to 100% [3.00ms]
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should pass validation when wallet percentages sum to 100%
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet percentages don't sum to 100%
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet percentages don't sum to 100%
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet has negative percentages
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet has negative percentages
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet has non-numeric values
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet has non-numeric values
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should accept wallet percentages with small tolerance (within 1%)
+(fail) ConfigManager Update Tests > should accept wallet percentages with small tolerance (within 1%)
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should throw error when config file cannot be written
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should throw error when config file cannot be written
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should throw error when config file path is invalid
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should throw error when config file path is invalid
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should handle filesystem access errors gracefully
+(fail) ConfigManager Update Tests > should handle filesystem access errors gracefully
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle circular references in config data [3.00ms]
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle circular references in config data
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle invalid UTF-8 encoding errors
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle invalid UTF-8 encoding errors
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle malformed config data gracefully
+(fail) ConfigManager Update Tests > should handle malformed config data gracefully
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject extremely large percentage values
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject extremely large percentage values
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should handle maximum safe integer values [1.00ms]
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should handle maximum safe integer values
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject infinite values
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject infinite values
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject NaN values
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject NaN values
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should handle very small decimal values
+(fail) ConfigManager Update Tests > should handle very small decimal values
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > Additional edge cases > should handle updates to non-existent account
+(fail) ConfigManager Update Tests > Additional edge cases > should handle updates to non-existent account
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > Additional edge cases > should preserve other account configs during updates
+(fail) ConfigManager Update Tests > Additional edge cases > should preserve other account configs during updates
+45 | 
+46 |     // Mock process.cwd to return a test directory
+47 |     jest.spyOn(process, 'cwd').mockReturnValue('/test');
+48 | 
+49 |     // Mock readFileSync to return valid config
+50 |     fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig));
+                         ^
+TypeError: fs.readFileSync.mockReturnValue is not a function. (In 'fs.readFileSync.mockReturnValue(JSON.stringify(validProjectConfig))', 'fs.readFileSync.mockReturnValue' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:50:21)
+(fail) ConfigManager Update Tests > Additional edge cases > should handle empty desired_wallet updates
+(fail) ConfigManager Update Tests > should handle empty desired_wallet updates
+
+ 30 pass
+ 38 fail
+ 34 expect() calls
+Ran 68 tests across 3 files. [191.00ms]

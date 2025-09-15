@@ -1,0 +1,82 @@
+
+> deep-tinkoff-invest-api@1.0.0 test
+> bun test --timeout 10000 src/__tests__/configManager/configManagerAsync.test.ts
+
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/configManager/configManagerAsync.test.ts:
+65 |           TMOS: 35,
+66 |           TGLD: 25
+67 |         }
+68 |       };
+69 | 
+70 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                ^
+error: expect(received).not.toThrow()
+
+Thrown value: undefined
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:70:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:61:70)
+(fail) ConfigManager Async Update Tests > Async wallet validation during updates > should pass validation when wallet percentages sum to 100% [5.00ms]
+116 |           TMOS: 33.5,
+117 |           TGLD: 33 // Sum = 100%, within tolerance
+118 |         }
+119 |       };
+120 | 
+121 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                 ^
+error: expect(received).not.toThrow()
+
+Thrown value: undefined
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:121:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:112:77)
+(fail) ConfigManager Async Update Tests > Async wallet validation during updates > should accept wallet percentages with small tolerance (within 1%) [1.00ms]
+144 |           TGLD: 20
+145 |         },
+146 |         balance_interval: Number.MAX_SAFE_INTEGER
+147 |       };
+148 | 
+149 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                 ^
+error: expect(received).not.toThrow()
+
+Thrown value: undefined
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:149:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:139:70)
+(fail) ConfigManager Async Update Tests > Async large number validation > should handle maximum safe integer values for other fields
+182 |           TMOS: 30,
+183 |           TGLD: 19.99999999999
+184 |         }
+185 |       };
+186 | 
+187 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                 ^
+error: expect(received).not.toThrow()
+
+Thrown value: undefined
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:187:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:178:51)
+(fail) ConfigManager Async Update Tests > Async large number validation > should handle very small decimal values [1.00ms]
+256 |             }
+257 |           }
+258 |         ]
+259 |       };
+260 | 
+261 |       await expect(configLoader.updateConfig(newConfig)).resolves.not.toThrow();
+                                                                            ^
+error: expect(received).not.toThrow()
+
+Thrown value: undefined
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:261:71)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerAsync.test.ts:248:66)
+(fail) ConfigManager Async Update Tests > Additional async edge cases > should properly handle updateConfig with entire config [1.00ms]
+
+ 10 pass
+ 5 fail
+ 17 expect() calls
+Ran 15 tests across 1 file. [163.00ms]
