@@ -1,0 +1,381 @@
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/tools/pollEtfMetrics-collection.test.ts:
+577 |           expect(typeof metrics.symbol).toBe('string');
+578 |           expect(typeof metrics.timestamp).toBe('string');
+579 |           expect(typeof metrics.sharesCount).toBe('number');
+580 |           expect(typeof metrics.price).toBe('number');
+581 |           expect(typeof metrics.marketCap).toBe('number');
+582 |           expect(typeof metrics.aum).toBe('number');
+                                           ^
+error: expect(received).toBe(expected)
+
+Expected: "number"
+Received: "object"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-collection.test.ts:582:38)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-collection.test.ts:556:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Metrics Collection Tests > Metrics Data Structure and Content > should create metrics with all required fields [3.00ms]
+654 |           const metrics = JSON.parse(data);
+655 | 
+656 |           // Verify decorrelation percentage calculation
+657 |           // Formula: (marketCap - AUM) / AUM * 100
+658 |           const expectedDecorrelation = ((metrics.marketCap - metrics.aum) / metrics.aum) * 100;
+659 |           expect(metrics.decorrelationPct).toBeCloseTo(expectedDecorrelation, 2);
+                                                 ^
+TypeError: Expected received to be a number for 'expect'.
+ code: "ERR_INVALID_ARG_TYPE"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-collection.test.ts:659:44)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-collection.test.ts:651:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Metrics Collection Tests > Metrics Data Structure and Content > should calculate decorrelation percentage correctly [1.00ms]
+797 |       });
+798 | 
+799 |       mockPath.join.mockImplementation((...args: string[]) => args.join('/'));
+800 | 
+801 |       // Test the metrics collection - should not throw
+802 |       await expect(collectOnceForSymbols(['TRUR'])).resolves.toBeUndefined();
+                                                                   ^
+error: 
+
+Expected promise that resolves
+Received promise that rejected: Promise { <rejected> }
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-collection.test.ts:802:62)
+(fail) PollEtfMetrics Metrics Collection Tests > Metrics Collection Error Handling > should handle file system errors gracefully [2.00ms]
+1022 |       expect(endTime - startTime).toBeLessThan(3000);
+1023 | 
+1024 |       // Verify that the necessary functions were called
+1025 |       expect(mockFs.promises.mkdir).toHaveBeenCalled();
+1026 |       expect(mockFs.promises.writeFile).toHaveBeenCalledTimes(3); // Once for each symbol
+1027 |       expect(mockRp).toHaveBeenCalledTimes(3); // Once for each symbol
+                            ^
+error: expect(received).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 3
+Received number of calls: 61
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-collection.test.ts:1027:22)
+(fail) PollEtfMetrics Metrics Collection Tests > Performance Tests for Metrics Collection > should handle concurrent metrics collection requests [3.00ms]
+
+src/__tests__/tools/pollEtfMetrics.test.ts:
+131 |       const exists = await fs.access(metricsPath).then(() => true).catch(() => false);
+132 |       expect(exists).toBe(true);
+133 | 
+134 |       // Read and validate metrics content
+135 |       const metricsContent = await fs.readFile(metricsPath, 'utf-8');
+136 |       const metrics = JSON.parse(metricsContent);
+                                 ^
+SyntaxError: JSON Parse error: Unexpected EOF
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:136:28)
+(fail) PollEtfMetrics Tool Tests > Metrics Collection > should collect metrics for single symbol [1.00ms]
+160 |       expect(trurExists).toBe(true);
+161 |       expect(tmosExists).toBe(true);
+162 | 
+163 |       // Validate TMOS metrics
+164 |       const tmosContent = await fs.readFile(tmosPath, 'utf-8');
+165 |       const tmosMetrics = JSON.parse(tmosContent);
+                                     ^
+SyntaxError: JSON Parse error: Unexpected EOF
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:165:32)
+(fail) PollEtfMetrics Tool Tests > Metrics Collection > should collect metrics for multiple symbols [1.00ms]
+191 |     it('should calculate decorrelation percentage correctly', async () => {
+192 |       await mockCollectOnceForSymbols(['TRUR']);
+193 | 
+194 |       const metricsPath = path.join(testWorkspace, 'etf_metrics', 'TRUR.json');
+195 |       const metricsContent = await fs.readFile(metricsPath, 'utf-8');
+196 |       const metrics = JSON.parse(metricsContent);
+                                 ^
+SyntaxError: JSON Parse error: Unexpected EOF
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:196:28)
+(fail) PollEtfMetrics Tool Tests > Metrics Collection > should calculate decorrelation percentage correctly [1.00ms]
+204 |     it('should include all required fields in metrics', async () => {
+205 |       await mockCollectOnceForSymbols(['TRUR']);
+206 | 
+207 |       const metricsPath = path.join(testWorkspace, 'etf_metrics', 'TRUR.json');
+208 |       const metricsContent = await fs.readFile(metricsPath, 'utf-8');
+209 |       const metrics = JSON.parse(metricsContent);
+                                 ^
+SyntaxError: JSON Parse error: Unexpected EOF
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:209:28)
+(fail) PollEtfMetrics Tool Tests > Metrics Collection > should include all required fields in metrics
+249 |     it('should calculate market cap correctly', async () => {
+250 |       await mockCollectOnceForSymbols(['TRUR']);
+251 | 
+252 |       const metricsPath = path.join(testWorkspace, 'etf_metrics', 'TRUR.json');
+253 |       const metricsContent = await fs.readFile(metricsPath, 'utf-8');
+254 |       const metrics = JSON.parse(metricsContent);
+                                 ^
+SyntaxError: JSON Parse error: Unexpected EOF
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:254:28)
+(fail) PollEtfMetrics Tool Tests > Data Processing and Calculations > should calculate market cap correctly
+315 |   });
+316 | 
+317 |   describe('File System Operations', () => {
+318 |     it('should create etf_metrics directory if it does not exist', async () => {
+319 |       // Remove directory first
+320 |       await fs.rm(path.join(testWorkspace, 'etf_metrics'), { recursive: true, force: true });
+                     ^
+TypeError: fs.rm is not a function. (In 'fs.rm(path.join(testWorkspace, "etf_metrics"), { recursive: !0, force: !0 })', 'fs.rm' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:320:16)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics.test.ts:318:68)
+(fail) PollEtfMetrics Tool Tests > File System Operations > should create etf_metrics directory if it does not exist
+
+src/__tests__/tools/pollEtfMetrics-historical.test.ts:
+160 |         TMOS: []
+161 |       };
+162 | 
+163 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+164 |         if (typeof filePath === 'string') {
+165 |           const fileName = path.basename(filePath, '.json');
+                                      ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:165:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:163:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Historical Data Processing Tests > Time-Series Data Collection > should collect and store metrics over time for historical analysis [2.00ms]
+330 |         await new Promise(resolve => setTimeout(resolve, 10));
+331 |       }
+332 | 
+333 |       // Verify that we have fewer data points due to failures
+334 |       expect(writtenMetricsHistory.TRUR.length).toBeLessThan(5);
+335 |       expect(writtenMetricsHistory.TRUR.length).toBeGreaterThan(0);
+                                                      ^
+error: expect(received).toBeGreaterThan(expected)
+
+Expected: > 0
+Received: 0
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:335:49)
+(fail) PollEtfMetrics Historical Data Processing Tests > Time-Series Data Collection > should handle time-series data with missing intervals [57.00ms]
+442 |       }
+443 | 
+444 |       const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+445 | 
+446 |       // Verify that we have a positive trend (shares count increasing)
+447 |       expect(slope).toBeGreaterThan(0);
+                          ^
+error: expect(received).toBeGreaterThan(expected)
+
+Expected: > 0
+Received: 0
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:447:21)
+(fail) PollEtfMetrics Historical Data Processing Tests > Historical Data Analysis > should calculate trends from historical metrics data [40.00ms]
+548 |           });
+549 |         }
+550 |       }
+551 | 
+552 |       // Verify that we detected the significant change
+553 |       expect(significantChanges.length).toBeGreaterThan(0);
+                                              ^
+error: expect(received).toBeGreaterThan(expected)
+
+Expected: > 0
+Received: 0
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:553:41)
+(fail) PollEtfMetrics Historical Data Processing Tests > Historical Data Analysis > should identify significant changes in historical data [41.00ms]
+771 |           });
+772 |         }
+773 |       });
+774 | 
+775 |       // Verify that we detected the anomaly
+776 |       expect(anomalies.length).toBeGreaterThan(0);
+                                     ^
+error: expect(received).toBeGreaterThan(expected)
+
+Expected: > 0
+Received: 0
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:776:32)
+(fail) PollEtfMetrics Historical Data Processing Tests > Historical Metric Comparison > should detect anomalies in historical data patterns [42.00ms]
+888 |         expect(typeof data.symbol).toBe('string');
+889 |         expect(typeof data.timestamp).toBe('string');
+890 |         expect(typeof data.sharesCount).toBe('number');
+891 |         expect(typeof data.price).toBe('number');
+892 |         expect(typeof data.marketCap).toBe('number');
+893 |         expect(typeof data.aum).toBe('number');
+                                      ^
+error: expect(received).toBe(expected)
+
+Expected: "number"
+Received: "object"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:893:33)
+      at forEach (1:11)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:873:22)
+(fail) PollEtfMetrics Historical Data Processing Tests > Long-Term Data Storage and Validation > should validate historical data integrity over time [311.00ms]
+987 |       const endTime = performance.now();
+988 |       const totalTime = endTime - startTime;
+989 | 
+990 |       // Verify that all symbols were processed
+991 |       expect(mockFs.promises.writeFile).toHaveBeenCalledTimes(manySymbols.length);
+992 |       expect(mockRp).toHaveBeenCalledTimes(manySymbols.length);
+                           ^
+error: expect(received).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 15
+Received number of calls: 0
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:992:22)
+(fail) PollEtfMetrics Historical Data Processing Tests > Long-Term Data Storage and Validation > should handle large historical datasets efficiently [34.00ms]
+1099 |       // Track written metrics with special characters
+1100 |       const writtenMetrics: Record<string, any> = {};
+1101 | 
+1102 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+1103 |         if (typeof filePath === 'string') {
+1104 |           const fileName = path.basename(filePath, '.json');
+                                       ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:1104:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-historical.test.ts:1102:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Historical Data Processing Tests > Historical Data Edge Cases > should handle historical data with special characters [2.00ms]
+
+src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:
+210 |       // Track written metrics for aggregation verification
+211 |       const writtenMetrics: Record<string, any> = {};
+212 | 
+213 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+214 |         if (typeof filePath === 'string') {
+215 |           const fileName = path.basename(filePath, '.json');
+                                      ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:215:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:213:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Cross-Symbol Data Aggregation > should aggregate metrics across multiple ETF symbols [3.00ms]
+348 |       // Track written metrics for aggregation verification
+349 |       const writtenMetrics: Record<string, any> = {};
+350 | 
+351 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+352 |         if (typeof filePath === 'string') {
+353 |           const fileName = path.basename(filePath, '.json');
+                                      ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:353:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:351:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Cross-Symbol Data Aggregation > should calculate portfolio-level metrics from individual ETF metrics [2.00ms]
+439 |         TMOS: []
+440 |       };
+441 | 
+442 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+443 |         if (typeof filePath === 'string') {
+444 |           const fileName = path.basename(filePath, '.json');
+                                      ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:444:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:442:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Time-Series Data Aggregation > should aggregate metrics over time for trend analysis [1.00ms]
+634 | 
+635 |         // The moving average should be between the min and max values
+636 |         const values = sharesValues.slice(-3);
+637 |         const minVal = Math.min(...values);
+638 |         const maxVal = Math.max(...values);
+639 |         expect(movingAverage).toBeGreaterThanOrEqual(minVal);
+                                    ^
+error: expect(received).toBeGreaterThanOrEqual(expected)
+
+Expected: >= 46000000
+Received: 50
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:639:31)
+(fail) PollEtfMetrics Data Aggregation Tests > Time-Series Data Aggregation > should calculate moving averages for metrics [81.00ms]
+654 |       // Track written metrics for correlation analysis
+655 |       const writtenMetrics: Record<string, any> = {};
+656 | 
+657 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+658 |         if (typeof filePath === 'string') {
+659 |           const fileName = path.basename(filePath, '.json');
+                                      ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:659:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:657:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Cross-Metric Data Aggregation > should correlate different metrics (shares count, price, AUM) [3.00ms]
+792 |       // Track written metrics
+793 |       const writtenMetrics: Record<string, any> = {};
+794 | 
+795 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+796 |         if (typeof filePath === 'string') {
+797 |           const fileName = path.basename(filePath, '.json');
+                                      ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:797:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:795:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Aggregation Error Handling > should handle missing data gracefully during aggregation [2.00ms]
+982 |       });
+983 | 
+984 |       mockPath.join.mockImplementation((...args: string[]) => args.join('/'));
+985 | 
+986 |       // Test the metrics collection - should not throw even if one symbol fails
+987 |       await expect(collectOnceForSymbols(['TRUR', 'TMOS'])).resolves.toBeUndefined();
+                                                                           ^
+error: 
+
+Expected promise that resolves
+Received promise that rejected: Promise { <rejected> }
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:987:70)
+(fail) PollEtfMetrics Data Aggregation Tests > Aggregation Error Handling > should continue aggregation when individual symbol collection fails [2.00ms]
+1069 |       expect(endTime - startTime).toBeLessThan(5000);
+1070 | 
+1071 |       // Verify that the necessary functions were called
+1072 |       expect(mockFs.promises.mkdir).toHaveBeenCalled();
+1073 |       expect(mockFs.promises.writeFile).toHaveBeenCalledTimes(manySymbols.length);
+1074 |       expect(mockRp).toHaveBeenCalledTimes(manySymbols.length);
+                            ^
+error: expect(received).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 20
+Received number of calls: 40
+
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1074:22)
+(fail) PollEtfMetrics Data Aggregation Tests > Aggregation Performance > should efficiently aggregate data from many symbols [6.00ms]
+1085 |       // Track written metrics with large values
+1086 |       const writtenMetrics: Record<string, any> = {};
+1087 | 
+1088 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+1089 |         if (typeof filePath === 'string') {
+1090 |           const fileName = path.basename(filePath, '.json');
+                                       ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1090:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1088:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Aggregation Performance > should handle large numeric values in aggregation [2.00ms]
+1170 |       // Track written metrics
+1171 |       const writtenMetrics: Record<string, any> = {};
+1172 | 
+1173 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+1174 |         if (typeof filePath === 'string') {
+1175 |           const fileName = path.basename(filePath, '.json');
+                                       ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1175:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1173:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Aggregation Edge Cases > should handle symbols with special characters in aggregation [2.00ms]
+1246 |       // Track written metrics
+1247 |       const writtenMetrics: Record<string, any> = {};
+1248 | 
+1249 |       mockFs.promises.writeFile.mockImplementation(async (filePath: string, data: string) => {
+1250 |         if (typeof filePath === 'string') {
+1251 |           const fileName = path.basename(filePath, '.json');
+                                       ^
+TypeError: path.basename is not a function. (In 'path.basename(filePath, ".json")', 'path.basename' is undefined)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1251:33)
+      at <anonymous> (/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:1249:59)
+      at writeMetrics (/tmp/gh-issue-solver-1757942201680/src/tools/pollEtfMetrics.ts:220:12)
+(fail) PollEtfMetrics Data Aggregation Tests > Aggregation Edge Cases > should aggregate data with mixed data sources [4.00ms]
+
+ 38 pass
+ 29 fail
+ 155 expect() calls
+Ran 67 tests across 4 files. [947.00ms]

@@ -1,0 +1,14 @@
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/tools/pollEtfMetrics-aggregation.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module '../__mocks__/external-deps' from '/tmp/gh-issue-solver-1757942201680/src/__tests__/tools/pollEtfMetrics-aggregation.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [140.00ms]
