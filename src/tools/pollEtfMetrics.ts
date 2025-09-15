@@ -5,7 +5,7 @@ import { configLoader } from '../configLoader';
 import { normalizeTicker } from '../utils';
 import { getFxRateToRub, AumEntry, getEtfMarketCapRUB } from './etfCap';
 import { buildAumMapSmart } from './etfCap';
-import rp from 'request-promise';
+import fetch from 'node-fetch';
 
 type Nullable<T> = T | null | undefined;
 
@@ -59,9 +59,9 @@ async function getSharesSearchUrl(symbol: string): Promise<string> {
   
   for (const url of candidates) {
     try {
-      const resp = await rp({ uri: url, method: 'GET', resolveWithFullResponse: true, simple: false });
-      const status = (resp as any)?.statusCode || 0;
-      const body = String((resp as any)?.body || '');
+      const resp = await fetch(url, { method: 'GET' });
+      const status = resp.status;
+      const body = await resp.text();
       const notFound = /Такой страницы нет/i.test(body);
       if (status === 200 && !notFound) {
         return url;
@@ -168,7 +168,8 @@ async function fetchLatestSharesCountFromSmartfeed(symbol: string): Promise<{ co
   while (pages < 200) { // хардлимит безопасности
     const url = `${base}/${encBrand}/fund-news?limit=50${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
     try {
-      const raw = await rp({ uri: url, method: 'GET' });
+      const resp = await fetch(url, { method: 'GET' });
+      const raw = await resp.text();
       const data = JSON.parse(raw);
       const news: SmartfeedNewsItem[] = data?.payload?.news || [];
       const nextCursor: string | null = data?.payload?.meta?.cursor || null;

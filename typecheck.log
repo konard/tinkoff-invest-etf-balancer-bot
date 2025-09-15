@@ -1,0 +1,37 @@
+
+> deep-tinkoff-invest-api@1.0.0 typecheck
+> tsc --noEmit
+
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(3,29): error TS2307: Cannot find module './generated/stoporders' or its corresponding type declarations.
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(5,30): error TS2307: Cannot find module './generated/instruments' or its corresponding type declarations.
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(7,29): error TS2307: Cannot find module './generated/marketdata' or its corresponding type declarations.
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(8,29): error TS2307: Cannot find module './generated/operations' or its corresponding type declarations.
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(10,25): error TS2307: Cannot find module './generated/orders' or its corresponding type declarations.
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(11,24): error TS2307: Cannot find module './generated/users' or its corresponding type declarations.
+node_modules/tinkoff-sdk-grpc-js/src/sdk.ts(12,26): error TS2307: Cannot find module './generated/sandbox' or its corresponding type declarations.
+src/balancer/desiredBuilder.ts(72,7): error TS2559: Type 'number' has no properties in common with type 'Metric'.
+src/balancer/desiredBuilder.ts(94,7): error TS2559: Type 'number' has no properties in common with type 'Metric'.
+src/balancer/desiredBuilder.ts(110,21): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/balancer/test.ts(3,24): error TS7016: Could not find a declaration file for module 'chai'. '/tmp/gh-issue-solver-1757939141948/node_modules/chai/index.mjs' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/chai` if it exists or add a new declaration (.d.ts) file containing `declare module 'chai';`
+src/configLoader.ts(29,27): error TS2345: Argument of type 'ProjectConfig | null' is not assignable to parameter of type 'ProjectConfig'.
+  Type 'null' is not assignable to type 'ProjectConfig'.
+src/configLoader.ts(31,7): error TS2322: Type 'ProjectConfig | null' is not assignable to type 'ProjectConfig'.
+  Type 'null' is not assignable to type 'ProjectConfig'.
+src/etfs/index.ts(3,10): error TS2459: Module '"tinkoff-sdk-grpc-js/dist/generated/instruments"' declares 'InstrumentStatus' locally, but it is not exported.
+src/etfs/index.ts(7,38): error TS2307: Cannot find module '../config' or its corresponding type declarations.
+src/ha/test.ts(3,32): error TS2307: Cannot find module '../provider/invest-nodejs-grpc-sdk/src/generated/marketdata' or its corresponding type declarations.
+src/index.ts(5,19): error TS7016: Could not find a declaration file for module 'debug'. '/tmp/gh-issue-solver-1757939141948/node_modules/debug/src/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/debug` if it exists or add a new declaration (.d.ts) file containing `declare module 'debug';`
+src/provider/index.ts(7,19): error TS7016: Could not find a declaration file for module 'debug'. '/tmp/gh-issue-solver-1757939141948/node_modules/debug/src/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/debug` if it exists or add a new declaration (.d.ts) file containing `declare module 'debug';`
+src/tools/configManager.ts(220,6): error TS2304: Cannot find name 'VARIABLE_NAME'.
+src/tools/demoDetailedOutput.ts(93,33): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ TMON: number; TPAY: number; TOFZ: number; TDIV: number; TGLD: number; TLCB: number; TRND: number; TRUR: number; TBRU: number; TMOS: number; TITR: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ TMON: number; TPAY: number; TOFZ: number; TDIV: number; TGLD: number; TLCB: number; TRND: number; TRUR: number; TBRU: number; TMOS: number; TITR: number; }'.
+src/tools/demoDetailedOutput.ts(114,40): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ TMON: number; TPAY: number; TOFZ: number; TDIV: number; TGLD: number; TLCB: number; TRND: number; TRUR: number; TBRU: number; TMOS: number; TITR: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ TMON: number; TPAY: number; TOFZ: number; TDIV: number; TGLD: number; TLCB: number; TRND: number; TRUR: number; TBRU: number; TMOS: number; TITR: number; }'.
+src/tools/demoDetailedOutput.ts(130,17): error TS2339: Property 'main' does not exist on type 'ImportMeta'.
+src/utils/index.ts(2,19): error TS7016: Could not find a declaration file for module 'debug'. '/tmp/gh-issue-solver-1757939141948/node_modules/debug/src/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/debug` if it exists or add a new declaration (.d.ts) file containing `declare module 'debug';`
+src/utils/index.ts(84,25): error TS7006: Parameter 'num' implicitly has an 'any' type.
+src/utils/index.ts(84,30): error TS7006: Parameter 'places' implicitly has an 'any' type.

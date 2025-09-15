@@ -1,0 +1,21 @@
+npm error code ERESOLVE
+npm error ERESOLVE unable to resolve dependency tree
+npm error
+npm error While resolving: deep-tinkoff-invest-api@1.0.0
+npm error Found: @typescript-eslint/eslint-plugin@8.43.0
+npm error node_modules/@typescript-eslint/eslint-plugin
+npm error   dev @typescript-eslint/eslint-plugin@"^8.15.0" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peer @typescript-eslint/eslint-plugin@"^7.0.0" from eslint-config-airbnb-typescript@18.0.0
+npm error node_modules/eslint-config-airbnb-typescript
+npm error   dev eslint-config-airbnb-typescript@"^18.0.0" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry
+npm error this command with --force or --legacy-peer-deps
+npm error to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error /home/hive/.npm/_logs/2025-09-15T12_28_51_522Z-eresolve-report.txt
+npm error A complete log of this run can be found in: /home/hive/.npm/_logs/2025-09-15T12_28_51_522Z-debug-0.log
