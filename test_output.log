@@ -1,0 +1,23 @@
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/balancer/balancer.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module 'dotenv/config' from '/tmp/gh-issue-solver-1757941046070/src/balancer/index.ts'
+-------------------------------
+
+
+src/__tests__/utils/utils.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find package 'debug' from '/tmp/gh-issue-solver-1757941046070/src/utils/index.ts'
+-------------------------------
+
+
+ 4 pass
+ 2 fail
+ 2 errors
+ 5 expect() calls
+Ran 6 tests across 3 files. [131.00ms]

@@ -1,0 +1,28 @@
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/tools/scrapeTbankNews.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+18 | const mockBrowser = {
+19 |   newPage: jest.fn().mockResolvedValue(mockPage),
+20 |   close: jest.fn().mockResolvedValue(undefined)
+21 | };
+22 | 
+23 | jest.mock('puppeteer', () => ({
+          ^
+TypeError: jest.mock is not a function. (In 'jest.mock("puppeteer", () => ({
+  default: {
+    launch: jest.fn().mockResolvedValue(mockBrowser)
+  },
+  launch: jest.fn().mockResolvedValue(mockBrowser)
+}))', 'jest.mock' is undefined)
+      at /tmp/gh-issue-solver-1757941046070/src/__tests__/tools/scrapeTbankNews.test.ts:23:6
+      at loadAndEvaluateModule (2:1)
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [160.00ms]
