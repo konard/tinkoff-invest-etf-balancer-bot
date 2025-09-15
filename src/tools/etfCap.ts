@@ -341,7 +341,7 @@ export const getEtfMarketCapRUB = async (tickerRaw: string) => {
   const lastPriceRUB = toNumber(lastPriceQ);
 
   // 3) Капитализация (если есть всё)
-  const marketCapRUB = numShares && lastPriceRUB ? numShares * lastPriceRUB : null;
+  const marketCapRUB = (numShares !== undefined && numShares !== null && lastPriceRUB) ? numShares * lastPriceRUB : null;
 
   return {
     type: 'ETF',
@@ -383,7 +383,7 @@ export const getShareMarketCapRUB = async (tickerRaw: string) => {
   const lastPriceQ = last?.lastPrices?.[0]?.price;
   const lastPriceRUB = toNumber(lastPriceQ);
 
-  const marketCapRUB = issueSize && lastPriceRUB ? issueSize * lastPriceRUB : null;
+  const marketCapRUB = (issueSize !== undefined && issueSize !== null && lastPriceRUB) ? issueSize * lastPriceRUB : null;
 
   return {
     type: 'SHARE',
