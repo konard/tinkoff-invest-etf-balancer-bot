@@ -343,15 +343,47 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       debugProvider(coreWallet);
 
       // Before calculating desired weights, we can collect fresh metrics for needed tickers
-      try {
-        const tickers = Object.keys(accountConfig.desired_wallet);
-        await collectOnceForSymbols(tickers);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log('[provider] collectOnceForSymbols failed (will proceed with live APIs/fallbacks):', e);
+      // Only collect if collect_metrics_data is not explicitly disabled
+      const shouldCollectMetrics = accountConfig.collect_metrics_data !== false; // Default to true
+      const modeRequiresMetrics = (accountConfig.desired_mode === 'marketcap' || accountConfig.desired_mode === 'aum' || accountConfig.desired_mode === 'marketcap_aum' || accountConfig.desired_mode === 'decorrelation');
+      const actuallyCollectMetrics = modeRequiresMetrics || shouldCollectMetrics;
+
+      if (actuallyCollectMetrics) {
+        try {
+          const tickers = Object.keys(accountConfig.desired_wallet);
+          await collectOnceForSymbols(tickers);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('[provider] collectOnceForSymbols failed (will proceed with live APIs/fallbacks):', e);
+        }
+      } else {
+        debugProvider('Skipping metrics collection - collect_metrics_data is disabled and mode does not require metrics');
       }
 
-      const desiredForRun = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
+      let desiredForRun: any;
+      try {
+        desiredForRun = await buildDesiredWalletByMode(accountConfig.desired_mode, accountConfig.desired_wallet);
+      } catch (error) {
+        console.error(`\n❌ Balancing halted: Cannot proceed with mode '${accountConfig.desired_mode}'`);
+        console.error(`   Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        
+        // Check if metrics collection is disabled
+        const shouldCollectMetrics = accountConfig.collect_metrics_data !== false;
+        if (!shouldCollectMetrics) {
+          console.error('\n🔧 Metrics collection is currently disabled.');
+          console.error('   To fix this issue, either:');
+          console.error('   1. Enable metrics collection by setting "collect_metrics_data": true in CONFIG.json');
+          console.error('   2. Change desired_mode to "manual"');
+        } else {
+          console.error('\n🔧 To fix this issue:');
+          console.error('   1. Run bun run poll:metrics to collect fresh ETF metrics');
+          console.error('   2. Check that etf_metrics/*.json files exist for all tickers');
+          console.error('   3. Verify your internet connection for live API calls');
+          console.error(`   4. Consider changing desired_mode in CONFIG.json to 'manual'`);
+        }
+        console.error('\n⏭️  Skipping current balancing cycle, will retry at next interval\n');
+        return; // Skip this balancing cycle
+      }
 
       // Save current portfolio shares BEFORE balancing
       // Important: called after buildDesiredWalletByMode, but before balancer

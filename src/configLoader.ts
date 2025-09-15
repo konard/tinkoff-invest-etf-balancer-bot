@@ -106,6 +106,11 @@ class ConfigLoader {
       throw new Error(`Account ${account.id} must contain non-empty desired_wallet`);
     }
 
+    // Validate collect_metrics_data field
+    if (account.collect_metrics_data !== undefined && typeof account.collect_metrics_data !== 'boolean') {
+      throw new Error(`Account ${account.id}: collect_metrics_data must be a boolean. Got: ${typeof account.collect_metrics_data}`);
+    }
+
     // Check that sum of weights equals 100 (or close to 100)
     const totalWeight = Object.values(account.desired_wallet).reduce((sum, weight) => sum + weight, 0);
     if (Math.abs(totalWeight - 100) > 1) {

@@ -50,7 +50,7 @@ export interface MarginConfig {
 }
 
 // New configuration for multiple accounts
-export type DesiredMode = 'manual' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
+export type DesiredMode = 'manual' | 'default' | 'marketcap_aum' | 'marketcap' | 'aum' | 'decorrelation';
 
 export interface AccountMarginConfig {
   enabled: boolean;
@@ -68,6 +68,7 @@ export interface AccountConfig {
   desired_mode: DesiredMode;
   balance_interval: number;
   sleep_between_orders: number;
+  collect_metrics_data?: boolean; // Optional field to control metrics collection
   margin_trading: AccountMarginConfig;
 }
 

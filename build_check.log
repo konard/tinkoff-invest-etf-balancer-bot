@@ -1,0 +1,8 @@
+
+> deep-tinkoff-invest-api@1.0.0 build
+> bun build ./src/index.ts --outdir ./dist --target bun
+
+Bundled 522 modules in 745ms
+
+  index.js  4.24 MB  (entry point)
+

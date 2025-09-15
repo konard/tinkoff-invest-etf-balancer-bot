@@ -7,6 +7,7 @@ import { getEtfMarketCapRUB } from '../tools/etfCap';
 import { getShareMarketCapRUB } from '../tools/shareCap';
 import { buildAumMapSmart } from '../tools/etfCap';
 import { toRubFromAum } from '../tools/pollEtfMetrics';
+import { configLoader } from '../configLoader';
 
 const debug = require('debug')('bot').extend('desiredBuilder');
 
@@ -16,10 +17,24 @@ interface Metric {
 }
 
 export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: DesiredWallet): Promise<DesiredWallet> => {
-  if (mode === 'manual') return baseDesired;
+  if (mode === 'manual' || mode === 'default') return baseDesired;
 
   const originalTickers = Object.keys(baseDesired);
   const normalizedTickers = originalTickers.map((t) => normalizeTicker(t) || t);
+
+  // Get account configuration to check if metrics collection is enabled
+  const accountId = process.env.ACCOUNT_ID || '0';
+  const accountConfig = configLoader.getAccountById(accountId);
+  if (!accountConfig) {
+    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  }
+
+  // Determine if we should collect metrics
+  const shouldCollectMetrics = accountConfig.collect_metrics_data !== false; // Default to true
+  const modeRequiresMetrics = (mode === 'marketcap' || mode === 'aum' || mode === 'marketcap_aum' || mode === 'decorrelation');
+  const actuallyCollectMetrics = modeRequiresMetrics || shouldCollectMetrics;
+
+  debug(`Mode: ${mode}, shouldCollectMetrics: ${shouldCollectMetrics}, modeRequiresMetrics: ${modeRequiresMetrics}, actuallyCollectMetrics: ${actuallyCollectMetrics}`);
 
   // Gather metrics in RUB per normalized ticker
   const metricByNormalized: Record<string, Metric> = {};
@@ -56,43 +71,50 @@ export const buildDesiredWalletByMode = async (mode: DesiredMode, baseDesired: D
     return await toRubFromAum(aumMap[nt]);
   };
 
-  if (mode === 'marketcap' || mode === 'aum' || mode === 'marketcap_aum') {
-    for (const nt of normalizedTickers) {
-      let metric = 0;
-      if (mode === 'marketcap') {
-        metric = await calcMarketcap(nt);
-      } else if (mode === 'aum') {
-        metric = await calcAumRub(nt);
-      } else if (mode === 'marketcap_aum') {
-        metric = await calcMarketcap(nt);
-        if (!metric) {
+  // Only collect metrics if the mode requires them OR if collect_metrics_data is enabled
+  if (actuallyCollectMetrics) {
+    if (mode === 'marketcap' || mode === 'aum' || mode === 'marketcap_aum') {
+      for (const nt of normalizedTickers) {
+        let metric = 0;
+        if (mode === 'marketcap') {
+          metric = await calcMarketcap(nt);
+        } else if (mode === 'aum') {
           metric = await calcAumRub(nt);
+        } else if (mode === 'marketcap_aum') {
+          metric = await calcMarketcap(nt);
+          if (!metric) {
+            metric = await calcAumRub(nt);
+          }
         }
+        metricByNormalized[nt] = Number(metric) || 0;
       }
-      metricByNormalized[nt] = Number(metric) || 0;
     }
-  }
 
-  if (mode === 'decorrelation') {
-    // Algorithm:
-    // 1) decorrelationPct = (marketCap - AUM) / AUM * 100 (can be negative or positive)
-    // 2) Find max among all decorrelationPct
-    // 3) Build distribution metric: metric = max - decorrelationPct
-    //    Example: [100, 0, -100] -> max=100 -> metrics=[0, 100, 200]
-    // 4) Weights ∝ metric. If sum == 0 — return base portfolio
+    if (mode === 'decorrelation') {
+      // Algorithm:
+      // 1) decorrelationPct = (marketCap - AUM) / AUM * 100 (can be negative or positive)
+      // 2) Find max among all decorrelationPct
+      // 3) Build distribution metric: metric = max - decorrelationPct
+      //    Example: [100, 0, -100] -> max=100 -> metrics=[0, 100, 200]
+      // 4) Weights ∝ metric. If sum == 0 — return base portfolio
 
-    const dPctByTicker: Record<string, number> = {};
-    for (const nt of normalizedTickers) {
-      const [mcap, aum] = await Promise.all([calcMarketcap(nt), calcAumRub(nt)]);
-      const dPct = aum > 0 && Number.isFinite(mcap) ? ((mcap - aum) / aum) * 100 : 0;
-      dPctByTicker[nt] = Number.isFinite(dPct) ? dPct : 0;
+      const dPctByTicker: Record<string, number> = {};
+      for (const nt of normalizedTickers) {
+        const [mcap, aum] = await Promise.all([calcMarketcap(nt), calcAumRub(nt)]);
+        const dPct = aum > 0 && Number.isFinite(mcap) ? ((mcap - aum) / aum) * 100 : 0;
+        dPctByTicker[nt] = Number.isFinite(dPct) ? dPct : 0;
+      }
+      const maxDPct = _.max(Object.values(dPctByTicker));
+      const maxVal = (typeof maxDPct === 'number' && Number.isFinite(maxDPct)) ? maxDPct : 0;
+      for (const nt of normalizedTickers) {
+        const m = maxVal - (dPctByTicker[nt] || 0);
+        metricByNormalized[nt] = Number.isFinite(m) && m > 0 ? m : 0;
+      }
     }
-    const maxDPct = _.max(Object.values(dPctByTicker));
-    const maxVal = (typeof maxDPct === 'number' && Number.isFinite(maxDPct)) ? maxDPct : 0;
-    for (const nt of normalizedTickers) {
-      const m = maxVal - (dPctByTicker[nt] || 0);
-      metricByNormalized[nt] = Number.isFinite(m) && m > 0 ? m : 0;
-    }
+  } else {
+    debug(`Skipping metrics collection for mode '${mode}' - collect_metrics_data is false and mode doesn't require metrics`);
+    // For modes that don't require metrics, when collection is disabled, return the base portfolio
+    return baseDesired;
   }
 
   const totalMetric = _.sum(Object.values(metricByNormalized));
