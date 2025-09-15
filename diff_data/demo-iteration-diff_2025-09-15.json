@@ -1,0 +1,17 @@
+{
+  "date": "2025-09-15",
+  "snapshots": {
+    "iteration_1": {
+      "TGLD": 25,
+      "TRUR": 25,
+      "TBRU": 25,
+      "TRAY": 25
+    },
+    "iteration_2": {
+      "TGLD": 20,
+      "TRUR": 30,
+      "TBRU": 25,
+      "TRAY": 25
+    }
+  }
+}
