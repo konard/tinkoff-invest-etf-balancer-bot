@@ -1,0 +1,6 @@
+bun test v1.2.21 (7c45ed97)
+
+ 16 pass
+ 0 fail
+ 34 expect() calls
+Ran 16 tests across 1 file. [220.00ms]

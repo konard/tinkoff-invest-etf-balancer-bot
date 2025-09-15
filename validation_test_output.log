@@ -1,0 +1,22 @@
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/tools/configManager-validation.test.ts:
+269 |       ]
+270 |     };
+271 | 
+272 |     fs.writeFileSync(originalConfigPath, JSON.stringify(incorrectWeightConfig, null, 2));
+273 | 
+274 |     expect(() => validateConfig()).toThrow();
+                                         ^
+error: expect(received).toThrow()
+
+Received function did not throw
+Received value: undefined
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940614473/src/__tests__/tools/configManager-validation.test.ts:274:36)
+(fail) ConfigManager Validation Tests > should detect incorrect weight distribution [3.00ms]
+
+ 15 pass
+ 1 fail
+ 33 expect() calls
+Ran 16 tests across 1 file. [194.00ms]
