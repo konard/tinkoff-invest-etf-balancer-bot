@@ -8,7 +8,7 @@ import debug from 'debug';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/sdk';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 import { configLoader } from '../configLoader';
-import { Wallet, Position } from '../types.d';
+import { Wallet, Position, AccountConfig } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 import { balancer } from '../balancer';
 import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
@@ -33,10 +33,19 @@ const getAccountConfig = () => {
   return account;
 };
 
-const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
+// Helper function to get API token for account
+const getApiToken = (account: AccountConfig): string => {
+  return configLoader.getAccountToken(account.id) || process.env.TOKEN || '';
+};
 
-// Получаем конфигурацию аккаунта на уровне модуля
-const accountConfig = getAccountConfig();
+// Helper function to create SDK for specific account
+const getApi = (account: AccountConfig) => {
+  const token = getApiToken(account);
+  if (!token) {
+    throw new Error(`No API token found for account ${account.id}`);
+  }
+  return createSdk(token);
+};
 
 /**
  * Рассчитывает доли каждого инструмента в портфеле
@@ -62,20 +71,24 @@ const calculatePortfolioShares = (wallet: Wallet): Record<string, number> => {
 
 let ACCOUNT_ID: string;
 
-export const provider = async (options?: { runOnce?: boolean }) => {
-  ACCOUNT_ID = await getAccountId(process.env.ACCOUNT_ID);
-  await getInstruments();
-  await getPositionsCycle(options);
+export const provider = async (options?: { runOnce?: boolean; accountConfig?: AccountConfig }) => {
+  // Use provided account config or get from environment
+  const accountConfig = options?.accountConfig || getAccountConfig();
+  const api = getApi(accountConfig);
+  
+  ACCOUNT_ID = await getAccountId(accountConfig.account_id, api);
+  await getInstruments(api, accountConfig);
+  await getPositionsCycle({ ...options, accountConfig, api });
 };
 
-export const generateOrders = async (wallet: Wallet) => {
+export const generateOrders = async (wallet: Wallet, api: any, accountConfig: AccountConfig) => {
   debugProvider('generateOrders');
   for (const position of wallet) {
-    await generateOrder(position);
+    await generateOrder(position, api, accountConfig);
   }
 };
 
-export const generateOrder = async (position: Position) => {
+export const generateOrder = async (position: Position, api: any, accountConfig: AccountConfig) => {
   debugProvider('generateOrder');
   debugProvider('position', position);
 
@@ -121,7 +134,7 @@ export const generateOrder = async (position: Position) => {
   //   debugProvider('Sending order', order);
 
   //   try {
-  //     const setOrder = await orders.postOrder(order);
+  //     const setOrder = await api.orders.postOrder(order);
   //     debugProvider('Successfully placed order', setOrder);
   //   } catch (err) {
   //     debugProvider('Error placing order');
@@ -159,7 +172,7 @@ export const generateOrder = async (position: Position) => {
   debugProvider('Sending market order', order);
 
   try {
-    const setOrder = await orders.postOrder(order);
+    const setOrder = await api.orders.postOrder(order);
     debugProvider('Successfully placed order', setOrder);
   } catch (err) {
     debugProvider('Error placing order');
@@ -170,7 +183,7 @@ export const generateOrder = async (position: Position) => {
 
 };
 
-export const getAccountId = async (type: any) => {
+export const getAccountId = async (type: any, api: any) => {
   // Поддержка индекса: '3' или 'INDEX:3'
   const indexMatch = typeof type === 'string' && type.startsWith('INDEX:')
     ? Number(type.split(':')[1])
@@ -185,7 +198,7 @@ export const getAccountId = async (type: any) => {
   debugProvider('Getting accounts list');
   let accountsResponse: any;
   try {
-    accountsResponse = await users.getAccounts({});
+    accountsResponse = await api.users.getAccounts({});
   } catch (err) {
     debugProvider('Error getting accounts list');
     debugProvider(err);
@@ -226,14 +239,16 @@ export const getAccountId = async (type: any) => {
   return type;
 };
 
-export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
+export const getPositionsCycle = async (options?: { runOnce?: boolean; accountConfig?: AccountConfig; api?: any }) => {
   return await new Promise<void>((resolve) => {
     let count = 1;
+    const accountConfig = options?.accountConfig!;
+    const api = options?.api!;
 
     const tick = async () => {
       // Before starting iteration, check if exchange is open (MOEX)
       try {
-        const isOpen = await isExchangeOpenNow('MOEX');
+        const isOpen = await isExchangeOpenNow('MOEX', api);
         if (!isOpen) {
           debugProvider('Exchange closed (MOEX). Skipping balancing and waiting for next iteration.');
           if (options?.runOnce) {
@@ -251,7 +266,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       let portfolioPositions: any;
       try {
         debugProvider('Getting portfolio');
-        portfolio = await operations.getPortfolio({
+        portfolio = await api.operations.getPortfolio({
           accountId: ACCOUNT_ID,
         });
         debugProvider('portfolio', portfolio);
@@ -267,7 +282,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       let positions: any;
       try {
         debugProvider('Getting positions');
-        positions = await operations.getPositions({
+        positions = await api.operations.getPositions({
           accountId: ACCOUNT_ID,
         });
         debugProvider('positions', positions);
@@ -316,7 +331,7 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           continue;
         }
 
-        const priceWhenAddToWallet = await getLastPrice(instrument.figi);
+        const priceWhenAddToWallet = await getLastPrice(instrument.figi, api, accountConfig);
         debugProvider('priceWhenAddToWallet', priceWhenAddToWallet);
 
         const amount = convertTinkoffNumberToNumber(position.quantity);
@@ -357,13 +372,13 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       // Important: called after buildDesiredWalletByMode, but before balancer
       const beforeShares = calculatePortfolioShares(coreWallet);
 
-      const { finalPercents } = await balancer(coreWallet, desiredForRun);
+      const { finalPercents } = await balancer(coreWallet, desiredForRun, api, accountConfig);
 
       // Get updated shares AFTER balancing
       const afterShares = calculatePortfolioShares(coreWallet);
 
       // Detailed balancing result output
-      console.log('BALANCING RESULT:');
+      console.log(`\n🎯 BALANCING RESULT FOR ACCOUNT: ${accountConfig.name} (${accountConfig.id})`);
       console.log('Format: TICKER: diff: before% -> after% (target%)');
       console.log('Where: before% = current share, after% = actual share after balancing, (target%) = target from balancer, diff = change in percentage points\n');
 
@@ -431,7 +446,7 @@ const toDate = (t: any): Date | null => {
 };
 
 // Проверяет, открыта ли указанная биржа прямо сейчас по расписанию торгов
-export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<boolean> => {
+export const isExchangeOpenNow = async (exchange: string = 'MOEX', api?: any): Promise<boolean> => {
   try {
     const now = new Date();
     const from = new Date(now); // Use current time as 'from' parameter
@@ -441,7 +456,7 @@ export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<bool
     debugProvider(`Checking trading schedule for ${exchange}. Current time: ${now.toISOString()}`);
     debugProvider(`Request params: from=${from.toISOString()}, to=${to.toISOString()}`);
 
-    const schedules: any = await instruments.tradingSchedules({
+    const schedules: any = await api.instruments.tradingSchedules({
       exchange,
       from,
       to,
@@ -494,11 +509,11 @@ export const isExchangeOpenNow = async (exchange: string = 'MOEX'): Promise<bool
   }
 };
 
-export const getLastPrice = async (figi: any) => {
+export const getLastPrice = async (figi: any, api: any, accountConfig: AccountConfig) => {
   debugProvider('Getting last price');
   let lastPriceResult;
   try {
-    lastPriceResult = await marketData.getLastPrices({
+    lastPriceResult = await api.marketData.getLastPrices({
       figi: [figi],
     });
     debugProvider('lastPriceResult', lastPriceResult);
@@ -512,12 +527,12 @@ export const getLastPrice = async (figi: any) => {
   return lastPrice;
 };
 
-export const getInstruments = async () => {
+export const getInstruments = async (api: any, accountConfig: AccountConfig) => {
 
   debugProvider('Getting shares list');
   let sharesResult;
   try {
-    sharesResult = await instruments.shares({
+    sharesResult = await api.instruments.shares({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
@@ -531,7 +546,7 @@ export const getInstruments = async () => {
   debugProvider('Getting ETFs list');
   let etfsResult;
   try {
-    etfsResult = await instruments.etfs({
+    etfsResult = await api.instruments.etfs({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
@@ -545,7 +560,7 @@ export const getInstruments = async () => {
   debugProvider('Getting bonds list');
   let bondsResult;
   try {
-    bondsResult = await instruments.bonds({
+    bondsResult = await api.instruments.bonds({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
@@ -559,7 +574,7 @@ export const getInstruments = async () => {
   debugProvider('Getting currencies list');
   let currenciesResult;
   try {
-    currenciesResult = await instruments.currencies({
+    currenciesResult = await api.instruments.currencies({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
@@ -573,7 +588,7 @@ export const getInstruments = async () => {
   debugProvider('Getting futures list');
   let futuresResult;
   try {
-    futuresResult = await instruments.futures({
+    futuresResult = await api.instruments.futures({
       // instrumentStatus: InstrumentStatus.INSTRUMENT_STATUS_BASE,
     });
   } catch (err) {
@@ -587,8 +602,8 @@ export const getInstruments = async () => {
   debugProvider('=========================');
 };
 
-export const getLastPrices = async () => {
-  const lastPrices = (await marketData.getLastPrices({
+export const getLastPrices = async (api: any) => {
+  const lastPrices = (await api.marketData.getLastPrices({
     figi: [],
   }))?.lastPrices;
   debugProvider('lastPrices', JSON.stringify(lastPrices, null, 2));

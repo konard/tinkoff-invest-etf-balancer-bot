@@ -7,7 +7,7 @@ import uniqid from 'uniqid';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
 import { configLoader } from '../configLoader';
-import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
+import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig, AccountConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
@@ -16,7 +16,7 @@ const debug = require('debug')('bot').extend('balancer');
 
 // const { orders, operations, marketData, users, instruments } = createSdk(process.env.TOKEN || '');
 
-// Функция для получения конфигурации аккаунта
+// Функция для получения конфигурации аккаунта (для обратной совместимости)
 const getAccountConfig = () => {
   const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
   const account = configLoader.getAccountById(accountId);
@@ -28,24 +28,22 @@ const getAccountConfig = () => {
   return account;
 };
 
-// Получаем конфигурацию аккаунта
-const accountConfig = getAccountConfig();
-
-// Initialize margin calculator
-const marginConfig: MarginConfig = {
-  multiplier: accountConfig.margin_trading.multiplier,
-  freeThreshold: accountConfig.margin_trading.free_threshold,
-  ...(accountConfig.margin_trading.enabled && { strategy: accountConfig.margin_trading.balancing_strategy })
+// Helper function to create margin calculator for account
+const createMarginCalculator = (accountConfig: AccountConfig): MarginCalculator => {
+  const marginConfig: MarginConfig = {
+    multiplier: accountConfig.margin_trading.multiplier,
+    freeThreshold: accountConfig.margin_trading.free_threshold,
+    ...(accountConfig.margin_trading.enabled && { strategy: accountConfig.margin_trading.balancing_strategy })
+  };
+  return new MarginCalculator(marginConfig);
 };
-
-const marginCalculator = new MarginCalculator(marginConfig);
 
 /**
  * Identifies margin positions in portfolio
  */
-export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
-  // If margin trading is disabled, return empty array
-  if (!accountConfig.margin_trading.enabled) {
+export const identifyMarginPositions = (wallet: Wallet, accountConfig?: AccountConfig): MarginPosition[] => {
+  // If margin trading is disabled or no account config provided, return empty array
+  if (!accountConfig || !accountConfig.margin_trading.enabled) {
     return [];
   }
 
@@ -76,14 +74,14 @@ export const identifyMarginPositions = (wallet: Wallet): MarginPosition[] => {
 /**
  * Applies margin position management strategy
  */
-export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date()): {
+export const applyMarginStrategy = (wallet: Wallet, accountConfig?: AccountConfig, currentTime: Date = new Date()): {
   shouldRemoveMargin: boolean;
   reason: string;
   transferCost: number;
   marginPositions: MarginPosition[];
 } => {
   // If margin trading is disabled, return result without margin
-  if (!accountConfig.margin_trading.enabled) {
+  if (!accountConfig || !accountConfig.margin_trading.enabled) {
     return {
       shouldRemoveMargin: false,
       reason: 'Margin trading disabled',
@@ -92,7 +90,7 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
     };
   }
   
-  const marginPositions = identifyMarginPositions(wallet);
+  const marginPositions = identifyMarginPositions(wallet, accountConfig);
   
   if (marginPositions.length === 0) {
     return {
@@ -103,6 +101,7 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
     };
   }
   
+  const marginCalculator = createMarginCalculator(accountConfig);
   const strategy = marginCalculator.applyMarginStrategy(
     marginPositions,
     accountConfig.margin_trading.enabled ? accountConfig.margin_trading.balancing_strategy : 'keep',
@@ -118,9 +117,9 @@ export const applyMarginStrategy = (wallet: Wallet, currentTime: Date = new Date
 /**
  * Calculates optimal position sizes considering multiplier
  */
-export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWallet) => {
+export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWallet, accountConfig?: AccountConfig) => {
   // If margin trading is disabled, return sizes without margin
-  if (!accountConfig.margin_trading.enabled) {
+  if (!accountConfig || !accountConfig.margin_trading.enabled) {
     const totalPortfolioValue = wallet.reduce((sum, pos) => sum + (pos.totalPriceNumber || 0), 0);
     const result: Record<string, { baseSize: number; marginSize: number; totalSize: number }> = {};
 
@@ -188,7 +187,7 @@ export const addNumbersToWallet = (wallet: Wallet): Wallet => {
   return wallet;
 };
 
-export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet): Promise<{ finalPercents: Record<string, number> }> => {
+export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet, api?: any, accountConfig?: AccountConfig): Promise<{ finalPercents: Record<string, number> }> => {
 
   const walletInfo = {
     remains: 0,
@@ -197,7 +196,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   const wallet = positions;
 
   // Applies margin position management strategy
-  const marginStrategy = applyMarginStrategy(wallet);
+  const marginStrategy = applyMarginStrategy(wallet, accountConfig);
   debug('Margin strategy:', marginStrategy);
 
   if (marginStrategy.shouldRemoveMargin) {
@@ -253,7 +252,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
         continue;
       }
 
-      const lastPrice = await getLastPrice(figi); // sleep is inside
+      const lastPrice = api && accountConfig ? await getLastPrice(figi, api, accountConfig) : { units: 0, nano: 0 }; // sleep is inside
       if (!lastPrice) {
         debug(`Could not get lastPrice for ${desiredTicker}/${figi}. Skipping addition.`);
         continue;
@@ -312,7 +311,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   debug('walletSumNumber', walletSumNumber);
 
   // Calculate optimal position sizes considering multiplier
-  const optimalSizes = calculateOptimalSizes(sortedWallet, desiredMap);
+  const optimalSizes = calculateOptimalSizes(sortedWallet, desiredMap, accountConfig);
   debug('Optimal position sizes:', optimalSizes);
 
   for (const [desiredTickerRaw, desiredPercent] of Object.entries(desiredMap)) {
@@ -421,7 +420,9 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   debug('walletInfo', walletInfo);
 
   debug('Creating necessary orders for all positions');
-  await generateOrders(ordersPlanned);
+  if (api && accountConfig) {
+    await generateOrders(ordersPlanned, api, accountConfig);
+  }
   
   // Подсчёт итоговых процентных долей бумаг после выставления ордеров (по плану ордеров)
   // Исключаем валюты (base === quote)
