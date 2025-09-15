@@ -103,3 +103,8 @@ export const listAccounts = async (usersClient: any) => {
 
 // Export MarginCalculator
 export { MarginCalculator } from './marginCalculator';
+
+// Export Profit and Expense modules
+export { ProfitCalculator } from './profitCalculator';
+export { ExpenseTracker } from './expenseTracker';
+export { DailyAggregator } from './dailyAggregator';

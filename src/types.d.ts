@@ -84,3 +84,45 @@ export interface Ohlcv {
   time: Date;
   isComplete: boolean;
 }
+
+// Profit and Expense Calculation Types
+export interface ProfitLossRecord {
+  ticker: string;
+  currentPositionValue: number;
+  originalCost: number;
+  profitAmount: number;
+  profitPercentage: number;
+  isMarginPosition: boolean;
+}
+
+export interface ExpenseRecord {
+  orderId: string;
+  ticker: string;
+  orderType: 'BUY' | 'SELL';
+  lots: number;
+  amountRub: number;
+  commission: number;
+  timestamp: Date;
+}
+
+export interface IterationProfitSummary {
+  totalProfit: number;
+  totalProfitPercentage: number;
+  profitPositions: number;
+  lossPositions: number;
+  profitLossRecords: ProfitLossRecord[];
+}
+
+export interface IterationExpenseSummary {
+  totalCommission: number;
+  ordersExecuted: number;
+  expenseRecords: ExpenseRecord[];
+}
+
+export interface DailySummary {
+  date: string; // YYYY-MM-DD format
+  cumulativeProfit: number;
+  cumulativeExpenses: number;
+  netDailyProfit: number;
+  iterationsCount: number;
+}

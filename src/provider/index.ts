@@ -8,12 +8,12 @@ import debug from 'debug';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/sdk';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 import { configLoader } from '../configLoader';
-import { Wallet, Position } from '../types.d';
+import { Wallet, Position, IterationProfitSummary, IterationExpenseSummary, DailySummary } from '../types.d';
 import { sleep, writeFile, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
+import { ProfitCalculator, ExpenseTracker, DailyAggregator, normalizeTicker } from '../utils';
 import { balancer } from '../balancer';
 import { buildDesiredWalletByMode } from '../balancer/desiredBuilder';
 import { collectOnceForSymbols } from '../tools/pollEtfMetrics';
-import { normalizeTicker } from '../utils';
 
 (global as any).INSTRUMENTS = [];
 (global as any).POSITIONS = [];
@@ -37,6 +37,11 @@ const { orders, operations, marketData, users, instruments } = createSdk(process
 
 // Получаем конфигурацию аккаунта на уровне модуля
 const accountConfig = getAccountConfig();
+
+// Initialize profit and expense tracking modules
+const profitCalculator = new ProfitCalculator();
+const expenseTracker = new ExpenseTracker();
+const dailyAggregator = new DailyAggregator();
 
 /**
  * Рассчитывает доли каждого инструмента в портфеле
@@ -161,6 +166,17 @@ export const generateOrder = async (position: Position) => {
   try {
     const setOrder = await orders.postOrder(order);
     debugProvider('Successfully placed order', setOrder);
+    
+    // Record expense from the executed order
+    const orderType = direction === OrderDirection.ORDER_DIRECTION_BUY ? 'BUY' : 'SELL';
+    expenseTracker.recordOrderExpense(
+      order.orderId,
+      position,
+      setOrder,
+      orderType,
+      quantityLots
+    );
+    
   } catch (err) {
     debugProvider('Error placing order');
     debugProvider(err);
@@ -231,6 +247,12 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
     let count = 1;
 
     const tick = async () => {
+      // Check if it's a new trading day and reset daily counters if needed
+      if (dailyAggregator.checkAndResetIfNewDay()) {
+        expenseTracker.clearDailyExpenses();
+        debugProvider('New trading day detected, reset daily counters');
+      }
+
       // Before starting iteration, check if exchange is open (MOEX)
       try {
         const isOpen = await isExchangeOpenNow('MOEX');
@@ -362,6 +384,14 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
       // Get updated shares AFTER balancing
       const afterShares = calculatePortfolioShares(coreWallet);
 
+      // Calculate profit/loss and expense summaries
+      const profitSummary = profitCalculator.calculateIterationProfitSummary(coreWallet, portfolioPositions);
+      const expenseSummary = expenseTracker.getAndClearIterationSummary();
+      
+      // Update daily aggregation
+      dailyAggregator.addIterationResults(profitSummary, expenseSummary);
+      const dailySummary = dailyAggregator.getDailySummary();
+
       // Detailed balancing result output
       console.log('BALANCING RESULT:');
       console.log('Format: TICKER: diff: before% -> after% (target%)');
@@ -397,6 +427,23 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         const rubAbs = Math.abs(rubBalance);
         console.log(`RUR: ${rubSign}${rubAbs.toFixed(2)} RUB`);
       }
+
+      // Display profit/loss summary
+      console.log('');
+      console.log('📊 PROFIT/LOSS SUMMARY:');
+      console.log(`  Total Profit: ${profitCalculator.formatProfitAmount(profitSummary.totalProfit)} (${profitCalculator.formatProfitPercentage(profitSummary.totalProfitPercentage)})`);
+      console.log(`  Positions with Profit: ${profitSummary.profitPositions}`);
+      console.log(`  Positions with Loss: ${profitSummary.lossPositions}`);
+      
+      // Display expense summary
+      console.log('');
+      console.log('💰 EXPENSE SUMMARY:');
+      console.log(`  Total Commission: ${expenseTracker.formatCommission(expenseSummary.totalCommission)}`);
+      console.log(`  Orders Executed: ${expenseSummary.ordersExecuted}`);
+
+      // Display daily summary
+      console.log('');
+      console.log(dailyAggregator.formatDailySummary(dailySummary));
       debugProvider(`ITERATION #${count} FINISHED. TIME: ${new Date()}`);
       count++;
 
