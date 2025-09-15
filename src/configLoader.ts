@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { ProjectConfig, AccountConfig, ExchangeClosureBehavior, BuyRequiresTotalMarginalSellConfig } from './types.d';
 
@@ -115,10 +115,68 @@ class ConfigLoader {
       throw new Error(`Account ${account.id} must contain non-empty desired_wallet`);
     }
 
+    // Validate individual wallet percentages first
+    for (const [ticker, percentage] of Object.entries(account.desired_wallet)) {
+      if (typeof percentage !== 'number' || isNaN(percentage)) {
+        throw new Error(`Invalid percentage for ticker ${ticker}: must be a number`);
+      }
+      if (!isFinite(percentage) || percentage > Number.MAX_SAFE_INTEGER) {
+        throw new Error(`Invalid percentage for ticker ${ticker}: value too large`);
+      }
+      if (percentage < 0 || percentage > 100) {
+        throw new Error(`Invalid percentage for ticker ${ticker}: must be between 0 and 100`);
+      }
+    }
+
     // Check that sum of weights equals 100 (or close to 100)
     const totalWeight = Object.values(account.desired_wallet).reduce((sum, weight) => sum + weight, 0);
     if (Math.abs(totalWeight - 100) > 1) {
-      console.warn(`Warning: sum of weights for account ${account.id} equals ${totalWeight}%, not 100%`);
+      throw new Error(`Wallet validation failed: sum of weights for account ${account.id} equals ${totalWeight}%, expected 100%`);
+    }
+  }
+
+  public async updateAccountConfig(accountId: string, updates: Partial<AccountConfig>): Promise<void> {
+    const config = this.loadConfig();
+    const accountIndex = config.accounts.findIndex(account => account.id === accountId);
+    
+    if (accountIndex === -1) {
+      throw new Error(`Account with ID '${accountId}' not found`);
+    }
+
+    // Create updated account config
+    const updatedAccount = { ...config.accounts[accountIndex], ...updates };
+    
+    // Validate the updated account
+    this.validateAccount(updatedAccount);
+    
+    // Update the config
+    config.accounts[accountIndex] = updatedAccount;
+    
+    // Save to file
+    await this.saveConfig(config);
+    
+    // Update cached config
+    this.config = config;
+  }
+
+  public async updateConfig(config: ProjectConfig): Promise<void> {
+    // Validate the entire config
+    this.validateConfig(config);
+    
+    // Save to file
+    await this.saveConfig(config);
+    
+    // Update cached config
+    this.config = config;
+  }
+
+  private async saveConfig(config: ProjectConfig): Promise<void> {
+    try {
+      const configPath = join(process.cwd(), 'CONFIG.json');
+      const configData = JSON.stringify(config, null, 2);
+      writeFileSync(configPath, configData, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to save configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     // Set default exchange_closure_behavior if not provided (backward compatibility)

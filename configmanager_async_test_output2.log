@@ -1,0 +1,10 @@
+
+> deep-tinkoff-invest-api@1.0.0 test
+> bun test --timeout 10000 src/__tests__/configManager/configManagerAsync.test.ts
+
+bun test v1.2.21 (7c45ed97)
+
+ 15 pass
+ 0 fail
+ 19 expect() calls
+Ran 15 tests across 1 file. [166.00ms]

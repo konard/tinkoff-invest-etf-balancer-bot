@@ -1,0 +1,54 @@
+
+> deep-tinkoff-invest-api@1.0.0 test
+> bun test --timeout 10000 src/__tests__/configManager/configManagerSimple.test.ts
+
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/configManager/configManagerSimple.test.ts:
+143 |         }
+144 |       };
+145 | 
+146 |       expect(() => {
+147 |         (configLoader as any).validateAccount(account);
+148 |       }).toThrow("Invalid percentage for ticker TRUR: value too large");
+               ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TRUR: value too large"
+Received message: "Wallet validation failed: sum of weights for account test_account equals 9007199254741042%, expected 100%"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerSimple.test.ts:148:10)
+(fail) ConfigManager Update Tests - Real File Operations > Large number validation tests > should reject extremely large percentage values [1.00ms]
+158 |         }
+159 |       };
+160 | 
+161 |       expect(() => {
+162 |         (configLoader as any).validateAccount(account);
+163 |       }).toThrow("Invalid percentage for ticker TRUR: value too large");
+               ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TRUR: value too large"
+Received message: "Wallet validation failed: sum of weights for account test_account equals Infinity%, expected 100%"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerSimple.test.ts:163:10)
+(fail) ConfigManager Update Tests - Real File Operations > Large number validation tests > should reject infinite values
+241 |         }
+242 |       };
+243 | 
+244 |       expect(() => {
+245 |         (configLoader as any).validateAccount(account);
+246 |       }).toThrow("Invalid percentage for ticker TRUR: must be between 0 and 100");
+               ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TRUR: must be between 0 and 100"
+Received message: "Wallet validation failed: sum of weights for account test_account equals 200%, expected 100%"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManagerSimple.test.ts:246:10)
+(fail) ConfigManager Update Tests - Real File Operations > Edge cases > should handle percentages over 100 for individual tickers [1.00ms]
+
+ 12 pass
+ 3 fail
+ 15 expect() calls
+Ran 15 tests across 1 file. [142.00ms]

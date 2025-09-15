@@ -1,0 +1,281 @@
+
+> deep-tinkoff-invest-api@1.0.0 test
+> bun test --timeout 10000 src/__tests__/configManager/
+
+bun test v1.2.21 (7c45ed97)
+
+src/__tests__/configManager/configManager.test.ts:
+70 |           TMOS: 35,
+71 |           TGLD: 25
+72 |         }
+73 |       };
+74 | 
+75 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                ^
+error: 
+
+Expected promise that resolves
+Received promise that rejected: Promise { <rejected> }
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:75:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:66:70)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should pass validation when wallet percentages sum to 100% [6.00ms]
+83 |           TGLD: 30 // Sum = 105%, should fail
+84 |         }
+85 |       };
+86 | 
+87 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+88 |         .rejects.toThrow("Wallet validation failed: sum of weights for account test_account equals 105%, expected 100%");
+                      ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Wallet validation failed: sum of weights for account test_account equals 105%, expected 100%"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:88:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:78:76)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet percentages don't sum to 100% [3.00ms]
+ 96 |           TGLD: -10 // Negative percentage should fail
+ 97 |         }
+ 98 |       };
+ 99 | 
+100 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+101 |         .rejects.toThrow("Invalid percentage for ticker TGLD: must be between 0 and 100");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TGLD: must be between 0 and 100"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:101:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:91:71)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet has negative percentages
+109 |           TGLD: "invalid" as any // Non-numeric value should fail
+110 |         }
+111 |       };
+112 | 
+113 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+114 |         .rejects.toThrow("Invalid percentage for ticker TGLD: must be a number");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TGLD: must be a number"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:114:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:104:69)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should fail validation when wallet has non-numeric values [1.00ms]
+121 |           TMOS: 33.5,
+122 |           TGLD: 33 // Sum = 100%, within tolerance
+123 |         }
+124 |       };
+125 | 
+126 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                 ^
+error: 
+
+Expected promise that resolves
+Received promise that rejected: Promise { <rejected> }
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:126:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:117:77)
+(fail) ConfigManager Update Tests > should validate desired wallet configuration during updates > should accept wallet percentages with small tolerance (within 1%) [1.00ms]
+141 |           TGLD: 20
+142 |         }
+143 |       };
+144 | 
+145 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+146 |         .rejects.toThrow("Failed to save configuration: Permission denied");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Failed to save configuration: Permission denied"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:146:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:131:65)
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should throw error when config file cannot be written [1.00ms]
+161 |           TGLD: 20
+162 |         }
+163 |       };
+164 | 
+165 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+166 |         .rejects.toThrow("Failed to save configuration: ENOENT: no such file or directory");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Failed to save configuration: ENOENT: no such file or directory"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:166:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:149:63)
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should throw error when config file path is invalid [1.00ms]
+181 |           TGLD: 20
+182 |         }
+183 |       };
+184 | 
+185 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+186 |         .rejects.toThrow("Failed to save configuration: EACCES: permission denied");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Failed to save configuration: EACCES: permission denied"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:186:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:169:61)
+(fail) ConfigManager Update Tests > should handle file system errors during updates > should handle filesystem access errors gracefully [1.00ms]
+202 |       jest.spyOn(JSON, 'stringify').mockImplementation(() => {
+203 |         throw new Error("Converting circular structure to JSON");
+204 |       });
+205 | 
+206 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+207 |         .rejects.toThrow("Failed to save configuration: Converting circular structure to JSON");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Failed to save configuration: Converting circular structure to JSON"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:207:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:191:60)
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle circular references in config data
+223 |           TGLD: 20
+224 |         }
+225 |       };
+226 | 
+227 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+228 |         .rejects.toThrow("Failed to save configuration: Invalid UTF-8 encoding");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Failed to save configuration: Invalid UTF-8 encoding"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:228:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:213:55)
+(fail) ConfigManager Update Tests > should handle JSON serialization errors during updates > should handle invalid UTF-8 encoding errors [1.00ms]
+253 |           TGLD: 20
+254 |         }
+255 |       };
+256 | 
+257 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+258 |         .rejects.toThrow("Invalid percentage for ticker TRUR: value too large");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TRUR: value too large"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:258:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:248:59)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject extremely large percentage values [1.00ms]
+266 |           TGLD: 20
+267 |         },
+268 |         balance_interval: Number.MAX_SAFE_INTEGER
+269 |       };
+270 | 
+271 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                 ^
+error: 
+
+Expected promise that resolves
+Received promise that rejected: Promise { <rejected> }
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:271:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:261:53)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should handle maximum safe integer values [1.00ms]
+279 |           TGLD: 20
+280 |         }
+281 |       };
+282 | 
+283 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+284 |         .rejects.toThrow("Invalid percentage for ticker TRUR: value too large");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TRUR: value too large"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:284:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:274:41)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject infinite values
+292 |           TGLD: 20
+293 |         }
+294 |       };
+295 | 
+296 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+297 |         .rejects.toThrow("Invalid percentage for ticker TRUR: must be a number");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Invalid percentage for ticker TRUR: must be a number"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:297:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:287:36)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should reject NaN values
+304 |           TMOS: 30,
+305 |           TGLD: 19.99999999999
+306 |         }
+307 |       };
+308 | 
+309 |       await expect(configLoader.updateAccountConfig("test_account", updates)).resolves.not.toThrow();
+                                                                                                 ^
+error: 
+
+Expected promise that resolves
+Received promise that rejected: Promise { <rejected> }
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:309:92)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:300:51)
+(fail) ConfigManager Update Tests > should handle updates with extremely large numbers > should handle very small decimal values [2.00ms]
+319 |           TGLD: 20
+320 |         }
+321 |       };
+322 | 
+323 |       await expect(configLoader.updateAccountConfig("non_existent", updates))
+324 |         .rejects.toThrow("Account with ID 'non_existent' not found");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Account with ID 'non_existent' not found"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:324:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:314:57)
+(fail) ConfigManager Update Tests > Additional edge cases > should handle updates to non-existent account [1.00ms]
+28 |       // Configuration validation
+29 |       this.validateConfig(this.config);
+30 | 
+31 |       return this.config;
+32 |     } catch (error) {
+33 |       throw new Error(`Configuration loading error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                 ^
+error: Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'
+      at loadConfig (/tmp/gh-issue-solver-1757940047084/src/configLoader.ts:33:13)
+      at updateAccountConfig (/tmp/gh-issue-solver-1757940047084/src/configLoader.ts:130:25)
+      at updateAccountConfig (/tmp/gh-issue-solver-1757940047084/src/configLoader.ts:129:36)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:354:26)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:327:64)
+(fail) ConfigManager Update Tests > Additional edge cases > should preserve other account configs during updates
+362 |       const updates: Partial<AccountConfig> = {
+363 |         desired_wallet: {}
+364 |       };
+365 | 
+366 |       await expect(configLoader.updateAccountConfig("test_account", updates))
+367 |         .rejects.toThrow("Account test_account must contain non-empty desired_wallet");
+                       ^
+error: expect(received).toThrow(expected)
+
+Expected substring: "Account test_account must contain non-empty desired_wallet"
+Received message: "Configuration loading error: ENOENT: no such file or directory, open '/test/CONFIG.json'"
+
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:367:18)
+      at <anonymous> (/tmp/gh-issue-solver-1757940047084/src/__tests__/configManager/configManager.test.ts:361:54)
+(fail) ConfigManager Update Tests > Additional edge cases > should handle empty desired_wallet updates [1.00ms]
+
+ 1 pass
+ 18 fail
+ 18 expect() calls
+Ran 19 tests across 1 file. [179.00ms]
