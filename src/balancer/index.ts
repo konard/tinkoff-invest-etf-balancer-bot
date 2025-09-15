@@ -1,13 +1,17 @@
-import 'dotenv/config';
+try {
+  require('dotenv/config');
+} catch (e) {
+  // dotenv not available, continue without it
+}
 import { createSdk } from 'tinkoff-sdk-grpc-js/src/sdk';
 // import { createSdk } from '../provider/invest-nodejs-grpc-sdk/src/sdk';
-import 'mocha';
+// import 'mocha'; // Not needed for bun test
 import _ from 'lodash';
 import uniqid from 'uniqid';
 import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/orders';
 // import { OrderDirection, OrderType } from '../provider/invest-nodejs-grpc-sdk/src/generated/orders';
 import { configLoader } from '../configLoader';
-import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
+import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig, BuyRequiresTotalMarginalSellConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
@@ -137,6 +141,129 @@ export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWall
   }
   
   return marginCalculator.calculateOptimalPositionSizes(wallet, desiredWallet);
+};
+
+/**
+ * Handles buy_requires_total_marginal_sell functionality
+ */
+export const processBuyRequiresTotalMarginalSell = (
+  wallet: Wallet, 
+  desiredWallet: DesiredWallet, 
+  configOverride?: typeof accountConfig.buy_requires_total_marginal_sell | null
+): {
+  modifiedWallet: Wallet;
+  sellPositions: Position[];
+  buyPositions: Position[];
+  reason: string;
+} => {
+  const config = configOverride !== undefined ? configOverride : accountConfig.buy_requires_total_marginal_sell;
+  
+  // If feature is disabled or config is undefined/null, return original data
+  if (!config || !config.enabled) {
+    return {
+      modifiedWallet: wallet, // Return original wallet unmodified
+      sellPositions: [],
+      buyPositions: [],
+      reason: 'buy_requires_total_marginal_sell is disabled'
+    };
+  }
+
+  debug('Processing buy_requires_total_marginal_sell', config);
+
+  const requiredInstruments = config.instruments.map(ticker => normalizeTicker(ticker) || ticker);
+  const walletSumNumber = _.sumBy(wallet, 'totalPriceNumber');
+  const minRebalanceThreshold = (config.min_buy_rebalance_percent / 100) * walletSumNumber;
+  
+  debug(`Required instruments: ${requiredInstruments.join(', ')}`);
+  debug(`Minimum rebalance threshold: ${minRebalanceThreshold.toFixed(2)} RUB (${config.min_buy_rebalance_percent}%)`);
+
+  const sellPositions: Position[] = [];
+  const buyPositions: Position[] = [];
+  const modifiedWallet = _.cloneDeep(wallet);
+
+  // Find positions that need to be bought (required instruments with significant buy orders)
+  for (const position of modifiedWallet) {
+    if (!position.base || !position.toBuyNumber) continue;
+    
+    const normalizedTicker = normalizeTicker(position.base) || position.base;
+    const isBuyOrder = position.toBuyNumber > 0;
+    const isRequiredInstrument = requiredInstruments.includes(normalizedTicker);
+    const exceedsThreshold = Math.abs(position.toBuyNumber) >= minRebalanceThreshold;
+    
+    if (isBuyOrder && isRequiredInstrument && exceedsThreshold) {
+      buyPositions.push(position);
+      debug(`Found buy requirement for ${position.base}: ${position.toBuyNumber.toFixed(2)} RUB`);
+    }
+  }
+
+  // If no significant buy orders for required instruments, no action needed
+  if (buyPositions.length === 0) {
+    return {
+      modifiedWallet,
+      sellPositions,
+      buyPositions,
+      reason: 'No significant buy orders for required instruments'
+    };
+  }
+
+  // Calculate total buy requirement
+  const totalBuyRequirement = _.sumBy(buyPositions, 'toBuyNumber');
+  debug(`Total buy requirement: ${totalBuyRequirement.toFixed(2)} RUB`);
+
+  // Find positions that can be sold based on the mode
+  for (const position of modifiedWallet) {
+    if (!position.base || !position.totalPriceNumber) continue;
+    
+    const normalizedTicker = normalizeTicker(position.base) || position.base;
+    const isRequiredInstrument = requiredInstruments.includes(normalizedTicker);
+    const hasPositiveValue = position.totalPriceNumber > 0;
+    const isSellOrder = (position.toBuyNumber || 0) < 0;
+    
+    // Skip required instruments (we're buying these)
+    if (isRequiredInstrument) continue;
+    
+    let canSell = false;
+    
+    switch (config.allow_to_sell_others_positions_to_buy_non_marginal_positions.mode) {
+      case 'only_positive_positions_sell':
+        canSell = hasPositiveValue && (isSellOrder || position.totalPriceNumber >= minRebalanceThreshold);
+        break;
+      case 'all_positions_sell':
+        canSell = hasPositiveValue || isSellOrder;
+        break;
+      case 'disabled':
+      default:
+        canSell = false;
+        break;
+    }
+    
+    if (canSell) {
+      // Force sell this position to provide liquidity for required purchases
+      const currentSellAmount = Math.abs(position.toBuyNumber || 0);
+      const availableToSell = position.totalPriceNumber;
+      const shouldSell = Math.min(availableToSell, Math.max(currentSellAmount, minRebalanceThreshold));
+      
+      // Update position to sell more if needed
+      if (position.toBuyNumber === undefined || position.toBuyNumber >= -shouldSell) {
+        position.toBuyNumber = -shouldSell;
+        if (position.lotPriceNumber && position.lotSize) {
+          position.toBuyLots = -Math.floor(shouldSell / position.lotPriceNumber);
+        }
+        sellPositions.push(position);
+        debug(`Will sell ${position.base}: ${shouldSell.toFixed(2)} RUB`);
+      }
+    }
+  }
+
+  const totalSellAmount = _.sumBy(sellPositions, pos => Math.abs(pos.toBuyNumber || 0));
+  debug(`Total sell amount: ${totalSellAmount.toFixed(2)} RUB`);
+
+  return {
+    modifiedWallet,
+    sellPositions,
+    buyPositions,
+    reason: `Applied buy_requires_total_marginal_sell: selling ${sellPositions.length} positions to fund ${buyPositions.length} required purchases`
+  };
 };
 
 
@@ -408,12 +535,19 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
   debug('sortedWallet', sortedWallet);
 
+  // Apply buy_requires_total_marginal_sell logic
+  const buyRequiresResult = processBuyRequiresTotalMarginalSell(sortedWallet, desiredMap);
+  debug('Buy requires result:', buyRequiresResult.reason);
+  
+  // Use the modified wallet for order planning
+  const finalWallet = buyRequiresResult.modifiedWallet;
+
   // Execution order:
   // 1) First sales (get rubles)
   // 2) Then purchases, sorted by lot cost in descending order (expensive first)
-  const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
+  const sellsFirst = _.filter(finalWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
   const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
-  const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
+  const buysOnly = _.filter(finalWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
   const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);
   const ordersPlanned = [...sellsSorted, ...buysSortedByLotDesc];
   debug('ordersPlanned', ordersPlanned);
@@ -425,7 +559,7 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   
   // Подсчёт итоговых процентных долей бумаг после выставления ордеров (по плану ордеров)
   // Исключаем валюты (base === quote)
-  const simulated = _.cloneDeep(sortedWallet) as Position[];
+  const simulated = _.cloneDeep(finalWallet) as Position[];
   for (const p of simulated) {
     if (p.base && p.quote && p.base === p.quote) continue;
     const lotSize = Number(p.lotSize) || 1;

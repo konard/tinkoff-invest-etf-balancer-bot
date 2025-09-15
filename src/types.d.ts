@@ -59,6 +59,17 @@ export interface AccountMarginConfig {
   balancing_strategy: MarginBalancingStrategy;
 }
 
+export type BuyRequiresSellMode = 'only_positive_positions_sell' | 'disabled' | 'all_positions_sell';
+
+export interface BuyRequiresTotalMarginalSellConfig {
+  enabled: boolean;
+  instruments: string[];
+  allow_to_sell_others_positions_to_buy_non_marginal_positions: {
+    mode: BuyRequiresSellMode;
+  };
+  min_buy_rebalance_percent: number;
+}
+
 export interface AccountConfig {
   id: string;
   name: string;
@@ -69,6 +80,7 @@ export interface AccountConfig {
   balance_interval: number;
   sleep_between_orders: number;
   margin_trading: AccountMarginConfig;
+  buy_requires_total_marginal_sell?: BuyRequiresTotalMarginalSellConfig;
 }
 
 export interface ProjectConfig {

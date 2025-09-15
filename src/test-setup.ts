@@ -6,7 +6,7 @@ process.env.NODE_ENV = 'test';
 
 // Mock environment variables for testing
 process.env.TOKEN = 'test-token';
-process.env.ACCOUNT_ID = 'test-account';
+process.env.ACCOUNT_ID = 'test-buy-requires-enabled';
 
 // Global test utilities
 (global as any).testUtils = {
