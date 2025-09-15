@@ -264,6 +264,9 @@ function main(): void {
   }
 }
 
+// Export functions for testing
+export { validateConfig, listAccounts, showAccountDetails, showEnvironmentSetup, showTokenInfo };
+
 // Run only if file is called directly
 if (require.main === module) {
   main();
