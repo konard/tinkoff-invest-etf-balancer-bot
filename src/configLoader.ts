@@ -111,6 +111,20 @@ class ConfigLoader {
     if (Math.abs(totalWeight - 100) > 1) {
       console.warn(`Warning: sum of weights for account ${account.id} equals ${totalWeight}%, not 100%`);
     }
+
+    // Validate min_profit_percent_for_close_position if provided
+    if (account.min_profit_percent_for_close_position !== undefined) {
+      if (typeof account.min_profit_percent_for_close_position !== 'number') {
+        throw new Error(`Account ${account.id}: min_profit_percent_for_close_position must be a number`);
+      }
+      if (!isFinite(account.min_profit_percent_for_close_position)) {
+        throw new Error(`Account ${account.id}: min_profit_percent_for_close_position must be a finite number`);
+      }
+      // Reasonable range validation (allow up to 1000% profit and down to -100% loss)
+      if (account.min_profit_percent_for_close_position < -100 || account.min_profit_percent_for_close_position > 1000) {
+        console.warn(`Warning: account ${account.id} has extreme min_profit_percent_for_close_position value: ${account.min_profit_percent_for_close_position}%`);
+      }
+    }
   }
 
 }

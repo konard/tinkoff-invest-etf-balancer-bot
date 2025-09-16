@@ -1,0 +1,67 @@
+{
+  "accounts": [
+    {
+      "id": "0",
+      "name": "Example Account with Minimum Profit Threshold",
+      "t_invest_token": "${TINKOFF_TOKEN}",
+      "account_id": "BROKER",
+      "desired_wallet": {
+        "TRUR": 30,
+        "TSPV": 25,
+        "TMOS": 20,
+        "TBRU": 15,
+        "TGLD": 10
+      },
+      "desired_mode": "manual",
+      "balance_interval": 30000,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep"
+      },
+      "min_profit_percent_for_close_position": 5
+    },
+    {
+      "id": "1",
+      "name": "Example Account with Loss Tolerance",
+      "t_invest_token": "${TINKOFF_TOKEN}",
+      "account_id": "BROKER",
+      "desired_wallet": {
+        "TRUR": 50,
+        "TSPV": 30,
+        "TGLD": 20
+      },
+      "desired_mode": "manual",
+      "balance_interval": 30000,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep"
+      },
+      "min_profit_percent_for_close_position": -2
+    },
+    {
+      "id": "2",
+      "name": "Example Account without Profit Threshold (Feature Disabled)",
+      "t_invest_token": "${TINKOFF_TOKEN}",
+      "account_id": "BROKER",
+      "desired_wallet": {
+        "TRUR": 60,
+        "TMOS": 40
+      },
+      "desired_mode": "manual",
+      "balance_interval": 30000,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep"
+      }
+    }
+  ]
+}

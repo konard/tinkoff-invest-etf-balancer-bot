@@ -10,7 +10,7 @@ import { configLoader } from '../configLoader';
 import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
-import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
+import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber, canSellPosition, calculatePositionProfit } from '../utils';
 
 const debug = require('debug')('bot').extend('balancer');
 
@@ -411,7 +411,41 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   // Execution order:
   // 1) First sales (get rubles)
   // 2) Then purchases, sorted by lot cost in descending order (expensive first)
-  const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
+  const sellsFirst = _.filter(sortedWallet, (p: Position) => {
+    const shouldSell = (p.toBuyLots || 0) <= -1;
+
+    if (!shouldSell) {
+      return false;
+    }
+
+    // Apply minimum profit threshold if configured
+    const minProfitThreshold = accountConfig.min_profit_percent_for_close_position;
+    if (minProfitThreshold !== undefined) {
+      const canSell = canSellPosition(p, p.priceNumber, minProfitThreshold);
+
+      if (!canSell) {
+        debug(`Skipping sale of ${p.base}: profit threshold not met (${minProfitThreshold}%)`);
+
+        // Calculate and log current profit for debugging
+        const profitInfo = calculatePositionProfit(p, p.priceNumber, minProfitThreshold);
+        if (profitInfo) {
+          debug(`  Current profit: ${profitInfo.profitPercent.toFixed(2)}% (${profitInfo.profitAmount.toFixed(2)} RUB)`);
+        }
+
+        return false;
+      } else {
+        debug(`Sale of ${p.base} approved: profit threshold met (${minProfitThreshold}%)`);
+
+        // Log profit details for approved sales
+        const profitInfo = calculatePositionProfit(p, p.priceNumber, minProfitThreshold);
+        if (profitInfo) {
+          debug(`  Current profit: ${profitInfo.profitPercent.toFixed(2)}% (${profitInfo.profitAmount.toFixed(2)} RUB)`);
+        }
+      }
+    }
+
+    return true;
+  });
   const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
   const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
   const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);

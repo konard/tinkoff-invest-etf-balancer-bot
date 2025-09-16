@@ -1,0 +1,39 @@
+bun test v1.2.22 (6bafe260)
+
+src/__tests__/utils/utils.test.ts:
+211 |       const currentPrice = 9.7; // -3% loss
+212 |       const minProfitPercent = -5; // Allow up to 5% loss
+213 |       const result = calculatePositionProfit(position, currentPrice, minProfitPercent);
+214 | 
+215 |       expect(result).not.toBeNull();
+216 |       expect(result!.profitPercent).toBe(-3);
+                                          ^
+error: expect(received).toBe(expected)
+
+Expected: -3
+Received: -3.0000000000000115
+
+      at <anonymous> (/tmp/gh-issue-solver-1758027885957/src/__tests__/utils/utils.test.ts:216:37)
+(fail) Utils > calculatePositionProfit > should allow small losses within threshold [3.00ms]
+242 | 
+243 |     it("should return null for invalid current price", () => {
+244 |       const position = createTestPosition(100, 10);
+245 |       const result = calculatePositionProfit(position, 0);
+246 | 
+247 |       expect(result).toBeNull();
+                           ^
+error: expect(received).toBeNull()
+
+Received: {
+  profitAmount: 0,
+  profitPercent: 0,
+  meetsThreshold: true,
+}
+
+      at <anonymous> (/tmp/gh-issue-solver-1758027885957/src/__tests__/utils/utils.test.ts:247:22)
+(fail) Utils > calculatePositionProfit > should return null for invalid current price [2.00ms]
+
+ 39 pass
+ 2 fail
+ 62 expect() calls
+Ran 41 tests across 1 file. [181.00ms]

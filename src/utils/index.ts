@@ -1,6 +1,6 @@
 import fs from 'fs';
 import debug from 'debug';
-import { TinkoffNumber } from '../types.d';
+import { TinkoffNumber, Position, PositionProfitInfo } from '../types.d';
 
 const debugUtils = debug('bot').extend('utils');
 
@@ -99,6 +99,73 @@ export const listAccounts = async (usersClient: any) => {
     debugUtils('Error getting accounts list', err);
     return [];
   }
+};
+
+/**
+ * Calculates position profit and checks if it meets the minimum threshold
+ * @param position - The position to calculate profit for
+ * @param currentPrice - Current market price (will use position.priceNumber if not provided)
+ * @param minProfitPercent - Minimum profit percentage threshold (positive for profit, negative for allowed loss)
+ * @returns PositionProfitInfo or null if calculation is not possible
+ */
+export const calculatePositionProfit = (
+  position: Position,
+  currentPrice?: number,
+  minProfitPercent?: number
+): PositionProfitInfo | null => {
+  // Validate required position data
+  if (!position.amount || !position.priceNumber || position.amount === 0) {
+    debugUtils('Cannot calculate profit: position missing amount or priceNumber', position.base);
+    return null;
+  }
+
+  // Use provided current price or fall back to position price
+  const price = currentPrice !== undefined ? currentPrice : position.priceNumber;
+  if (!price || price <= 0) {
+    debugUtils('Cannot calculate profit: invalid current price', position.base);
+    return null;
+  }
+
+  // Calculate profit amounts
+  const currentValue = position.amount * price;
+  const originalValue = position.amount * position.priceNumber;
+  const profitAmount = currentValue - originalValue;
+
+  // Calculate profit percentage
+  const profitPercent = originalValue !== 0 ? (profitAmount / originalValue) * 100 : 0;
+
+  // Check if threshold is met
+  const meetsThreshold = minProfitPercent !== undefined
+    ? profitPercent >= minProfitPercent
+    : true; // If no threshold, always meets criteria
+
+  debugUtils(`Profit calculation for ${position.base}: ${profitPercent.toFixed(2)}% (${profitAmount.toFixed(2)} RUB), threshold: ${minProfitPercent || 'disabled'}, meets: ${meetsThreshold}`);
+
+  return {
+    profitAmount,
+    profitPercent,
+    meetsThreshold
+  };
+};
+
+/**
+ * Checks if a position meets the minimum profit threshold for selling
+ * @param position - The position to check
+ * @param currentPrice - Current market price (optional)
+ * @param minProfitPercent - Minimum profit percentage threshold
+ * @returns true if position can be sold (meets threshold or threshold disabled)
+ */
+export const canSellPosition = (
+  position: Position,
+  currentPrice?: number,
+  minProfitPercent?: number
+): boolean => {
+  if (minProfitPercent === undefined) {
+    return true; // Feature disabled
+  }
+
+  const profitInfo = calculatePositionProfit(position, currentPrice, minProfitPercent);
+  return profitInfo?.meetsThreshold ?? true; // Allow selling if profit calculation fails
 };
 
 // Export MarginCalculator
