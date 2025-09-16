@@ -100,10 +100,23 @@ async function readSharesCount(symbol: string): Promise<number | null> {
 function parseTotalSharesFromText(text: string): number | null {
   const guard = /(всего па[её]в|общее количество па[её]в)/i;
   if (!guard.test(text)) return null;
-  const re = /(всего па[её]в|общее количество па[её]в)[^\d]{0,20}(\d[\d\s]*[\,\.]?\d*)\s*(млн|тыс)?/i;
+  const re = /(всего па[её]в|общее количество па[её]в)[^\d]{0,20}([\d\s,\.]+)\s*(млн|тыс)?/i;
   const m = text.match(re);
   if (!m) return null;
-  const numRaw = (m[2] || '').replace(/\s+/g, '').replace(',', '.');
+  // Remove spaces and handle both comma formats (thousands separator or decimal)
+  let numRaw = (m[2] || '').replace(/\s+/g, '');
+  // If there are multiple commas, treat them as thousands separators
+  const commaCount = (numRaw.match(/,/g) || []).length;
+  if (commaCount > 1 || (commaCount === 1 && !numRaw.includes('.'))) {
+    // Likely using comma as thousands separator (e.g., "50,000,000" or "1,234")
+    numRaw = numRaw.replace(/,/g, '');
+  } else if (commaCount === 1 && numRaw.includes('.')) {
+    // Mixed format, unclear - treat comma as thousands separator
+    numRaw = numRaw.replace(/,/g, '');
+  } else if (commaCount === 1) {
+    // Single comma might be decimal separator (European format)
+    numRaw = numRaw.replace(',', '.');
+  }
   const unit = (m[3] || '').toLowerCase();
   const base = parseFloat(numRaw);
   if (!isFinite(base)) return null;
