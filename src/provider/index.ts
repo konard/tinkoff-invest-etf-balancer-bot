@@ -322,7 +322,12 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
         const amount = convertTinkoffNumberToNumber(position.quantity);
         const priceNumber = convertTinkoffNumberToNumber(position.currentPrice);
         const totalPriceNumber = amount * priceNumber;
-        
+
+        // Extract average position price (cost basis) from API
+        const averagePositionPriceNumber = position.averagePositionPrice
+          ? convertTinkoffNumberToNumber(position.averagePositionPrice)
+          : undefined;
+
         const corePosition = {
           pair: `${instrument.ticker}/${instrument.currency.toUpperCase()}`,
           base: instrument.ticker,
@@ -335,6 +340,8 @@ export const getPositionsCycle = async (options?: { runOnce?: boolean }) => {
           lotPrice: convertNumberToTinkoffNumber(instrument.lot * convertTinkoffNumberToNumber(priceWhenAddToWallet || { units: 0, nano: 0 })),
           totalPrice: convertNumberToTinkoffNumber(totalPriceNumber),
           totalPriceNumber: totalPriceNumber,
+          averagePositionPrice: position.averagePositionPrice,
+          averagePositionPriceNumber: averagePositionPriceNumber,
         };
         debugProvider('corePosition', corePosition);
         coreWallet.push(corePosition);

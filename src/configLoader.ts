@@ -111,6 +111,16 @@ class ConfigLoader {
     if (Math.abs(totalWeight - 100) > 1) {
       console.warn(`Warning: sum of weights for account ${account.id} equals ${totalWeight}%, not 100%`);
     }
+
+    // Validate min_profit_percent_for_close_position if provided
+    if (account.min_profit_percent_for_close_position !== undefined) {
+      if (typeof account.min_profit_percent_for_close_position !== 'number') {
+        throw new Error(`Account ${account.id} min_profit_percent_for_close_position must be a number`);
+      }
+      if (isNaN(account.min_profit_percent_for_close_position)) {
+        throw new Error(`Account ${account.id} min_profit_percent_for_close_position must be a valid number`);
+      }
+    }
   }
 
 }

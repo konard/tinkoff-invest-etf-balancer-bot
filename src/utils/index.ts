@@ -103,3 +103,102 @@ export const listAccounts = async (usersClient: any) => {
 
 // Export MarginCalculator
 export { MarginCalculator } from './marginCalculator';
+
+/**
+ * Interface for position profit information with threshold checking
+ */
+export interface PositionProfitInfo {
+  profitAmount: number;
+  profitPercent: number;
+  meetsThreshold: boolean;
+}
+
+/**
+ * Calculates position profit and checks if it meets minimum threshold
+ * @param currentValue Current market value of the position
+ * @param originalCost Original cost basis of the position
+ * @param minProfitPercent Minimum profit percentage threshold (can be negative for max loss)
+ * @returns Profit information with threshold check, or null if calculation is not possible
+ */
+export const calculatePositionProfit = (
+  currentValue: number,
+  originalCost: number,
+  minProfitPercent?: number
+): PositionProfitInfo | null => {
+  debugUtils('calculatePositionProfit', { currentValue, originalCost, minProfitPercent });
+
+  if (originalCost <= 0 || currentValue < 0) {
+    debugUtils('Invalid cost basis or current value', { currentValue, originalCost });
+    return null;
+  }
+
+  const profitAmount = currentValue - originalCost;
+  const profitPercent = (profitAmount / originalCost) * 100;
+
+  const meetsThreshold = minProfitPercent !== undefined
+    ? profitPercent >= minProfitPercent
+    : true; // If no threshold, always meets criteria
+
+  debugUtils('Position profit calculated', { profitAmount, profitPercent, meetsThreshold });
+
+  return {
+    profitAmount,
+    profitPercent,
+    meetsThreshold
+  };
+};
+
+/**
+ * Checks if a position meets the minimum profit threshold for selling
+ * @param position Position object with current and average price information
+ * @param minProfitPercent Minimum profit percentage threshold
+ * @returns True if position meets threshold or no cost basis available, false otherwise
+ */
+export const canSellPosition = (
+  position: {
+    totalPriceNumber?: number;
+    amount?: number;
+    averagePositionPriceNumber?: number;
+    base?: string;
+  },
+  minProfitPercent?: number
+): boolean => {
+  debugUtils('canSellPosition', {
+    ticker: position.base,
+    totalPriceNumber: position.totalPriceNumber,
+    amount: position.amount,
+    averagePositionPriceNumber: position.averagePositionPriceNumber,
+    minProfitPercent
+  });
+
+  // If no threshold is set, allow selling (backward compatibility)
+  if (minProfitPercent === undefined) {
+    debugUtils('No profit threshold set, allowing sell');
+    return true;
+  }
+
+  // If we don't have cost basis information, allow selling (can't determine profit)
+  if (!position.averagePositionPriceNumber || !position.amount || !position.totalPriceNumber) {
+    debugUtils('Missing cost basis or position data, allowing sell');
+    return true;
+  }
+
+  // Calculate cost basis (average price * amount)
+  const originalCost = position.averagePositionPriceNumber * position.amount;
+  const currentValue = position.totalPriceNumber;
+
+  const profitInfo = calculatePositionProfit(currentValue, originalCost, minProfitPercent);
+
+  if (profitInfo) {
+    debugUtils('Position profit check result', {
+      ticker: position.base,
+      profitPercent: profitInfo.profitPercent.toFixed(2),
+      meetsThreshold: profitInfo.meetsThreshold
+    });
+    return profitInfo.meetsThreshold;
+  }
+
+  // If calculation fails, allow selling to avoid blocking the bot
+  debugUtils('Profit calculation failed, allowing sell');
+  return true;
+};

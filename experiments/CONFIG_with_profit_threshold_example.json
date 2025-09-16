@@ -1,0 +1,66 @@
+{
+  "accounts": [
+    {
+      "id": "main",
+      "name": "Main Investment Account",
+      "t_invest_token": "${TINKOFF_TOKEN}",
+      "account_id": "123456789",
+      "desired_wallet": {
+        "TRUR": 40,
+        "TMOS": 30,
+        "TGLD": 20,
+        "TBND": 10
+      },
+      "desired_mode": "manual",
+      "balance_interval": 600000,
+      "sleep_between_orders": 3000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 0,
+        "balancing_strategy": "keep"
+      },
+      "min_profit_percent_for_close_position": 5
+    },
+    {
+      "id": "conservative",
+      "name": "Conservative Account (allows small losses)",
+      "t_invest_token": "${TINKOFF_TOKEN}",
+      "account_id": "987654321",
+      "desired_wallet": {
+        "TBND": 60,
+        "TRUR": 30,
+        "TGLD": 10
+      },
+      "desired_mode": "manual",
+      "balance_interval": 600000,
+      "sleep_between_orders": 3000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 0,
+        "balancing_strategy": "keep"
+      },
+      "min_profit_percent_for_close_position": -2
+    },
+    {
+      "id": "no_threshold",
+      "name": "Account without profit threshold (existing behavior)",
+      "t_invest_token": "${TINKOFF_TOKEN}",
+      "account_id": "555666777",
+      "desired_wallet": {
+        "TRUR": 50,
+        "TMOS": 50
+      },
+      "desired_mode": "manual",
+      "balance_interval": 600000,
+      "sleep_between_orders": 3000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 0,
+        "balancing_strategy": "keep"
+      }
+    }
+  ]
+}

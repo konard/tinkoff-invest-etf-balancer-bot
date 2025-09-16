@@ -9,7 +9,7 @@ import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/or
 import { configLoader } from '../configLoader';
 import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
-import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
+import { normalizeTicker, tickersEqual, MarginCalculator, canSellPosition } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 
 const debug = require('debug')('bot').extend('balancer');
@@ -206,6 +206,13 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
 
     // Here you can add logic for closing margin positions
     // or transferring them to the next day
+  }
+
+  // Log profit threshold configuration
+  if (accountConfig.min_profit_percent_for_close_position !== undefined) {
+    debug(`Minimum profit threshold for selling positions: ${accountConfig.min_profit_percent_for_close_position}%`);
+  } else {
+    debug('No profit threshold configured - all positions can be sold');
   }
 
   const normalizedDesire = normalizeDesire(desiredWallet);
@@ -409,9 +416,27 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   debug('sortedWallet', sortedWallet);
 
   // Execution order:
-  // 1) First sales (get rubles)
+  // 1) First sales (get rubles) - but only if they meet profit threshold
   // 2) Then purchases, sorted by lot cost in descending order (expensive first)
-  const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
+
+  // Filter positions that need to be sold (negative toBuyLots)
+  const positionsToSell = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
+
+  // Apply profit threshold filter to selling positions
+  const minProfitPercent = accountConfig.min_profit_percent_for_close_position;
+  const sellsFirst = _.filter(positionsToSell, (p: Position) => {
+    const canSell = canSellPosition(p, minProfitPercent);
+
+    if (!canSell && minProfitPercent !== undefined) {
+      debug(`Position ${p.base} does not meet profit threshold of ${minProfitPercent}%. Skipping sell.`);
+      // Reset toBuyLots to prevent selling this position
+      p.toBuyLots = 0;
+      p.toBuyNumber = 0;
+    }
+
+    return canSell;
+  });
+
   const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
   const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
   const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);

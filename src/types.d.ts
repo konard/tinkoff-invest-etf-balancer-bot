@@ -25,6 +25,8 @@ export interface Position {
   beforeDiffNumber?: number;
   toBuyLots?: number;
   toBuyNumber?: number;
+  averagePositionPrice?: TinkoffNumber;
+  averagePositionPriceNumber?: number;
 }
 
 export type Wallet = Position[];
@@ -69,6 +71,7 @@ export interface AccountConfig {
   balance_interval: number;
   sleep_between_orders: number;
   margin_trading: AccountMarginConfig;
+  min_profit_percent_for_close_position?: number;
 }
 
 export interface ProjectConfig {
