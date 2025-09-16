@@ -9,7 +9,7 @@ import { OrderDirection, OrderType } from 'tinkoff-sdk-grpc-js/dist/generated/or
 import { configLoader } from '../configLoader';
 import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig } from '../types.d';
 import { getLastPrice, generateOrders } from '../provider';
-import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
+import { normalizeTicker, tickersEqual, MarginCalculator, calculatePositionProfit } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
 
 const debug = require('debug')('bot').extend('balancer');
@@ -137,6 +137,45 @@ export const calculateOptimalSizes = (wallet: Wallet, desiredWallet: DesiredWall
   }
   
   return marginCalculator.calculateOptimalPositionSizes(wallet, desiredWallet);
+};
+
+/**
+ * Filters positions for selling based on profit threshold
+ * @param positions - Positions to filter
+ * @param minProfitPercent - Minimum profit percentage threshold
+ * @returns Array of positions that meet the profit threshold or don't have profit data
+ */
+export const filterPositionsForSelling = (positions: Position[], minProfitPercent?: number): Position[] => {
+  if (minProfitPercent === undefined) {
+    debug('No profit threshold configured, allowing all positions for selling');
+    return positions;
+  }
+
+  const filtered = positions.filter(position => {
+    // Skip currency positions (RUB/RUB) - they don't have profit/loss concept
+    if (position.base === position.quote) {
+      return true;
+    }
+
+    const profitInfo = calculatePositionProfit(position, minProfitPercent);
+
+    if (!profitInfo) {
+      debug(`No profit data for ${position.base}, allowing sale (insufficient data)`);
+      return true; // Allow selling if we can't calculate profit
+    }
+
+    const meetsThreshold = profitInfo.meetsThreshold;
+    debug(`Position ${position.base}: profit ${profitInfo.profitPercent.toFixed(2)}%, threshold ${minProfitPercent}%, meets: ${meetsThreshold}`);
+
+    return meetsThreshold;
+  });
+
+  const blockedCount = positions.length - filtered.length;
+  if (blockedCount > 0) {
+    debug(`Blocked ${blockedCount} positions from selling due to profit threshold`);
+  }
+
+  return filtered;
 };
 
 
@@ -409,10 +448,15 @@ export const balancer = async (positions: Wallet, desiredWallet: DesiredWallet):
   debug('sortedWallet', sortedWallet);
 
   // Execution order:
-  // 1) First sales (get rubles)
+  // 1) First sales (get rubles) - filtered by profit threshold
   // 2) Then purchases, sorted by lot cost in descending order (expensive first)
   const sellsFirst = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) <= -1);
-  const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
+
+  // Apply profit threshold filtering to selling positions
+  const sellsFiltered = filterPositionsForSelling(sellsFirst, accountConfig.min_profit_percent_for_close_position);
+  const sellsSorted = _.orderBy(sellsFiltered, ['toBuyNumber'], ['asc']);
+
+  // Purchases are not affected by profit threshold
   const buysOnly = _.filter(sortedWallet, (p: Position) => (p.toBuyLots || 0) >= 1);
   const buysSortedByLotDesc = _.orderBy(buysOnly, ['lotPriceNumber'], ['desc']);
   const ordersPlanned = [...sellsSorted, ...buysSortedByLotDesc];

@@ -95,7 +95,7 @@ class ConfigLoader {
 
   private validateAccount(account: AccountConfig): void {
     const requiredFields = ['id', 'name', 't_invest_token', 'account_id', 'desired_wallet'];
-    
+
     for (const field of requiredFields) {
       if (!(field in account)) {
         throw new Error(`Account ${account.id || 'unknown'} must contain field ${field}`);
@@ -110,6 +110,17 @@ class ConfigLoader {
     const totalWeight = Object.values(account.desired_wallet).reduce((sum, weight) => sum + weight, 0);
     if (Math.abs(totalWeight - 100) > 1) {
       console.warn(`Warning: sum of weights for account ${account.id} equals ${totalWeight}%, not 100%`);
+    }
+
+    // Validate min_profit_percent_for_close_position if specified
+    if (account.min_profit_percent_for_close_position !== undefined) {
+      if (typeof account.min_profit_percent_for_close_position !== 'number') {
+        throw new Error(`Account ${account.id}: min_profit_percent_for_close_position must be a number`);
+      }
+      if (!isFinite(account.min_profit_percent_for_close_position)) {
+        throw new Error(`Account ${account.id}: min_profit_percent_for_close_position must be a finite number`);
+      }
+      console.log(`Account ${account.id}: Minimum profit threshold configured: ${account.min_profit_percent_for_close_position}%`);
     }
   }
 

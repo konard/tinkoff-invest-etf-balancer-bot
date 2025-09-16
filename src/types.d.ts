@@ -25,6 +25,11 @@ export interface Position {
   beforeDiffNumber?: number;
   toBuyLots?: number;
   toBuyNumber?: number;
+  // Fields needed for profit calculation
+  averagePositionPrice?: TinkoffNumber;
+  averagePositionPriceNumber?: number;
+  currentPrice?: TinkoffNumber;
+  currentPriceNumber?: number;
 }
 
 export type Wallet = Position[];
@@ -69,6 +74,14 @@ export interface AccountConfig {
   balance_interval: number;
   sleep_between_orders: number;
   margin_trading: AccountMarginConfig;
+  /**
+   * Minimum profit percentage required for selling a position
+   * - Positive values: minimum profit percentage (e.g., 5 = 5% minimum profit)
+   * - Negative values: maximum allowed loss percentage (e.g., -2 = maximum 2% loss)
+   * - Undefined/null: feature disabled, use existing selling logic
+   * Default: undefined (feature disabled)
+   */
+  min_profit_percent_for_close_position?: number;
 }
 
 export interface ProjectConfig {
@@ -83,4 +96,10 @@ export interface Ohlcv {
   volume: number;
   time: Date;
   isComplete: boolean;
+}
+
+export interface PositionProfitInfo {
+  profitAmount: number;
+  profitPercent: number;
+  meetsThreshold: boolean;
 }

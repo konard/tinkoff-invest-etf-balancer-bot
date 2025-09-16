@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { balancer } from "../../balancer";
 import { Wallet, Position } from "../../types.d";
-import { normalizeDesire } from '../../balancer';
+import { normalizeDesire, filterPositionsForSelling } from '../../balancer';
 
 describe("Balancer", () => {
   describe("Portfolio Balancing", () => {
@@ -234,6 +234,124 @@ describe("Balancer", () => {
       const result = normalizeDesire(desiredWallet);
 
       expect(result).toEqual({});
+    });
+  });
+
+  describe("Profit-based Selling Filter", () => {
+    it("should allow all positions when no threshold is set", () => {
+      const positions: Position[] = [
+        {
+          base: "TRUR",
+          toBuyLots: -2,
+          averagePositionPriceNumber: 100,
+          currentPriceNumber: 95, // 5% loss
+        },
+        {
+          base: "TMOS",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 200,
+          currentPriceNumber: 220, // 10% profit
+        },
+      ];
+
+      const result = filterPositionsForSelling(positions, undefined);
+      expect(result).toHaveLength(2);
+    });
+
+    it("should filter out positions below profit threshold", () => {
+      const positions: Position[] = [
+        {
+          base: "TRUR",
+          toBuyLots: -2,
+          averagePositionPriceNumber: 100,
+          currentPriceNumber: 95, // 5% loss - should be filtered out
+        },
+        {
+          base: "TMOS",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 200,
+          currentPriceNumber: 220, // 10% profit - should be kept
+        },
+      ];
+
+      const result = filterPositionsForSelling(positions, 5); // 5% minimum profit
+      expect(result).toHaveLength(1);
+      expect(result[0].base).toBe("TMOS");
+    });
+
+    it("should allow positions at exactly the threshold", () => {
+      const positions: Position[] = [
+        {
+          base: "TRUR",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 100,
+          currentPriceNumber: 105, // exactly 5% profit
+        },
+      ];
+
+      const result = filterPositionsForSelling(positions, 5);
+      expect(result).toHaveLength(1);
+      expect(result[0].base).toBe("TRUR");
+    });
+
+    it("should allow negative thresholds for controlled losses", () => {
+      const positions: Position[] = [
+        {
+          base: "TRUR",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 100,
+          currentPriceNumber: 99, // 1% loss - within -2% threshold
+        },
+        {
+          base: "TMOS",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 200,
+          currentPriceNumber: 190, // 5% loss - outside -2% threshold
+        },
+      ];
+
+      const result = filterPositionsForSelling(positions, -2); // Allow up to 2% loss
+      expect(result).toHaveLength(1);
+      expect(result[0].base).toBe("TRUR");
+    });
+
+    it("should allow currency positions regardless of threshold", () => {
+      const positions: Position[] = [
+        {
+          base: "RUB",
+          quote: "RUB",
+          toBuyLots: -1000,
+        },
+        {
+          base: "TRUR",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 100,
+          currentPriceNumber: 95, // 5% loss
+        },
+      ];
+
+      const result = filterPositionsForSelling(positions, 10); // 10% threshold
+      expect(result).toHaveLength(1);
+      expect(result[0].base).toBe("RUB"); // Currency should pass through
+    });
+
+    it("should allow positions with insufficient profit data", () => {
+      const positions: Position[] = [
+        {
+          base: "TRUR",
+          toBuyLots: -1,
+          // Missing averagePositionPriceNumber and currentPriceNumber
+        },
+        {
+          base: "TMOS",
+          toBuyLots: -1,
+          averagePositionPriceNumber: 200,
+          currentPriceNumber: 220, // 10% profit
+        },
+      ];
+
+      const result = filterPositionsForSelling(positions, 5);
+      expect(result).toHaveLength(2); // Both should be allowed
     });
   });
 });

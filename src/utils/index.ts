@@ -1,6 +1,6 @@
 import fs from 'fs';
 import debug from 'debug';
-import { TinkoffNumber } from '../types.d';
+import { TinkoffNumber, Position, PositionProfitInfo } from '../types.d';
 
 const debugUtils = debug('bot').extend('utils');
 
@@ -99,6 +99,45 @@ export const listAccounts = async (usersClient: any) => {
     debugUtils('Error getting accounts list', err);
     return [];
   }
+};
+
+/**
+ * Calculates position profit/loss and checks if it meets the minimum profit threshold
+ * @param position - The position to calculate profit for
+ * @param minProfitPercent - Optional minimum profit percentage threshold
+ * @returns Profit information including whether threshold is met, or null if insufficient data
+ */
+export const calculatePositionProfit = (
+  position: Position,
+  minProfitPercent?: number
+): PositionProfitInfo | null => {
+  // Need both average position price and current price for calculation
+  const avgPrice = position.averagePositionPriceNumber;
+  const currentPrice = position.currentPriceNumber || position.priceNumber;
+
+  if (!avgPrice || !currentPrice || avgPrice <= 0 || currentPrice <= 0) {
+    debugUtils('Insufficient data for profit calculation', { avgPrice, currentPrice, figi: position.figi });
+    return null;
+  }
+
+  // Calculate profit amount per unit
+  const profitAmount = currentPrice - avgPrice;
+
+  // Calculate profit percentage
+  const profitPercent = (profitAmount / avgPrice) * 100;
+
+  // Check if meets threshold
+  const meetsThreshold = minProfitPercent !== undefined
+    ? profitPercent >= minProfitPercent
+    : true; // If no threshold, always meets criteria
+
+  debugUtils(`Profit calculation for ${position.base}: ${profitPercent.toFixed(2)}% profit, threshold: ${minProfitPercent}%, meets: ${meetsThreshold}`);
+
+  return {
+    profitAmount,
+    profitPercent,
+    meetsThreshold
+  };
 };
 
 // Export MarginCalculator

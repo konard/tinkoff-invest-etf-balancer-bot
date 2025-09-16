@@ -1,12 +1,14 @@
 import { describe, it, expect } from "bun:test";
-import { 
-  normalizeTicker, 
-  tickersEqual, 
+import {
+  normalizeTicker,
+  tickersEqual,
   convertTinkoffNumberToNumber,
   convertNumberToTinkoffNumber,
   zeroPad,
-  sumValues
+  sumValues,
+  calculatePositionProfit
 } from "../../utils";
+import { Position } from "../../types.d";
 
 describe("Utils", () => {
   describe("normalizeTicker", () => {
@@ -135,6 +137,133 @@ describe("Utils", () => {
     it("should handle mixed types", () => {
       const obj = { a: 1, b: "2", c: 3 };
       expect(sumValues(obj)).toBe(4); // Only numbers are summed
+    });
+  });
+
+  describe("calculatePositionProfit", () => {
+    it("should calculate profit correctly", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        currentPriceNumber: 110,
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).not.toBeNull();
+      expect(result!.profitAmount).toBe(10);
+      expect(result!.profitPercent).toBe(10);
+      expect(result!.meetsThreshold).toBe(true);
+    });
+
+    it("should calculate loss correctly", () => {
+      const position: Position = {
+        base: "TMOS",
+        averagePositionPriceNumber: 200,
+        currentPriceNumber: 180,
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).not.toBeNull();
+      expect(result!.profitAmount).toBe(-20);
+      expect(result!.profitPercent).toBe(-10);
+      expect(result!.meetsThreshold).toBe(false);
+    });
+
+    it("should handle positions at threshold exactly", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        currentPriceNumber: 105,
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).not.toBeNull();
+      expect(result!.profitPercent).toBe(5);
+      expect(result!.meetsThreshold).toBe(true);
+    });
+
+    it("should handle negative thresholds", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        currentPriceNumber: 99, // 1% loss
+      };
+
+      const result = calculatePositionProfit(position, -2); // Allow up to 2% loss
+      expect(result).not.toBeNull();
+      expect(result!.profitPercent).toBe(-1);
+      expect(result!.meetsThreshold).toBe(true);
+    });
+
+    it("should handle positions below negative threshold", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        currentPriceNumber: 95, // 5% loss
+      };
+
+      const result = calculatePositionProfit(position, -2); // Allow up to 2% loss
+      expect(result).not.toBeNull();
+      expect(result!.profitPercent).toBe(-5);
+      expect(result!.meetsThreshold).toBe(false);
+    });
+
+    it("should return null for missing average price", () => {
+      const position: Position = {
+        base: "TRUR",
+        currentPriceNumber: 110,
+        // Missing averagePositionPriceNumber
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).toBeNull();
+    });
+
+    it("should return null for missing current price", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        // Missing currentPriceNumber and priceNumber
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).toBeNull();
+    });
+
+    it("should fallback to priceNumber for current price", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        priceNumber: 110, // Should use this when currentPriceNumber is missing
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).not.toBeNull();
+      expect(result!.profitPercent).toBe(10);
+    });
+
+    it("should meet threshold when no threshold is set", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 100,
+        currentPriceNumber: 95, // 5% loss
+      };
+
+      const result = calculatePositionProfit(position); // No threshold
+      expect(result).not.toBeNull();
+      expect(result!.profitPercent).toBe(-5);
+      expect(result!.meetsThreshold).toBe(true);
+    });
+
+    it("should return null for zero or negative prices", () => {
+      const position: Position = {
+        base: "TRUR",
+        averagePositionPriceNumber: 0,
+        currentPriceNumber: 110,
+      };
+
+      const result = calculatePositionProfit(position, 5);
+      expect(result).toBeNull();
     });
   });
 });
