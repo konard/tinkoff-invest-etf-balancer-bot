@@ -108,6 +108,14 @@ export interface AccountConfig {
   margin_trading: AccountMarginConfig;
   exchange_closure_behavior: ExchangeClosureBehavior;
   buy_requires_total_marginal_sell?: BuyRequiresTotalMarginalSellConfig;
+  /**
+   * Minimum profit percentage required for selling a position
+   * - Positive values: minimum profit percentage (e.g., 5 = 5% minimum profit)
+   * - Negative values: maximum allowed loss percentage (e.g., -2 = maximum 2% loss)
+   * - Undefined/null: feature disabled, use existing selling logic
+   * Default: undefined (feature disabled)
+   */
+  min_profit_percent_for_close_position?: number;
 }
 
 export interface ProjectConfig {

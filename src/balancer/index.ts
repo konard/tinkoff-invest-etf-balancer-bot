@@ -11,11 +11,12 @@ import { Wallet, DesiredWallet, Position, MarginPosition, MarginConfig, Enhanced
 import { getLastPrice, generateOrders, generateOrdersSequential } from '../provider';
 import { normalizeTicker, tickersEqual, MarginCalculator } from '../utils';
 import { sumValues, convertNumberToTinkoffNumber, convertTinkoffNumberToNumber } from '../utils';
-import { 
-  identifyProfitablePositions, 
+import {
+  identifyProfitablePositions,
   identifyPositionsForSelling,
-  calculateRequiredFunds, 
-  calculateSellingAmounts 
+  calculateRequiredFunds,
+  calculateSellingAmounts,
+  calculatePositionProfit
 } from '../utils/buyRequiresTotalMarginalSell';
 
 const debug = require('debug')('bot').extend('balancer');
@@ -490,15 +491,22 @@ export const balancer = async (
   // Handle buy_requires_total_marginal_sell logic
   if (buyRequiresConfig?.enabled) {
     debug('Processing buy_requires_total_marginal_sell configuration');
-    
+
+    // Get minimum profit percentage threshold from account configuration
+    const minProfitPercent = accountConfig.min_profit_percent_for_close_position;
+    if (minProfitPercent !== undefined) {
+      debug(`Applying minimum profit threshold: ${minProfitPercent}%`);
+    }
+
     // 1. Identify positions that can be sold based on the mode:
-    //    - 'only_positive_positions_sell': only profitable positions  
+    //    - 'only_positive_positions_sell': only profitable positions
     //    - 'equal_in_percents': all positions proportionally
     //    - 'none': no positions
     const sellablePositions = identifyPositionsForSelling(
-      sortedWallet, 
+      sortedWallet,
       buyRequiresConfig,
-      buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions?.mode || 'none'
+      buyRequiresConfig.allow_to_sell_others_positions_to_buy_non_marginal_positions?.mode || 'none',
+      minProfitPercent
     );
     
     // 2. Calculate required funds for non-margin instrument purchases
@@ -605,12 +613,41 @@ export const balancer = async (
   debug('sortedWallet', sortedWallet);
   debug('specialSellingPlan', specialSellingPlan);
 
+  // Apply minimum profit threshold to all selling decisions if configured
+  const minProfitPercent = accountConfig.min_profit_percent_for_close_position;
+  if (minProfitPercent !== undefined) {
+    debug(`Applying minimum profit threshold ${minProfitPercent}% to all selling decisions`);
+
+    // Filter out positions that don't meet the profit threshold
+    const filteredWallet = sortedWallet.map(position => {
+      if (position.toBuyLots && position.toBuyLots < 0) {
+        // This position is planned for selling, check if it meets threshold
+        const profitInfo = calculatePositionProfit(position, minProfitPercent);
+
+        if (!profitInfo || !profitInfo.meetsThreshold) {
+          debug(`Position ${position.base} does not meet ${minProfitPercent}% threshold, cancelling sell order${profitInfo ? ` (current profit: ${profitInfo.profitPercent.toFixed(2)}%)` : ' (no profit data)'}`);
+          return {
+            ...position,
+            toBuyLots: 0,
+            toBuyNumber: 0
+          };
+        } else {
+          debug(`Position ${position.base} meets ${minProfitPercent}% threshold (${profitInfo.profitPercent.toFixed(2)}%), allowing sell order`);
+        }
+      }
+      return position;
+    });
+
+    // Update sortedWallet with filtered results
+    sortedWallet.splice(0, sortedWallet.length, ...filteredWallet);
+  }
+
   // Execution order:
   // 1) First sales (get rubles) - but only for profitable positions if buy_requires_total_marginal_sell is enabled
   // 2) Then purchases of non-margin instruments first (if buy_requires_total_marginal_sell is enabled)
   // 3) Then remaining sales
   // 4) Then remaining purchases
-  
+
   let sellsFirst: Position[] = [];
   let buysNonMarginFirst: Position[] = [];
   let remainingSells: Position[] = [];
