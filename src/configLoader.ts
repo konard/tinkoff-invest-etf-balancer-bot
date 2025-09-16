@@ -133,6 +133,11 @@ class ConfigLoader {
     if (Math.abs(totalWeight - 100) > 1) {
       throw new Error(`Wallet validation failed: sum of weights for account ${account.id} equals ${totalWeight}%, expected 100%`);
     }
+
+    // Validate min_profit_percent_for_close_position configuration if present
+    if (account.min_profit_percent_for_close_position !== undefined) {
+      this.validateMinProfitPercentForClosePosition(account.min_profit_percent_for_close_position, account.id);
+    }
   }
 
   public async updateAccountConfig(accountId: string, updates: Partial<AccountConfig>): Promise<void> {
@@ -257,6 +262,24 @@ class ConfigLoader {
 
     if (config.min_buy_rebalance_percent < 0 || config.min_buy_rebalance_percent > 100) {
       throw new Error(`Account ${account.id}: buy_requires_total_marginal_sell.min_buy_rebalance_percent must be between 0 and 100. Got: ${config.min_buy_rebalance_percent}`);
+    }
+  }
+
+  private validateMinProfitPercentForClosePosition(minProfitPercent: number, accountId: string): void {
+    // Validate that it's a number
+    if (typeof minProfitPercent !== 'number') {
+      throw new Error(`Account ${accountId}: min_profit_percent_for_close_position must be a number. Got: ${typeof minProfitPercent}`);
+    }
+
+    // Validate that it's a finite number
+    if (!Number.isFinite(minProfitPercent)) {
+      throw new Error(`Account ${accountId}: min_profit_percent_for_close_position must be a finite number. Got: ${minProfitPercent}`);
+    }
+
+    // Allow negative values (for maximum loss) but set reasonable bounds
+    // Minimum: -100% (complete loss), Maximum: 1000% (10x profit)
+    if (minProfitPercent < -100 || minProfitPercent > 1000) {
+      throw new Error(`Account ${accountId}: min_profit_percent_for_close_position must be between -100 and 1000. Got: ${minProfitPercent}`);
     }
   }
 

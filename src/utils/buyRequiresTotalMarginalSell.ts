@@ -8,9 +8,17 @@ const debug = require('debug')('bot:balancer');
 /**
  * Calculates profit for a position
  * @param position - The position to calculate profit for
- * @returns Profit amount and percentage, or null if cannot calculate
+ * @param minProfitPercent - Optional minimum profit percentage threshold
+ * @returns Profit amount, percentage and threshold check result, or null if cannot calculate
  */
-export const calculatePositionProfit = (position: Position): { profitAmount: number; profitPercent: number } | null => {
+export const calculatePositionProfit = (
+  position: Position,
+  minProfitPercent?: number
+): {
+  profitAmount: number;
+  profitPercent: number;
+  meetsThreshold: boolean;
+} | null => {
   // Need both current value and original cost to calculate profit
   if (!position.totalPriceNumber || position.totalPriceNumber <= 0) {
     return null;
@@ -24,7 +32,7 @@ export const calculatePositionProfit = (position: Position): { profitAmount: num
   // Calculate original purchase cost using averagePositionPriceFifo if available
   // This represents the actual purchase cost of the position
   let originalPurchaseCost = 0;
-  
+
   // Use averagePositionPriceFifo as it represents the actual purchase cost
   // If not available, fall back to averagePositionPrice
   // If neither is available, we cannot calculate profit accurately
@@ -36,18 +44,19 @@ export const calculatePositionProfit = (position: Position): { profitAmount: num
     // If we don't have purchase price data, we cannot determine profit
     return null;
   }
-  
+
   const profitAmount = position.totalPriceNumber - originalPurchaseCost;
   const profitPercent = (profitAmount / originalPurchaseCost) * 100;
-  
-  // Only return profitable positions (positive profit)
-  if (profitAmount <= 0) {
-    return null;
-  }
-  
+
+  // Check threshold if specified
+  const meetsThreshold = minProfitPercent !== undefined
+    ? profitPercent >= minProfitPercent
+    : true; // If no threshold, always meets criteria
+
   return {
     profitAmount,
-    profitPercent
+    profitPercent,
+    meetsThreshold
   };
 };
 
@@ -55,50 +64,57 @@ export const calculatePositionProfit = (position: Position): { profitAmount: num
  * Identifies profitable positions that can be sold to fund non-margin instrument purchases
  * @param wallet - Current portfolio positions
  * @param config - Buy requires total marginal sell configuration
+ * @param minProfitPercent - Optional minimum profit percentage threshold
  * @returns Array of profitable positions sorted by profit amount
  */
-export const identifyProfitablePositions = (wallet: Wallet, config: BuyRequiresTotalMarginalSellConfig): Position[] => {
+export const identifyProfitablePositions = (
+  wallet: Wallet,
+  config: BuyRequiresTotalMarginalSellConfig,
+  minProfitPercent?: number
+): Position[] => {
   debug('Identifying profitable positions to fund non-margin instrument purchases');
-  
+
   if (!config.enabled) {
     debug('Buy requires total marginal sell is disabled');
     return [];
   }
-  
+
   const profitablePositions: { position: Position; profitAmount: number }[] = [];
-  
+
   for (const position of wallet) {
     // Skip currency positions
     if (position.base === position.quote) {
       continue;
     }
-    
+
     // Skip positions that are in the non-margin instruments list
-    const isNonMarginInstrument = config.instruments.some(instrument => 
+    const isNonMarginInstrument = config.instruments.some(instrument =>
       tickersEqual(instrument, position.base || '')
     );
-    
+
     if (isNonMarginInstrument) {
       debug(`Skipping ${position.base} as it's in the non-margin instruments list`);
       continue;
     }
-    
-    // Calculate profit for this position
-    const profitInfo = calculatePositionProfit(position);
-    
-    if (profitInfo && profitInfo.profitAmount > 0) {
-      debug(`Found profitable position: ${position.base} with profit ${profitInfo.profitAmount.toFixed(2)} RUB (${profitInfo.profitPercent.toFixed(2)}%)`);
+
+    // Calculate profit for this position with threshold check
+    const profitInfo = calculatePositionProfit(position, minProfitPercent);
+
+    if (profitInfo && profitInfo.profitAmount > 0 && profitInfo.meetsThreshold) {
+      debug(`Found profitable position: ${position.base} with profit ${profitInfo.profitAmount.toFixed(2)} RUB (${profitInfo.profitPercent.toFixed(2)}%)${minProfitPercent !== undefined ? `, meets threshold: ${minProfitPercent}%` : ''}`);
       profitablePositions.push({
         position,
         profitAmount: profitInfo.profitAmount
       });
+    } else if (profitInfo && !profitInfo.meetsThreshold) {
+      debug(`Position ${position.base} has profit ${profitInfo.profitPercent.toFixed(2)}% but does not meet threshold of ${minProfitPercent}%`);
     }
   }
-  
+
   // Sort by profit amount (descending)
   const sortedPositions = _.orderBy(profitablePositions, ['profitAmount'], ['desc']);
-  
-  debug(`Found ${sortedPositions.length} profitable positions`);
+
+  debug(`Found ${sortedPositions.length} profitable positions${minProfitPercent !== undefined ? ` meeting ${minProfitPercent}% threshold` : ''}`);
   return sortedPositions.map(item => item.position);
 };
 
@@ -107,70 +123,84 @@ export const identifyProfitablePositions = (wallet: Wallet, config: BuyRequiresT
  * @param wallet - Current portfolio positions
  * @param config - Buy requires total marginal sell configuration
  * @param mode - Selling strategy mode
+ * @param minProfitPercent - Optional minimum profit percentage threshold
  * @returns Array of positions that can be sold
  */
 export const identifyPositionsForSelling = (
-  wallet: Wallet, 
-  config: BuyRequiresTotalMarginalSellConfig, 
-  mode: string
+  wallet: Wallet,
+  config: BuyRequiresTotalMarginalSellConfig,
+  mode: string,
+  minProfitPercent?: number
 ): Position[] => {
-  debug(`Identifying positions for selling using mode: ${mode}`);
-  
+  debug(`Identifying positions for selling using mode: ${mode}${minProfitPercent !== undefined ? ` with ${minProfitPercent}% threshold` : ''}`);
+
   if (!config.enabled) {
     debug('Buy requires total marginal sell is disabled');
     return [];
   }
-  
+
   const sellablePositions: Position[] = [];
-  
+
   for (const position of wallet) {
     // Skip currency positions
     if (position.base === position.quote) {
       continue;
     }
-    
+
     // Skip positions with no holdings
     if (!position.amount || position.amount <= 0) {
       continue;
     }
-    
+
     // Skip positions that are in the non-margin instruments list
-    const isNonMarginInstrument = config.instruments.some(instrument => 
+    const isNonMarginInstrument = config.instruments.some(instrument =>
       tickersEqual(instrument, position.base || '')
     );
-    
+
     if (isNonMarginInstrument) {
       debug(`Skipping ${position.base} as it's in the non-margin instruments list`);
       continue;
     }
-    
+
     switch (mode) {
       case 'only_positive_positions_sell':
-        // Only profitable positions
-        const profitInfo = calculatePositionProfit(position);
-        if (profitInfo && profitInfo.profitAmount > 0) {
-          debug(`Found profitable position for selling: ${position.base} with profit ${profitInfo.profitAmount.toFixed(2)} RUB`);
+        // Only profitable positions that meet threshold
+        const profitInfo = calculatePositionProfit(position, minProfitPercent);
+        if (profitInfo && profitInfo.profitAmount > 0 && profitInfo.meetsThreshold) {
+          debug(`Found profitable position for selling: ${position.base} with profit ${profitInfo.profitAmount.toFixed(2)} RUB (${profitInfo.profitPercent.toFixed(2)}%)`);
+          sellablePositions.push(position);
+        } else if (profitInfo && !profitInfo.meetsThreshold) {
+          debug(`Position ${position.base} has profit ${profitInfo.profitPercent.toFixed(2)}% but does not meet threshold of ${minProfitPercent}%`);
+        }
+        break;
+
+      case 'equal_in_percents':
+        // All positions (proportionally), but check threshold if specified
+        if (minProfitPercent !== undefined) {
+          const profitInfo = calculatePositionProfit(position, minProfitPercent);
+          if (profitInfo && profitInfo.meetsThreshold) {
+            debug(`Found position for proportional selling: ${position.base} with value ${position.totalPriceNumber?.toFixed(2) || 0} RUB, meets threshold`);
+            sellablePositions.push(position);
+          } else if (profitInfo && !profitInfo.meetsThreshold) {
+            debug(`Position ${position.base} does not meet ${minProfitPercent}% threshold for proportional selling`);
+          }
+        } else {
+          debug(`Found position for proportional selling: ${position.base} with value ${position.totalPriceNumber?.toFixed(2) || 0} RUB`);
           sellablePositions.push(position);
         }
         break;
-        
-      case 'equal_in_percents':
-        // All positions (proportionally)
-        debug(`Found position for proportional selling: ${position.base} with value ${position.totalPriceNumber?.toFixed(2) || 0} RUB`);
-        sellablePositions.push(position);
-        break;
-        
+
       case 'none':
         // Do not sell any positions
         debug('Mode is "none", not selecting any positions for selling');
         break;
-        
+
       default:
         debug(`Unknown selling mode: ${mode}`);
     }
   }
-  
-  debug(`Found ${sellablePositions.length} positions available for selling in mode: ${mode}`);
+
+  debug(`Found ${sellablePositions.length} positions available for selling in mode: ${mode}${minProfitPercent !== undefined ? ` with ${minProfitPercent}% threshold` : ''}`);
   return sellablePositions;
 };
 
