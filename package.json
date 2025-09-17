@@ -49,11 +49,12 @@
   "dependencies": {
     "@graphql-tools/schema": "^7.1.5",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.8",
+    "@types/node": "^20.0.0",
     "@types/ws": "^8.2.2",
     "apollo-server": "^3.7.0",
     "apollo-server-core": "3.6.2",
     "apollo-server-express": "3.6.2",
+    "axios": "^1.7.0",
     "chai": "^4.2.0",
     "debug": "^4.3.4",
     "dotenv": "^16.0.1",
@@ -67,14 +68,9 @@
     "nice-grpc": "^2.1.7",
     "puppeteer": "^24.16.0",
     "react": "^18.1.0",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.5",
     "subscriptions-transport-ws": "^0.9.19",
     "tinkoff-sdk-grpc-js": "^1.8.0-fix",
     "ts-mocha": "^6.0.0",
-    "tslint": "^5.20.1",
-    "tslint-config-airbnb": "^5.11.2",
-    "tslint-eslint-rules": "^5.4.0",
     "typescript": "^5.0.0",
     "uniqid": "^5.1.0",
     "ws": "^8.4.2"
@@ -82,6 +78,11 @@
   "devDependencies": {
     "@types/lodash": "^4.17.20",
     "@types/uniqid": "^5.3.4",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-plugin-import": "^2.29.0",
     "bun-types": "latest"
   },
   "engines": {
