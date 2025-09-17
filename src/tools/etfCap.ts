@@ -4,9 +4,7 @@ import _ from 'lodash';
 import { configLoader } from '../configLoader';
 import { convertTinkoffNumberToNumber, normalizeTicker, tickersEqual } from '../utils';
 
-// Используем request-promise из зависимостей проекта
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const rp = require('request-promise');
+import axios from 'axios';
 
 type Quotation = { units: number; nano: number } | undefined;
 
@@ -46,18 +44,15 @@ const getTickersFromArgs = (): string[] => {
 const T_CAPITAL_URL = 'https://t-capital-funds.ru/statistics/';
 
 const fetchStatisticsHtml = async (): Promise<string> => {
-  const html: string = await rp({
-    uri: T_CAPITAL_URL,
-    method: 'GET',
+  const response = await axios.get(T_CAPITAL_URL, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
       Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'ru,en;q=0.9',
     },
     timeout: 10000,
-    resolveWithFullResponse: false,
-    simple: true,
   });
+  const html: string = response.data;
   return html;
 };
 
