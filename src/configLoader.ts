@@ -128,15 +128,33 @@ class ConfigLoader {
       }
     }
 
-    // Check that sum of weights equals 100 (or close to 100)
+    // Check that sum of weights is reasonable (between 50% and 150%)
+    // The balancer will normalize these weights to 100% automatically
     const totalWeight = Object.values(account.desired_wallet).reduce((sum, weight) => sum + weight, 0);
-    if (Math.abs(totalWeight - 100) > 1) {
-      throw new Error(`Wallet validation failed: sum of weights for account ${account.id} equals ${totalWeight}%, expected 100%`);
+    if (totalWeight < 50 || totalWeight > 150) {
+      throw new Error(`Wallet validation failed: sum of weights for account ${account.id} equals ${totalWeight}%, expected between 50% and 150%`);
     }
 
     // Validate min_profit_percent_for_close_position configuration if present
     if (account.min_profit_percent_for_close_position !== undefined) {
       this.validateMinProfitPercentForClosePosition(account.min_profit_percent_for_close_position, account.id);
+    }
+
+    // Set default exchange_closure_behavior if not provided (backward compatibility)
+    if (!account.exchange_closure_behavior) {
+      account.exchange_closure_behavior = {
+        mode: 'skip_iteration',
+        update_iteration_result: false
+      };
+      console.log(`Info: Using default exchange closure behavior (skip_iteration) for account ${account.id}`);
+    } else {
+      // Validate exchange_closure_behavior configuration
+      this.validateExchangeClosureBehavior(account.exchange_closure_behavior, account.id);
+    }
+
+    // Validate buy_requires_total_marginal_sell configuration if present
+    if (account.buy_requires_total_marginal_sell) {
+      this.validateBuyRequiresTotalMarginalSell(account.buy_requires_total_marginal_sell, account);
     }
   }
 
@@ -182,23 +200,6 @@ class ConfigLoader {
       writeFileSync(configPath, configData, 'utf8');
     } catch (error) {
       throw new Error(`Failed to save configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-
-    // Set default exchange_closure_behavior if not provided (backward compatibility)
-    if (!account.exchange_closure_behavior) {
-      account.exchange_closure_behavior = {
-        mode: 'skip_iteration',
-        update_iteration_result: false
-      };
-      console.log(`Info: Using default exchange closure behavior (skip_iteration) for account ${account.id}`);
-    } else {
-      // Validate exchange_closure_behavior configuration
-      this.validateExchangeClosureBehavior(account.exchange_closure_behavior, account.id);
-    }
-
-    // Validate buy_requires_total_marginal_sell configuration if present
-    if (account.buy_requires_total_marginal_sell) {
-      this.validateBuyRequiresTotalMarginalSell(account.buy_requires_total_marginal_sell, account);
     }
   }
 
