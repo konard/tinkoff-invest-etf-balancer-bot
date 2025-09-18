@@ -260,6 +260,7 @@ npx ts-node --transpile-only ./src/tools/scrapeTbankNews.ts TRUR --limit=50 --in
 - Полное название фонда + тикер - https://investfunds.ru/funds/7067/
 
 [![Build Status](https://github.com/suenot/deep-tinkoff-invest-api/actions/workflows/test.yml/badge.svg)](https://github.com/suenot/deep-tinkoff-invest-api/actions/workflows/test.yml)
+[![Coverage](https://codecov.io/gh/suenot/deep-tinkoff-invest-api/branch/master/graph/badge.svg)](https://codecov.io/gh/suenot/deep-tinkoff-invest-api)
 [![License](https://img.shields.io/github/license/suenot/deep-tinkoff-invest-api)](LICENSE)
 
 A trading bot for automatic portfolio rebalancing on Tinkoff Invest accounts.
