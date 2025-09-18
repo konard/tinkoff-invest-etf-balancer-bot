@@ -64,7 +64,24 @@ const getAccountConfig = () => {
           min_buy_rebalance_percent: 0.5
         };
       }
-      
+
+      // Add min_profit_percent_for_close_position configuration for specific test accounts
+      if (accountId === 'test-threshold-20') {
+        config.min_profit_percent_for_close_position = 20;
+      } else if (accountId === 'test-threshold-15') {
+        config.min_profit_percent_for_close_position = 15;
+      } else if (accountId === 'test-threshold-10') {
+        config.min_profit_percent_for_close_position = 10;
+      } else if (accountId === 'test-stop-loss-5') {
+        config.min_profit_percent_for_close_position = -5;
+      } else if (accountId === 'test-stop-loss-2') {
+        config.min_profit_percent_for_close_position = -2;
+      } else if (accountId === 'test-threshold-0') {
+        config.min_profit_percent_for_close_position = 0;
+      } else if (accountId === 'test-with-threshold') {
+        config.min_profit_percent_for_close_position = 10;
+      }
+
       return config;
     }
     throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
