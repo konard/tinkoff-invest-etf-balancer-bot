@@ -39,7 +39,8 @@
           "mode": "equal_in_percents"
         },
         "min_buy_rebalance_percent": 0.10
-      }
+      },
+      "min_profit_percent_for_close_position": 5
     }
   ]
 }

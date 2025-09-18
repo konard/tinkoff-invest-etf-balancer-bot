@@ -281,6 +281,56 @@ The bot now supports a special configuration for purchasing non-margin instrumen
 
 See [README.buy_requires_total_marginal_sell.md](README.buy_requires_total_marginal_sell.md) for detailed documentation.
 
+## Minimum Profit Percentage for Closing Position
+
+The bot now supports configuring a minimum profit percentage (or maximum loss percentage) threshold for selling positions. This feature helps implement profit-taking strategies and stop-loss protection.
+
+### Configuration
+
+Add the `min_profit_percent_for_close_position` parameter to your account configuration in `CONFIG.json`:
+
+```json
+{
+  "accounts": [
+    {
+      // ... other configuration ...
+      "min_profit_percent_for_close_position": 5
+    }
+  ]
+}
+```
+
+### How it works
+
+- **Positive values** (e.g., `5`): Only sell positions with at least 5% profit
+- **Negative values** (e.g., `-2`): Allow selling with maximum 2% loss (stop-loss)
+- **Zero** (`0`): Only sell at break-even or profit
+- **Not specified**: Feature disabled, use standard selling logic
+
+### Examples
+
+1. **Profit-taking strategy** (`min_profit_percent_for_close_position: 5`):
+   - Position bought at 100₽, current price 104₽ → **blocked** (4% profit < 5% threshold)
+   - Position bought at 100₽, current price 106₽ → **allowed** (6% profit ≥ 5% threshold)
+
+2. **Stop-loss protection** (`min_profit_percent_for_close_position: -3`):
+   - Position bought at 100₽, current price 98₽ → **allowed** (-2% loss > -3% threshold)
+   - Position bought at 100₽, current price 96₽ → **blocked** (-4% loss < -3% threshold)
+
+3. **Conservative approach** (`min_profit_percent_for_close_position: 10`):
+   - Only sells positions with 10% or more profit
+   - Useful for long-term holding strategies
+
+### Integration with other features
+
+This threshold applies to:
+- Standard portfolio rebalancing
+- `buy_requires_total_marginal_sell` feature
+- Margin trading position management
+- All selling decisions made by the bot
+
+The feature is fully backward compatible - existing configurations without this parameter will continue to work unchanged.
+
 ## Quick Start
 
 1. Clone the repository:
