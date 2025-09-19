@@ -492,7 +492,6 @@ export const balancer = async (
         position.toBuyLots = toBuyLots;
 
         // Guarantee minimum 1 lot for each position with positive target share
-        const currentLots = position.amount / position.lotSize;
         if (desiredPercentNumber > 0 && currentLots < 1 && position.toBuyLots < 1) {
           debug('Minimum 1 lot by strategy: increasing toBuyLots to 1', position.base);
           position.toBuyLots = 1;
