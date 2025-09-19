@@ -23,14 +23,14 @@ const debugProvider = debug('bot').extend('provider');
 
 // Функция для получения конфигурации аккаунта
 const getAccountConfig = () => {
-  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
-  const account = configLoader.getAccountById(accountId);
+  // Берем первый аккаунт из конфига
+  const accounts = configLoader.getAllAccounts();
 
-  if (!account) {
-    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts found in CONFIG.json');
   }
 
-  return account;
+  return accounts[0];
 };
 
 // Получаем конфигурацию аккаунта на уровне модуля

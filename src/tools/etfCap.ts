@@ -17,14 +17,24 @@ const toNumber = (q: Quotation): number => {
 
 // Функция для получения конфигурации аккаунта
 const getAccountConfig = () => {
-  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
-  const account = configLoader.getAccountById(accountId);
-
-  if (!account) {
-    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  // Берем первый аккаунт из конфига
+  const accounts = configLoader.getAllAccounts();
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts found in CONFIG.json');
   }
 
+  const account = accounts[0];
   return account;
+};
+
+// Получаем токен из конфигурации аккаунта
+const getTokenForAccount = () => {
+  const accountConfig = getAccountConfig();
+  const token = configLoader.getAccountToken(accountConfig.id);
+  if (!token) {
+    throw new Error(`No token found for account ${accountConfig.id}. Please set token in CONFIG.json`);
+  }
+  return token;
 };
 
 const getTickersFromArgs = (): string[] => {
@@ -273,7 +283,7 @@ export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Rec
 export const getFxRateToRub = async (currency: 'RUB' | 'USD' | 'EUR'): Promise<number> => {
   if (currency === 'RUB') return 1;
   try {
-    const { instruments, marketData } = createSdk(process.env.TOKEN || '');
+    const { instruments, marketData } = createSdk(getTokenForAccount());
     const resp = await instruments.currencies({ instrumentStatus: 1 }); // 1 = INSTRUMENT_STATUS_BASE
     const list = resp?.instruments || [];
     const findByPatterns = (patterns: RegExp[]): any | undefined =>
@@ -295,7 +305,7 @@ export const getEtfMarketCapRUB = async (tickerRaw: string) => {
   try {
     const ticker = normalizeTicker(tickerRaw) || tickerRaw;
 
-    const { instruments, marketData } = createSdk(process.env.TOKEN || '');
+    const { instruments, marketData } = createSdk(getTokenForAccount());
 
     // 1) Найти ETF по тикеру
     const etfsResp = await instruments.etfs({});
@@ -370,7 +380,7 @@ export const getEtfMarketCapRUB = async (tickerRaw: string) => {
 export const getShareMarketCapRUB = async (tickerRaw: string) => {
   try {
     const ticker = normalizeTicker(tickerRaw) || tickerRaw;
-    const { instruments, marketData } = createSdk(process.env.TOKEN || '');
+    const { instruments, marketData } = createSdk(getTokenForAccount());
 
     const sharesResp = await instruments.shares({});
     const share = _.find(sharesResp?.instruments, (s: any) => tickersEqual(s?.ticker, ticker));

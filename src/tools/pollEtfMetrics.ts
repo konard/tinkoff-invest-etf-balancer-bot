@@ -13,13 +13,13 @@ const LOG_PREFIX = '[pollEtfMetrics]';
 
 // Функция для получения конфигурации аккаунта
 const getAccountConfig = () => {
-  const accountId = process.env.ACCOUNT_ID || '0'; // По умолчанию используем аккаунт '0'
-  const account = configLoader.getAccountById(accountId);
-
-  if (!account) {
-    throw new Error(`Account with id '${accountId}' not found in CONFIG.json`);
+  // Берем первый аккаунт из конфига
+  const accounts = configLoader.getAllAccounts();
+  if (!accounts || accounts.length === 0) {
+    throw new Error('No accounts found in CONFIG.json');
   }
 
+  const account = accounts[0];
   return account;
 };
 
