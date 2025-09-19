@@ -5,6 +5,8 @@ import { configLoader } from '../configLoader';
 import { convertTinkoffNumberToNumber, normalizeTicker, tickersEqual } from '../utils';
 
 import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
 
 type Quotation = { units: number; nano: number } | undefined;
 
@@ -114,6 +116,105 @@ const extractStatisticsTableHtml = (html: string): string | null => {
 };
 
 export type AumEntry = { amount: number; currency: 'RUB' | 'USD' | 'EUR' };
+
+interface AumCacheEntry {
+  data: Record<string, AumEntry>;
+  timestamp: number;
+}
+
+interface MarketCapResult {
+  type: 'ETF' | 'SHARE';
+  ticker: string;
+  normalizedTicker: string;
+  figi: string;
+  uid: string;
+  lastPriceRUB: number;
+  numShares: number;
+  numSharesSource?: string;
+  marketCapRUB: number | null;
+}
+
+interface MarketCapCacheEntry {
+  data: Record<string, MarketCapResult>;
+  timestamp: number;
+}
+
+const getMarketCapCacheFilePath = (accountId: string): string => {
+  return path.join(process.cwd(), `.marketcap-cache-${accountId}.json`);
+};
+
+const loadMarketCapCache = (accountId: string): MarketCapCacheEntry | null => {
+  try {
+    const cacheFilePath = getMarketCapCacheFilePath(accountId);
+    if (!fs.existsSync(cacheFilePath)) {
+      return null;
+    }
+
+    const cacheContent = fs.readFileSync(cacheFilePath, 'utf8');
+    const cacheData: MarketCapCacheEntry = JSON.parse(cacheContent);
+    return cacheData;
+  } catch (e) {
+    console.warn(`[etfCap] Failed to load market cap cache: ${e}`);
+    return null;
+  }
+};
+
+const saveMarketCapCache = (accountId: string, marketCapMap: Record<string, MarketCapResult>): void => {
+  try {
+    const cacheData: MarketCapCacheEntry = {
+      data: marketCapMap,
+      timestamp: Date.now()
+    };
+
+    const cacheFilePath = getMarketCapCacheFilePath(accountId);
+    fs.writeFileSync(cacheFilePath, JSON.stringify(cacheData, null, 2), 'utf8');
+    console.log(`[etfCap] Market cap cache saved to: ${cacheFilePath}`);
+  } catch (e) {
+    console.warn(`[etfCap] Failed to save market cap cache: ${e}`);
+  }
+};
+
+const getCacheFilePath = (accountId: string): string => {
+  return path.join(process.cwd(), `.aum-cache-${accountId}.json`);
+};
+
+const isAumCacheValid = (cacheData: AumCacheEntry, ttlHours: number): boolean => {
+  const now = Date.now();
+  const cacheAge = now - cacheData.timestamp;
+  const maxAge = ttlHours * 60 * 60 * 1000; // Convert hours to milliseconds
+  return cacheAge < maxAge;
+};
+
+const loadAumCache = (accountId: string): AumCacheEntry | null => {
+  try {
+    const cacheFilePath = getCacheFilePath(accountId);
+    if (!fs.existsSync(cacheFilePath)) {
+      return null;
+    }
+
+    const cacheContent = fs.readFileSync(cacheFilePath, 'utf8');
+    const cacheData: AumCacheEntry = JSON.parse(cacheContent);
+    return cacheData;
+  } catch (e) {
+    console.warn(`[etfCap] Failed to load AUM cache: ${e}`);
+    return null;
+  }
+};
+
+const saveAumCache = (accountId: string, aumMap: Record<string, AumEntry>): void => {
+  try {
+    const cacheData: AumCacheEntry = {
+      data: aumMap,
+      timestamp: Date.now()
+    };
+
+    const cacheFilePath = getCacheFilePath(accountId);
+    fs.writeFileSync(cacheFilePath, JSON.stringify(cacheData, null, 2), 'utf8');
+    console.log(`[etfCap] AUM cache saved to: ${cacheFilePath}`);
+  } catch (e) {
+    console.warn(`[etfCap] Failed to save AUM cache: ${e}`);
+  }
+};
 
 export const parseAumTable = (tableHtml: string, interestedTickers: Set<string>): Record<string, AumEntry> => {
   const result: Record<string, AumEntry> = {};
@@ -250,29 +351,76 @@ const findAumForTickerByName = (html: string, normalizedTicker: string): AumEntr
 };
 
 export const buildAumMapSmart = async (normalizedTickers: string[]): Promise<Record<string, AumEntry>> => {
-  // Пытаемся сначала через авто-сопоставление тикеров, затем через паттерны имен
+  // Get current account config to check cache settings
+  const accountConfig = getAccountConfig();
+  const projectConfig = configLoader.loadConfig();
+  const cacheConfig = projectConfig.aum_cache;
+
+  // Check if caching is enabled
+  if (cacheConfig?.enabled) {
+    const ttlHours = cacheConfig.ttl_hours || 1;
+    console.log(`[etfCap] AUM caching enabled with TTL: ${ttlHours} hours`);
+
+    // Try to load from cache first
+    const cacheData = loadAumCache(accountConfig.id);
+    if (cacheData && isAumCacheValid(cacheData, ttlHours)) {
+      console.log(`[etfCap] Using cached AUM data (age: ${((Date.now() - cacheData.timestamp) / 1000 / 60).toFixed(1)} minutes)`);
+
+      // Filter cache data to only include requested tickers
+      const filteredResult: Record<string, AumEntry> = {};
+      for (const ticker of normalizedTickers) {
+        if (cacheData.data[ticker]) {
+          filteredResult[ticker] = cacheData.data[ticker];
+        }
+      }
+
+      // If we have all requested tickers in cache, return cached data
+      if (normalizedTickers.every(ticker => filteredResult[ticker])) {
+        console.log(`[etfCap] All requested tickers found in cache`);
+        return filteredResult;
+      } else {
+        console.log(`[etfCap] Cache incomplete, fetching fresh data`);
+      }
+    } else {
+      if (cacheData) {
+        console.log(`[etfCap] Cache expired (age: ${((Date.now() - cacheData.timestamp) / 1000 / 60).toFixed(1)} minutes), fetching fresh data`);
+      } else {
+        console.log(`[etfCap] No cache found, fetching fresh data`);
+      }
+    }
+  } else {
+    console.log(`[etfCap] AUM caching disabled`);
+  }
+
+  // Fetch fresh data if cache is not available, expired, or incomplete
   const result: Record<string, AumEntry> = {};
-  
+
   try {
     const html: string = await fetchStatisticsHtml();
     console.log(`[etfCap] buildAumMapSmart: fetched HTML length=${html.length}`);
-    
+
     const auto = await fetchAumMapFromTCapital(normalizedTickers);
     console.log(`[etfCap] buildAumMapSmart: auto result:`, auto);
-    
+
     Object.assign(result, auto);
     for (const t of normalizedTickers) {
       if (result[t]) continue;
       const byName = findAumForTickerByName(html, t);
       if (byName) result[t] = byName;
-      
+
       // Детальное логирование для отладки AUM
       if (t === 'TBRU' || t === 'TOFZ' || t === 'TMON' || t === 'TMOS' || t === 'TITR' || t === 'TDIV') {
         console.log(`[etfCap] [DEBUG] ${t} AUM search: ${byName ? 'FOUND' : 'NOT FOUND'}`);
       }
     }
-    
+
     console.log(`[etfCap] buildAumMapSmart: final result:`, result);
+
+    // Save to cache if caching is enabled and we have data
+    if (cacheConfig?.enabled && Object.keys(result).length > 0) {
+      saveAumCache(accountConfig.id, result);
+    }
+
     return result;
   } catch (e) {
     console.error(`[etfCap] buildAumMapSmart error:`, e);
@@ -427,19 +575,60 @@ export const getShareMarketCapRUB = async (tickerRaw: string) => {
 const main = async () => {
   const tickers = getTickersFromArgs();
   const normalizedTickers = tickers.map((t) => normalizeTicker(t) || t);
+
+  // Get project config for caching
+  const accountConfig = getAccountConfig();
+  const projectConfig = configLoader.loadConfig();
+  const cacheConfig = projectConfig.aum_cache;
+
+  // Try to load market cap data from cache
+  let marketCapCache: MarketCapCacheEntry | null = null;
+  if (cacheConfig?.enabled) {
+    const ttlHours = cacheConfig.ttl_hours || 1;
+    marketCapCache = loadMarketCapCache(accountConfig.id);
+
+    if (marketCapCache && isAumCacheValid(marketCapCache as any, ttlHours)) {
+      console.log(`[etfCap] Market cap cache valid (age: ${((Date.now() - marketCapCache.timestamp) / 1000 / 60).toFixed(1)} minutes)`);
+    } else {
+      if (marketCapCache) {
+        console.log(`[etfCap] Market cap cache expired (age: ${((Date.now() - marketCapCache.timestamp) / 1000 / 60).toFixed(1)} minutes)`);
+      } else {
+        console.log(`[etfCap] No market cap cache found`);
+      }
+      marketCapCache = null;
+    }
+  }
+
   // Получаем карту AUM с сайта Т-Капитал (умный парс по тикерам и именам)
   const aumMap = await buildAumMapSmart(normalizedTickers);
   // Предзагружаем FX курсы
   const usdToRub = await getFxRateToRub('USD');
   const eurToRub = await getFxRateToRub('EUR');
+
   const results = [] as any[];
+  const newMarketCapData: Record<string, MarketCapResult> = {};
+
   for (const t of tickers) {
     try {
-      // eslint-disable-next-line no-await-in-loop
-      let r = await getEtfMarketCapRUB(t);
-      if (!r) {
-        r = await getShareMarketCapRUB(t);
+      let r: MarketCapResult | null = null;
+
+      // Try to get from cache first
+      if (marketCapCache && marketCapCache.data[t]) {
+        r = marketCapCache.data[t];
+        console.log(`[etfCap] Using cached market cap data for ${t}`);
+      } else {
+        // eslint-disable-next-line no-await-in-loop
+        r = await getEtfMarketCapRUB(t);
+        if (!r) {
+          r = await getShareMarketCapRUB(t);
+        }
+
+        // Save to new cache data if we got a result
+        if (r) {
+          newMarketCapData[t] = r;
+        }
       }
+
       if (!r) {
         results.push({ type: 'UNKNOWN', ticker: t, error: 'Instrument not found' });
       } else {
@@ -460,6 +649,9 @@ const main = async () => {
             numSharesSource: r.numSharesSource || 'derivedFromAUM',
             marketCapRUB: aumRUB,
           } as any;
+
+          // Update cache data with corrected values
+          newMarketCapData[t] = r;
         }
         results.push({ ...r, aumRUB });
       }
@@ -467,6 +659,14 @@ const main = async () => {
       results.push({ type: 'ERROR', ticker: t, error: (err as Error)?.message || String(err) });
     }
   }
+
+  // Save new market cap cache if we have new data and caching is enabled
+  if (cacheConfig?.enabled && Object.keys(newMarketCapData).length > 0) {
+    // Merge with existing cache data
+    const mergedData = marketCapCache ? { ...marketCapCache.data, ...newMarketCapData } : newMarketCapData;
+    saveMarketCapCache(accountConfig.id, mergedData);
+  }
+
   console.table(
     results.map((r) => ({
       type: r.type,

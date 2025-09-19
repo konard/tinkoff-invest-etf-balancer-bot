@@ -119,6 +119,13 @@ export interface AccountConfig {
 }
 
 export interface ProjectConfig {
+  /**
+   * AUM/capitalization cache configuration
+   */
+  aum_cache?: {
+    enabled: boolean;
+    ttl_hours: number;
+  };
   accounts: AccountConfig[];
 }
 

@@ -49,3 +49,7 @@ __pycache__
 temp/
 tmp/
 
+# AUM/Market cap cache files
+.aum-cache-*.json
+.marketcap-cache-*.json
+
