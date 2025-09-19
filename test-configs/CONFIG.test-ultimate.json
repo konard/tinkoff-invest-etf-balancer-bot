@@ -1,0 +1,120 @@
+{
+  "accounts": [
+    {
+      "id": "env-found-ultra",
+      "name": "Env Found Ultra",
+      "t_invest_token": "${TEST_TOKEN_1}",
+      "account_id": "001",
+      "desired_mode": "manual",
+      "balance_interval": 600000,
+      "sleep_between_orders": 2000,
+      "desired_wallet": {
+        "TRUR": 33.333,
+        "TMOS": 33.333,
+        "TGLD": 33.334
+      },
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 3,
+        "free_threshold": 100000,
+        "balancing_strategy": "remove"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "env-not-found-ultra",
+      "name": "Env Not Found Ultra",
+      "t_invest_token": "${DEFINITELY_MISSING_TOKEN_ULTRA}",
+      "account_id": "002",
+      "desired_mode": "aum",
+      "balance_interval": 7200,
+      "sleep_between_orders": 3000,
+      "desired_wallet": {
+        "TRUR": 40,
+        "TMOS": 35,
+        "TGLD": 20
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "force_orders",
+        "update_iteration_result": true
+      }
+    },
+    {
+      "id": "direct-ultra",
+      "name": "Direct Ultra",
+      "t_invest_token": "t.direct_ultra_token",
+      "account_id": "003",
+      "desired_mode": "marketcap",
+      "balance_interval": 1800,
+      "sleep_between_orders": 500,
+      "desired_wallet": {
+        "TRUR": 110
+      },
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 2,
+        "free_threshold": 75000,
+        "balancing_strategy": "keep"
+      },
+      "exchange_closure_behavior": {
+        "mode": "dry_run",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "env-found-ultra",
+      "name": "Duplicate ID Account",
+      "t_invest_token": "t.another_token",
+      "account_id": "004",
+      "desired_mode": "decorrelation",
+      "balance_interval": 5400,
+      "sleep_between_orders": 1500,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 25000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": true
+      }
+    },
+    {
+      "id": "duplicate-token-ultra",
+      "name": "Duplicate Token Account",
+      "t_invest_token": "t.direct_ultra_token",
+      "account_id": "005",
+      "desired_mode": "marketcap_aum",
+      "balance_interval": 9000,
+      "sleep_between_orders": 4000,
+      "desired_wallet": {
+        "TRUR": 50,
+        "TMOS": 25,
+        "TGLD": 15
+      },
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 1.8,
+        "free_threshold": 60000,
+        "balancing_strategy": "remove"
+      },
+      "exchange_closure_behavior": {
+        "mode": "force_orders",
+        "update_iteration_result": false
+      }
+    }
+  ]
+}

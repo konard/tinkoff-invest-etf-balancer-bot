@@ -482,8 +482,13 @@ export const balancer = async (
 
       debug('How many lots to buy (can be negative, then need to sell)');
       if (position.amount && position.lotSize) {
-        const toBuyLots = canBuyBeforeTargetLots - (position.amount / position.lotSize);
-        debug('toBuyLots', toBuyLots);
+        const currentLots = position.amount / position.lotSize;
+        const toBuyLots = canBuyBeforeTargetLots - currentLots;
+        debug('🔍 DETAILED CALCULATION FOR', position.base);
+        debug('  canBuyBeforeTargetLots:', canBuyBeforeTargetLots);
+        debug('  currentLots (amount/lotSize):', currentLots, '=', position.amount, '/', position.lotSize);
+        debug('  toBuyLots calculation:', canBuyBeforeTargetLots, '-', currentLots, '=', toBuyLots);
+        debug('  RESULT: toBuyLots =', toBuyLots);
         position.toBuyLots = toBuyLots;
 
         // Guarantee minimum 1 lot for each position with positive target share
@@ -666,73 +671,61 @@ export const balancer = async (
     sortedWallet.splice(0, sortedWallet.length, ...filteredWallet);
   }
 
+  // ИСПРАВЛЕНИЕ: Базовая логика - ВСЕГДА сначала продажи, потом покупки
   // Execution order:
-  // 1) First sales (get rubles) - but only for profitable positions if buy_requires_total_marginal_sell is enabled
-  // 2) Then purchases of non-margin instruments first (if buy_requires_total_marginal_sell is enabled)
-  // 3) Then remaining sales
-  // 4) Then remaining purchases
+  // 1) All sales first (get rubles from selling positions)
+  // 2) Priority purchases (non-margin instruments if buy_requires_total_marginal_sell enabled)
+  // 3) Remaining purchases
 
-  let sellsFirst: Position[] = [];
-  let buysNonMarginFirst: Position[] = [];
-  let remainingSells: Position[] = [];
+  let allSells: Position[] = [];
+  let priorityBuys: Position[] = [];
   let remainingBuys: Position[] = [];
   
+  // Всегда отделяем все продажи от покупок
+  allSells = _.filter(sortedWallet, (p) => (p.toBuyLots || 0) <= -1) as Position[];
+  const allBuys = _.filter(sortedWallet, (p) => (p.toBuyLots || 0) >= 1) as Position[];
+  
   if (buyRequiresConfig?.enabled) {
-    // Separate non-margin instrument purchases to be executed first
+    // Если включена специальная функция для немаржинальных активов,
+    // разделяем покупки на приоритетные и остальные
     const nonMarginInstruments = buyRequiresConfig.instruments || [];
     
-    buysNonMarginFirst = _.filter(sortedWallet, (p) => {
-      return p.toBuyLots && p.toBuyLots >= 1 && 
-             nonMarginInstruments.some((instrument: string) => tickersEqual(p.base || '', instrument));
+    priorityBuys = _.filter(allBuys, (p) => {
+      return nonMarginInstruments.some((instrument: string) => tickersEqual(p.base || '', instrument));
     }) as Position[];
     
-    // Sales for funding non-margin purchases - only sell positions identified in specialSellingPlan
-    sellsFirst = _.filter(sortedWallet, (p) => {
-      return p.toBuyLots && p.toBuyLots <= -1 && 
-             Object.keys(specialSellingPlan).some((ticker: string) => tickersEqual(p.base || '', ticker));
-    }) as Position[];
-    
-    // Remaining sales (not part of special selling plan)
-    remainingSells = _.filter(sortedWallet, (p) => {
-      return p.toBuyLots && p.toBuyLots <= -1 && 
-             !Object.keys(specialSellingPlan).some((ticker: string) => tickersEqual(p.base || '', ticker));
-    }) as Position[];
-    
-    // Remaining purchases (excluding non-margin instruments already handled)
-    remainingBuys = _.filter(sortedWallet, (p) => {
-      return p.toBuyLots && p.toBuyLots >= 1 && 
-             !nonMarginInstruments.some((instrument: string) => tickersEqual(p.base || '', instrument));
+    remainingBuys = _.filter(allBuys, (p) => {
+      return !nonMarginInstruments.some((instrument: string) => tickersEqual(p.base || '', instrument));
     }) as Position[];
   } else {
-    // Normal execution order when buy_requires_total_marginal_sell is not enabled
-    sellsFirst = _.filter(sortedWallet, (p) => (p.toBuyLots || 0) <= -1) as Position[];
-    remainingBuys = _.filter(sortedWallet, (p) => (p.toBuyLots || 0) >= 1) as Position[];
+    // Если специальная функция выключена, все покупки идут как обычные
+    priorityBuys = [];
+    remainingBuys = allBuys;
   }
   
-  const sellsSorted = _.orderBy(sellsFirst, ['toBuyNumber'], ['asc']);
-  const buysNonMarginSorted = _.orderBy(buysNonMarginFirst, ['lotPriceNumber'], ['desc']);
-  const remainingSellsSorted = _.orderBy(remainingSells, ['toBuyNumber'], ['asc']);
+  const allSellsSorted = _.orderBy(allSells, ['toBuyNumber'], ['asc']);
+  const priorityBuysSorted = _.orderBy(priorityBuys, ['lotPriceNumber'], ['desc']);
   const remainingBuysSorted = _.orderBy(remainingBuys, ['lotPriceNumber'], ['desc']);
   
-  // Execution order according to TZ (Technical Specification):
-  // CRITICAL FIX: Sales must execute BEFORE purchases to provide funds!
-  // 1) First sales for funding non-margin purchases (sellsFirst) - get RUB for buying
-  // 2) Then purchases of non-margin instruments (buysNonMarginFirst) - buy with obtained RUB
-  // 3) Then remaining sales (remainingSells)
-  // 4) Then remaining purchases (remainingBuys)
-  const ordersPlanned = [...sellsSorted, ...buysNonMarginSorted, ...remainingSellsSorted, ...remainingBuysSorted];
+  // Правильная последовательность:
+  // 1) Все продажи сначала (получаем рубли)
+  // 2) Приоритетные покупки (немаржинальные активы)
+  // 3) Остальные покупки
+  const ordersPlanned = [...allSellsSorted, ...priorityBuysSorted, ...remainingBuysSorted];
   debug('ordersPlanned', ordersPlanned);
 
   debug('walletInfo', walletInfo);
 
   if (!dryRun) {
-    if (buyRequiresConfig?.enabled && (sellsFirst.length > 0 || buysNonMarginFirst.length > 0)) {
-      debug('🔄 Using SEQUENTIAL execution for buy_requires_total_marginal_sell feature');
-      debug(`Sequential execution phases: ${sellsFirst.length} sells first, ${buysNonMarginFirst.length} non-margin buys, ${remainingSells.length + remainingBuys.length} remaining`);
-      await generateOrdersSequential(sellsFirst, buysNonMarginFirst, [...remainingSellsSorted, ...remainingBuysSorted]);
+    // ИСПРАВЛЕНИЕ: ВСЕГДА используем последовательное выполнение
+    // Сначала продаем (получаем средства), потом покупаем
+    if (allSells.length > 0 || priorityBuys.length > 0) {
+      debug('🔄 Using SEQUENTIAL execution - sells first, then buys (fixed logic)');
+      debug(`Sequential phases: ${allSells.length} total sells, ${priorityBuys.length} priority buys, ${remainingBuys.length} remaining buys`);
+      await generateOrdersSequential(allSellsSorted, priorityBuysSorted, remainingBuysSorted);
     } else {
-      debug('Creating necessary orders for all positions (normal mode)');
-      await generateOrders(ordersPlanned);
+      debug('No sells or priority buys needed, executing remaining buys only');
+      await generateOrders(remainingBuysSorted);
     }
   } else {
     debug('Dry-run mode: Skipping order generation. Orders that would be placed:', ordersPlanned.length);

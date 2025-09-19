@@ -1,0 +1,114 @@
+{
+  "accounts": [
+    {
+      "id": "env-found",
+      "name": "Env Found",
+      "t_invest_token": "${TEST_TOKEN_1}",
+      "account_id": "001",
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "env-missing",
+      "name": "Env Missing",
+      "t_invest_token": "${MISSING_TOKEN_FOR_SURE}",
+      "account_id": "002",
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "direct-token",
+      "name": "Direct Token",
+      "t_invest_token": "t.direct_value",
+      "account_id": "003",
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "env-found",
+      "name": "Duplicate ID",
+      "t_invest_token": "t.another_token",
+      "account_id": "004",
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "duplicate-token",
+      "name": "Duplicate Token",
+      "t_invest_token": "t.direct_value",
+      "account_id": "005",
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    }
+  ]
+}

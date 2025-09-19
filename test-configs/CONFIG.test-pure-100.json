@@ -1,0 +1,94 @@
+{
+  "accounts": [
+    {
+      "id": "mega-account-1",
+      "name": "Mega Account 1",
+      "t_invest_token": "${ABSOLUTELY_MISSING_TOKEN}",
+      "account_id": "001",
+      "desired_mode": "manual",
+      "balance_interval": 600000,
+      "sleep_between_orders": 2000,
+      "desired_wallet": {
+        "TRUR": 55,
+        "TMOS": 35
+      },
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 3,
+        "free_threshold": 100000,
+        "balancing_strategy": "remove"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "mega-account-2",
+      "name": "Mega Account 2",
+      "t_invest_token": "t.direct_mega_token",
+      "account_id": "002",
+      "desired_mode": "aum",
+      "balance_interval": 7200,
+      "sleep_between_orders": 3000,
+      "desired_wallet": {
+        "TRUR": 100
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "force_orders",
+        "update_iteration_result": true
+      }
+    },
+    {
+      "id": "mega-account-1",
+      "name": "Duplicate ID Account",
+      "t_invest_token": "t.another_mega_token",
+      "account_id": "003",
+      "desired_mode": "marketcap",
+      "balance_interval": 1800,
+      "sleep_between_orders": 500,
+      "desired_wallet": {
+        "TRUR": 120
+      },
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 2,
+        "free_threshold": 75000,
+        "balancing_strategy": "keep"
+      },
+      "exchange_closure_behavior": {
+        "mode": "dry_run",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "mega-account-4",
+      "name": "Duplicate Token Account",
+      "t_invest_token": "t.direct_mega_token",
+      "account_id": "004",
+      "desired_mode": "decorrelation",
+      "balance_interval": 5400,
+      "sleep_between_orders": 1500,
+      "desired_wallet": {
+        "TRUR": 80,
+        "TMOS": 15
+      },
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 25000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": true
+      }
+    }
+  ]
+}

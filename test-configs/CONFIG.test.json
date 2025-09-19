@@ -1,0 +1,24 @@
+{
+  "accounts": [
+    {
+      "id": "test_account",
+      "name": "Test Account",
+      "t_invest_token": "test_token",
+      "account_id": "test_account_id",
+      "desired_wallet": {
+        "TRUR": 50,
+        "TMOS": 30,
+        "TGLD": 20
+      },
+      "desired_mode": "manual",
+      "balance_interval": 60000,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "balancing_strategy": "remove"
+      }
+    }
+  ]
+}

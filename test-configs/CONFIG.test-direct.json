@@ -1,0 +1,30 @@
+{
+  "accounts": [
+    {
+      "id": "test-account-1",
+      "name": "Test Account 1",
+      "t_invest_token": "${SOME_VERY_LONG_ENVIRONMENT_VARIABLE_NAME}",
+      "account_id": "123456789",
+      "desired_wallet": {
+        "TRUR": 25,
+        "TMOS": 25,
+        "TGLD": 25,
+        "RUB": 25
+      },
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "max_margin_size": 0,
+        "balancing_strategy": "remove"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    }
+  ]
+}

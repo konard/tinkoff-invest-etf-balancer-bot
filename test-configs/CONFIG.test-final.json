@@ -1,0 +1,111 @@
+{
+  "accounts": [
+    {
+      "id": "test-account-1",
+      "name": "Test Account 1",
+      "t_invest_token": "t.direct_token",
+      "account_id": "123456789",
+      "desired_wallet": {
+        "TRUR": 25,
+        "TMOS": 25,
+        "TGLD": 25,
+        "RUB": 25
+      },
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "max_margin_size": 0,
+        "balancing_strategy": "remove"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    },
+    {
+      "id": "env-found",
+      "name": "Test Account 2 (Margin)",
+      "t_invest_token": "${TEST_TOKEN_1}",
+      "account_id": "987654321",
+      "desired_wallet": {
+        "TRUR": 40,
+        "TMOS": 30,
+        "TGLD": 20,
+        "TRAY": 10
+      },
+      "desired_mode": "marketcap",
+      "balance_interval": 1800,
+      "sleep_between_orders": 2000,
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 1.5,
+        "free_threshold": 50000,
+        "max_margin_size": 100000,
+        "balancing_strategy": "keep_if_small"
+      },
+      "exchange_closure_behavior": {
+        "mode": "dry_run",
+        "update_iteration_result": true
+      }
+    },
+    {
+      "id": "env-missing",
+      "name": "Test Account 3 (Aggressive)",
+      "t_invest_token": "${NONEXISTENT_TOKEN}",
+      "account_id": "456789123",
+      "desired_wallet": {
+        "TRUR": 15,
+        "TMOS": 15,
+        "TGLD": 15,
+        "TRAY": 15,
+        "TLCB": 10,
+        "TOFZ": 10,
+        "TBRU": 10,
+        "TMON": 5,
+        "TITR": 5
+      },
+      "desired_mode": "decorrelation",
+      "balance_interval": 900,
+      "sleep_between_orders": 500,
+      "margin_trading": {
+        "enabled": true,
+        "multiplier": 3,
+        "free_threshold": 20000,
+        "max_margin_size": 500000,
+        "balancing_strategy": "keep"
+      },
+      "exchange_closure_behavior": {
+        "mode": "force_orders",
+        "update_iteration_result": true
+      }
+    },
+    {
+      "id": "bad-weights",
+      "name": "Test Account 1",
+      "t_invest_token": "t.test_token_123",
+      "account_id": "123456789",
+      "desired_wallet": {
+        "TRUR": 50,
+        "TMOS": 30
+      },
+      "desired_mode": "manual",
+      "balance_interval": 3600,
+      "sleep_between_orders": 1000,
+      "margin_trading": {
+        "enabled": false,
+        "multiplier": 1,
+        "free_threshold": 10000,
+        "max_margin_size": 0,
+        "balancing_strategy": "remove"
+      },
+      "exchange_closure_behavior": {
+        "mode": "skip_iteration",
+        "update_iteration_result": false
+      }
+    }
+  ]
+}
